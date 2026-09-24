@@ -12,7 +12,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { listOrganisations, createOrganisation as createOrganisationApi } from '../../api/organisations/organisations.api';
-import { useAuthStore } from '../../stores/auth.store';
 
 /* ------------------------------------------------------------------ icons */
 const ICON_PLUS = (
@@ -296,9 +295,6 @@ interface Props {
 
 export function Org({ onViewOrganisation }: Props) {
   const navigate = useNavigate();
-  const userRole = useAuthStore((state) => state.userRole);
-  const permissions = useAuthStore((state) => state.permissions);
-  const canCreateOrganisation = userRole === 'org_user' && permissions.includes('organisations:create');
   const [orgs, setOrgs] = useState<OrganisationRecord[]>(() => seedOrganisations(34));
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
@@ -350,11 +346,9 @@ export function Org({ onViewOrganisation }: Props) {
         title="Organisations"
         subtitle="Every organisation on the platform and its authorization status."
         actions={
-          canCreateOrganisation ? (
-            <button type="button" className="ax-btn ax-btn--primary" onClick={() => setCreateOpen(true)}>
-              {ICON_PLUS}<span className="ax-btn__label">Create Organisation</span>
-            </button>
-          ) : null
+          <button type="button" className="ax-btn ax-btn--primary" onClick={() => setCreateOpen(true)}>
+            {ICON_PLUS}<span className="ax-btn__label">Create Organisation</span>
+          </button>
         }
       />
 
