@@ -1,5 +1,5 @@
 /*
- * Vireo React — Editable Table (tables/editable).
+ * Phause React — Editable Table (tables/editable).
  *
  * Faithful re-expression of src/html/tables/editable.html. The reference Alpine
  * `axEditable()` (click-to-edit cells, add/remove rows, dirty tracking, save/

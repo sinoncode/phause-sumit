@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Draggable Cards.
+ * Phause React — UI · Draggable Cards.
  * Faithful re-expression of src/html/ui/draggable-cards.html: a 4-column
  * drag-and-drop board. The page-local Alpine axBoard() component (HTML5 DnD
  * move within/across columns, drop-target accent glow, add-card, reset) is

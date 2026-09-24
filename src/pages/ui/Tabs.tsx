@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Tabs.
+ * Phause React — UI · Tabs.
  * Faithful re-expression of src/html/ui/tabs.html: line (animated underline),
  * pill, segmented, iconed and vertical tabs with live panels. The Alpine
  * x-data/axTabs state + the indicator measuring (offsetWidth/offsetLeft →
@@ -222,7 +222,7 @@ export function Tabs() {
                 <><svg className="ax-tabs__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4z" /><path d="M9 8h6" /><path d="M9 12h6" /><path d="M9 16h4" /></svg>Team</>,
               ]}
               panels={[
-                <><h3 style={{ margin: '0 0 var(--ax-space-2)', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>General</h3><p style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', margin: 0 }}>Workspace name, default locale and the avatar shown across Vireo.</p></>,
+                <><h3 style={{ margin: '0 0 var(--ax-space-2)', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>General</h3><p style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', margin: 0 }}>Workspace name, default locale and the avatar shown across Phause.</p></>,
                 <><h3 style={{ margin: '0 0 var(--ax-space-2)', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>Security</h3><p style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', margin: 0 }}>Two-factor enforcement, session length and a live device list.</p></>,
                 <><h3 style={{ margin: '0 0 var(--ax-space-2)', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>Billing</h3><p style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', margin: 0 }}>Plan <b style={{ color: 'var(--ax-text-strong)' }}>Business</b> · next invoice <b className="ax-num" style={{ color: 'var(--ax-text-strong)' }}>$99.00</b> on Jul 12.</p></>,
                 <><h3 style={{ margin: '0 0 var(--ax-space-2)', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>Team</h3><p style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', margin: 0 }}>9 members · 3 pending invites · 2 admins.</p></>,

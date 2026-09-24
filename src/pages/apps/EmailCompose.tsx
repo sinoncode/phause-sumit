@@ -1,5 +1,5 @@
 /*
- * Vireo React — New message (apps/email-compose).
+ * Phause React — New message (apps/email-compose).
  * 1:1 re-expression of src/html/apps/email-compose.html. Alpine axCompose()
  * → native React state (chips, Cc/Bcc, autosave, attachments, send).
  */
@@ -183,14 +183,14 @@ export function EmailCompose() {
             <div className="ax-card__body" style={{ paddingTop: 0, display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }}>
               <div className="ax-cluster" style={{ gap: 'var(--ax-space-3)', flexWrap: 'nowrap' }}>
                 <span className="ax-avatar ax-avatar--md ax-avatar--squircle" style={{ background: 'color-mix(in oklab,var(--ax-accent) 20%,transparent)', color: 'var(--ax-accent)' }}><b>JA</b></span>
-                <div style={{ minWidth: 0 }}><div style={{ fontWeight: 600, color: 'var(--ax-text-strong)' }}>Jawad Ahbab</div><div className="ax-num" style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>jawad@vireo.app</div></div>
+                <div style={{ minWidth: 0 }}><div style={{ fontWeight: 600, color: 'var(--ax-text-strong)' }}>Jawad Ahbab</div><div className="ax-num" style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>jawad@phause.app</div></div>
               </div>
               <div className="ax-field">
                 <label className="ax-label" htmlFor="from-select">From address</label>
                 <select id="from-select" className="ax-select">
-                  <option>jawad@vireo.app</option>
-                  <option>support@vireo.app</option>
-                  <option>billing@vireo.app</option>
+                  <option>jawad@phause.app</option>
+                  <option>support@phause.app</option>
+                  <option>billing@phause.app</option>
                 </select>
               </div>
               <label className="ax-check"><input type="checkbox" className="ax-checkbox" defaultChecked /><span style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text)' }}>Request read receipt</span></label>
@@ -206,8 +206,8 @@ export function EmailCompose() {
             <div className="ax-card__body" style={{ paddingTop: 0 }}>
               <div style={{ padding: 'var(--ax-space-3) var(--ax-space-4)', borderInlineStart: '2px solid var(--ax-accent)', background: 'var(--ax-surface-subtle)', borderRadius: 'var(--ax-radius-sm)', fontSize: 'var(--ax-text-sm)', lineHeight: 1.6 }}>
                 <b style={{ color: 'var(--ax-text-strong)' }}>Jawad Ahbab</b><br />
-                <span style={{ color: 'var(--ax-text-muted)' }}>Product Lead · Vireo</span><br />
-                <span className="ax-num" style={{ color: 'var(--ax-text-subtle)', fontSize: 'var(--ax-text-xs)' }}>+1 (415) 555-0142 · vireo.app</span>
+                <span style={{ color: 'var(--ax-text-muted)' }}>Product Lead · Phause</span><br />
+                <span className="ax-num" style={{ color: 'var(--ax-text-subtle)', fontSize: 'var(--ax-text-xs)' }}>+1 (415) 555-0142 · phause.app</span>
               </div>
             </div>
           </section>

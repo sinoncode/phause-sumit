@@ -1,5 +1,5 @@
 /*
- * Vireo React — effect-guarded ApexCharts component.
+ * Phause React — effect-guarded ApexCharts component.
  *
  * Lazy-imports apexcharts, renders into a ref'd <div>, and re-themes live on the
  * `ax:change` event (light↔dark, 12 accents, RTL) by re-reading the --ax-* token

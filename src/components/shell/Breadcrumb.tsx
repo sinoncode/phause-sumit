@@ -1,5 +1,5 @@
 /*
- * Vireo React — breadcrumb (manifest-driven, mirrors core/nav.js §6).
+ * Phause React — breadcrumb (manifest-driven, mirrors core/nav.js §6).
  *
  * Resolves the current route slug to its manifest node, then renders Home →
  * ancestor trail → current page, using the .ax-breadcrumb DOM contract. The

@@ -1,5 +1,5 @@
 /*
- * Vireo React — CRM pill sub-nav shared by the four CRM section pages
+ * Phause React — CRM pill sub-nav shared by the four CRM section pages
  * (contacts / companies / deals / leads). Mirrors the .ax-tabs--pill block
  * at the top of each reference CRM page; the active tab is set per page.
  */

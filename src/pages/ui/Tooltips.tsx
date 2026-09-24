@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Tooltips.
+ * Phause React — UI · Tooltips.
  * Faithful re-expression of src/html/ui/tooltips.html: four placements, glass vs
  * inverse variants, shortcut keys, icon-only affordances, a rich tooltip and the
  * native title fallback. The Alpine `axTooltip` (open on hover/focus, hide on

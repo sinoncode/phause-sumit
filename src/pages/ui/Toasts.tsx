@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Toasts.
+ * Phause React — UI · Toasts.
  * Faithful re-expression of src/html/ui/toasts.html: a live trigger that pushes
  * onto a queue (5 tones, 6 positions, 4s auto-dismiss with a timer line), a
  * positions reference grid, and the static tone/anatomy variants. The shared

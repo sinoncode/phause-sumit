@@ -1,5 +1,5 @@
 /*
- * Vireo React — LMS & Courses dashboard (route "dashboards/lms").
+ * Phause React — LMS & Courses dashboard (route "dashboards/lms").
  *
  * Faithful re-expression of src/html/dashboards/lms.html: an enrollments+revenue
  * mixed chart with a stacked .ax-statgroup KPI rail on a --flat card beside it,

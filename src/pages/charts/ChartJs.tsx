@@ -1,5 +1,5 @@
 /*
- * Vireo React — Chart.js Gallery (charts/chartjs).
+ * Phause React — Chart.js Gallery (charts/chartjs).
  *
  * Faithful re-expression of src/html/charts/chartjs.html. The reference renders
  * the whole gallery through the shared ApexCharts wrapper (proving cross-library

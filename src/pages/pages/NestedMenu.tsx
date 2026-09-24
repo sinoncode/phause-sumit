@@ -1,5 +1,5 @@
 /*
- * Vireo React — Nested Menu (route "pages/nested-menu").
+ * Phause React — Nested Menu (route "pages/nested-menu").
  *
  * Faithful re-expression of src/html/pages/nested-menu.html: a 4-level treeview
  * (role="tree") with expand/collapse, roving-tabindex keyboard model (↑↓→←

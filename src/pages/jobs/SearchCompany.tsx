@@ -1,5 +1,5 @@
 /*
- * Vireo React — Search Companies (route "jobs/search-company").
+ * Phause React — Search Companies (route "jobs/search-company").
  *
  * Faithful re-expression of src/html/jobs/search-company.html: a hero search
  * bar, a sticky filters sidebar (industry, size, min-open roles, min-rating,

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Google Maps (maps/google).
+ * Phause React — Google Maps (maps/google).
  *
  * Faithful re-expression of src/html/maps/google.html. The reference embeds a
  * keyless Google Maps iframe that recenters on the active location; the Alpine

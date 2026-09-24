@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Orders (route "ecommerce/orders").
+ * Phause React — Ecommerce / Orders (route "ecommerce/orders").
  *
  * Faithful re-expression of src/html/ecommerce/orders.html: a KPI strip, a
  * status-tab + filter toolbar over a searchable/sortable orders table with

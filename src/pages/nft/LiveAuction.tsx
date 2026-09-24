@@ -1,5 +1,5 @@
 /*
- * Vireo React — NFT Live Auction (route "nft/live-auction").
+ * Phause React — NFT Live Auction (route "nft/live-auction").
  *
  * Faithful re-expression of src/html/nft/live-auction.html: a filter bar
  * (All / Live / Ending soon / Ended chips + sort) and a responsive grid of

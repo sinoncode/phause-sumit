@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Links.
+ * Phause React — UI · Links.
  * Faithful re-expression of src/html/ui/links.html: underline variants, tones,
  * with-icon (leading/trailing/external), inline & quiet links in prose, and a
  * navigational link list. All anchors are dummy (#). DOM/classes/ARIA 1:1.

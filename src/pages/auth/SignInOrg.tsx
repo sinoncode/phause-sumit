@@ -94,7 +94,7 @@ export function SignInOrg() {
               <form className="ax-stack" onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }} noValidate>
                 <div className="ax-field">
                   <label className="ax-label" htmlFor="si-email">Email or username</label>
-                  <input id="si-email" type="text" className={`ax-input${emailErr ? ' is-invalid' : ''}`} autoComplete="username" placeholder="you@vireo.io"
+                  <input id="si-email" type="text" className={`ax-input${emailErr ? ' is-invalid' : ''}`} autoComplete="username" placeholder="you@phause.io"
                     value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={emailErr ? 'true' : 'false'} aria-describedby="si-email-msg" required />
                   {emailErr && <p id="si-email-msg" className="ax-field__message ax-field__message--error">{emailErr}</p>}
                 </div>
@@ -126,7 +126,7 @@ export function SignInOrg() {
               </form>
 
               {/* <p style={{ textAlign: 'center', margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
-                New to Vireo? <Link className="ax-link" to="/auth/sign-up-basic" style={{ fontWeight: 'var(--ax-weight-medium)' }}>Create an account</Link>
+                New to Phause? <Link className="ax-link" to="/auth/sign-up-basic" style={{ fontWeight: 'var(--ax-weight-medium)' }}>Create an account</Link>
               </p> */}
             </div>
           </section>

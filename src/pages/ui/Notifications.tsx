@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Notifications.
+ * Phause React — UI · Notifications.
  * Faithful re-expression of src/html/ui/notifications.html: the bell dropdown
  * panel (tab + unread → React state, mark-all-read), static item-type rows,
  * actionable rows that accept/decline and fire a toast, and dismissible inline

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Coming Soon (route "pages/coming-soon").
+ * Phause React — Coming Soon (route "pages/coming-soon").
  *
  * Faithful re-expression of src/html/pages/coming-soon.html: a standalone centered
  * launch screen with a live DD:HH:MM:SS countdown, a notify-me email form (with
@@ -67,11 +67,11 @@ export function ComingSoon() {
         <div style={{ width: '100%', maxWidth: 640, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 'var(--ax-space-7)' }}>
 
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--ax-space-4)' }}>
-            <a href="#" aria-label="Vireo home" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--ax-space-3)', textDecoration: 'none' }}>
+            <a href="#" aria-label="Phause home" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--ax-space-3)', textDecoration: 'none' }}>
               <span aria-hidden="true" style={{ display: 'inline-grid', placeItems: 'center', width: 42, height: 42, borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)', boxShadow: '0 8px 22px -8px rgba(var(--ax-accent-rgb),.7)' }}>
                 <svg viewBox="0 0 32 32" width={25} height={25} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="axmk0" x1={4} y1={4} x2={28} y2={28} gradientUnits="userSpaceOnUse"><stop stopColor="#2BC4B0" /><stop offset="0.55" stopColor="#1E9E96" /><stop offset="1" stopColor="#6D5CF0" /></linearGradient></defs><path d="M4 4 H16 A12 12 0 0 1 28 16 V28 A0 0 0 0 1 28 28 H16 A12 12 0 0 1 4 16 V4 Z" fill="url(#axmk0)" stroke="none" /><circle cx="20.5" cy="11.5" r="2.6" fill="#0A0C11" fillOpacity="0.92" stroke="none" /></svg>
               </span>
-              <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 600, fontSize: 'var(--ax-text-xl)', color: 'var(--ax-text-strong)', letterSpacing: '.01em' }}>Vireo</span>
+              <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 600, fontSize: 'var(--ax-text-xl)', color: 'var(--ax-text-strong)', letterSpacing: '.01em' }}>Phause</span>
             </a>
             <span className="ax-badge ax-badge--soft ax-badge--accent ax-badge--pill">
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth={1.9} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3" /><path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3" /></svg>
@@ -84,7 +84,7 @@ export function ComingSoon() {
               {live ? "We're live." : 'Something precise is on the way.'}
             </h1>
             <p style={{ margin: 'var(--ax-space-4) auto 0', maxWidth: '48ch', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-muted)', lineHeight: 1.55 }}>
-              The next Vireo release brings a redesigned analytics workspace, native dark glass surfaces, and 12 retunable accents. Be the first to know when it ships.
+              The next Phause release brings a redesigned analytics workspace, native dark glass surfaces, and 12 retunable accents. Be the first to know when it ships.
             </p>
           </div>
 
@@ -137,16 +137,16 @@ export function ComingSoon() {
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ax-space-2)' }}>
             <span style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-subtle)', marginInlineEnd: 'var(--ax-space-2)' }}>Follow along</span>
-            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Vireo on X">
+            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Phause on X">
               <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 4l11.733 16h4.267l-11.733 -16l-4.267 0" /><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772" /></svg>
             </a>
-            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Vireo on GitHub">
+            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Phause on GitHub">
               <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" /></svg>
             </a>
-            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Vireo on Dribbble">
+            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Phause on Dribbble">
               <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 3.6c5 6 7 10.5 7.5 16.2" /><path d="M6.4 19c3.5 -3.5 6 -6.5 14.5 -6.4" /><path d="M3.1 10.75c5 0 9.814 -.38 15.314 -5" /></svg>
             </a>
-            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Vireo on LinkedIn">
+            <a className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" href="#" aria-label="Phause on LinkedIn">
               <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M8 11v5" /><path d="M8 8v.01" /><path d="M12 16v-5" /><path d="M16 16v-3a2 2 0 1 0 -4 0" /><path d="M3 7a4 4 0 0 1 4 -4h10a4 4 0 0 1 4 4v10a4 4 0 0 1 -4 4h-10a4 4 0 0 1 -4 -4l0 -10" /></svg>
             </a>
           </div>

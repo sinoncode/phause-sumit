@@ -1,5 +1,5 @@
 /*
- * Vireo React — Data Table (tables/data-tables).
+ * Phause React — Data Table (tables/data-tables).
  *
  * Faithful re-expression of src/html/tables/data-tables.html. The reference
  * Alpine `axDataTable()` (global search, segment filter, column visibility,

@@ -1,5 +1,5 @@
 /*
- * Vireo React — customizer FONT control: Google Fonts catalog search + on-demand load.
+ * Phause React — customizer FONT control: Google Fonts catalog search + on-demand load.
  *
  * Direct TS port of src/js/core/fonts.js. Framework-free: it touches nothing but
  * `document` and a dynamic import, so the Next edition copies it verbatim.

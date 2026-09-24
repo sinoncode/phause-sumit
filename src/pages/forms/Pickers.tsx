@@ -1,5 +1,5 @@
 /*
- * Vireo React — Pickers (route "forms/pickers").
+ * Phause React — Pickers (route "forms/pickers").
  *
  * Faithful re-expression of src/html/forms/pickers.html: a single date picker
  * (month grid popover), a date-range picker (preset rail + range-washed mini

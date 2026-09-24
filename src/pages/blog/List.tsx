@@ -1,5 +1,5 @@
 /*
- * Vireo React — Blog list (route "blog/list").
+ * Phause React — Blog list (route "blog/list").
  *
  * Faithful re-expression of src/html/blog/list.html: a featured-post card, a
  * search + category-pill + sort toolbar, an auto-fill grid of post cards with a

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Leaflet Maps (maps/leaflet).
+ * Phause React — Leaflet Maps (maps/leaflet).
  *
  * Faithful re-expression of src/html/maps/leaflet.html + src/js/pages/maps-leaflet.js.
  * Renders a REAL Leaflet tile map (CARTO / OpenTopoMap basemaps, no API key) with

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Editors (route "forms/editor").
+ * Phause React — Editors (route "forms/editor").
  *
  * Faithful re-expression of src/html/forms/editor.html: a WYSIWYG rich-text card
  * (formatting toolbar with toggleable inline buttons + a contenteditable demo

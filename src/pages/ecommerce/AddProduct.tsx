@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Add product (route "ecommerce/add-product").
+ * Phause React — Ecommerce / Add product (route "ecommerce/add-product").
  *
  * Faithful re-expression of src/html/ecommerce/add-product.html: a 7-step
  * product builder (basic info, media dropzone, pricing with live margin, tracked
@@ -340,7 +340,7 @@ export function AddProduct() {
               <div style={{ padding: 'var(--ax-space-4)', border: '1px solid var(--ax-border)', borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-surface-subtle)' }}>
                 <div className="ax-cluster" style={{ gap: 'var(--ax-space-2)', marginBottom: 6 }}>
                   <span className="ax-avatar ax-avatar--xs ax-avatar--squircle" style={{ background: 'var(--ax-accent-wash)', color: 'var(--ax-accent)' }}><svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ width: 13, height: 13 }}><path d="M19.5 7a9 9 0 0 0 -7.5 -4a8.991 8.991 0 0 0 -7.484 4" /><path d="M11.5 3a16.989 16.989 0 0 0 -1.826 4" /><path d="M12.5 3a16.989 16.989 0 0 1 1.828 4" /><path d="M19.5 17a9 9 0 0 1 -7.5 4a8.991 8.991 0 0 1 -7.484 -4" /><path d="M2 10l1 4l1.5 -4l1.5 4l1 -4" /><path d="M17 10l1 4l1.5 -4l1.5 4l1 -4" /><path d="M9.5 10l1 4l1.5 -4l1.5 4l1 -4" /></svg></span>
-                  <span className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>{'vireo.store › products › ' + (form.handle || 'handle')}</span>
+                  <span className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>{'phause.store › products › ' + (form.handle || 'handle')}</span>
                 </div>
                 <div style={{ color: 'var(--ax-accent)', fontSize: 'var(--ax-text-md)', fontWeight: 'var(--ax-weight-medium)' }}>{form.metaTitle || form.title || 'Product page title'}</div>
                 <div style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)', lineHeight: 1.4, marginTop: 2 }}>{form.metaDesc || form.short || 'Your meta description preview appears here. Aim for 120–155 characters.'}</div>

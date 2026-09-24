@@ -1,5 +1,5 @@
 /*
- * Vireo React — shared helpers for the STANDALONE error pages (401/403/404/500/503).
+ * Phause React — shared helpers for the STANDALONE error pages (401/403/404/500/503).
  *
  * 1:1 re-expression of src/html/error/*.html. Each error screen is a full-viewport
  * standalone page (no app shell): the page loader, ambient glow, fixed top-right
@@ -46,11 +46,11 @@ const HEX_LOGO = (
 /** Centered brand lockup (links home). */
 export function StatusBrand() {
   return (
-    <Link to="/" aria-label="Vireo home" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--ax-space-3)', textDecoration: 'none' }}>
+    <Link to="/" aria-label="Phause home" style={{ display: 'inline-flex', alignItems: 'center', gap: 'var(--ax-space-3)', textDecoration: 'none' }}>
       <span aria-hidden="true" style={{ display: 'inline-grid', placeItems: 'center', width: 40, height: 40, borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)', boxShadow: '0 8px 22px -8px rgba(var(--ax-accent-rgb),.7)' }}>
         {HEX_LOGO}
       </span>
-      <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 600, fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)', letterSpacing: '.01em' }}>Vireo</span>
+      <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 600, fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)', letterSpacing: '.01em' }}>Phause</span>
     </Link>
   );
 }

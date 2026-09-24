@@ -1,5 +1,5 @@
 /*
- * Vireo React — Utilities · Positioning.
+ * Phause React — Utilities · Positioning.
  * 1:1 re-expression of src/html/utilities/position.html: absolute overlays
  * (corner badge + avatar status dot), an inset+transform dead-center media overlay,
  * sticky scroll-box section headers, a fixed toast & FAB demo and a z-index ladder.
@@ -95,7 +95,7 @@ export function Position() {
                 style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 54, height: 54, borderRadius: 'var(--ax-radius-pill)', background: 'var(--ax-surface-overlay)', border: '1px solid var(--ax-border-strong)', display: 'grid', placeItems: 'center', cursor: 'pointer', color: 'var(--ax-text-strong)', boxShadow: 'var(--ax-shadow-md)' }}>
                 <svg viewBox="0 0 24 24" width={22} height={22} fill="currentColor" stroke="none" aria-hidden="true"><path d="M8 5.14v13.72a1 1 0 0 0 1.5 .86l11 -6.86a1 1 0 0 0 0 -1.72l-11 -6.86a1 1 0 0 0 -1.5 .86z" /></svg>
               </button>
-              <span style={{ position: 'absolute', bottom: 'var(--ax-space-3)', left: 'var(--ax-space-4)', color: '#fff', fontWeight: 'var(--ax-weight-semibold)' }}>Vireo in 90 seconds</span>
+              <span style={{ position: 'absolute', bottom: 'var(--ax-space-3)', left: 'var(--ax-space-4)', color: '#fff', fontWeight: 'var(--ax-weight-semibold)' }}>Phause in 90 seconds</span>
             </div>
           </div>
         </section>

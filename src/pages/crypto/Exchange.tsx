@@ -1,5 +1,5 @@
 /*
- * Vireo React — Crypto Exchange (route "crypto/exchange").
+ * Phause React — Crypto Exchange (route "crypto/exchange").
  *
  * Faithful re-expression of src/html/crypto/exchange.html: crypto pill sub-nav,
  * a pair ticker strip, a 4-zone trading grid (markets list, candlestick chart,

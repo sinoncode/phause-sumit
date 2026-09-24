@@ -1,5 +1,5 @@
 /*
- * Vireo React — New project form (route "projects/create").
+ * Phause React — New project form (route "projects/create").
  *
  * Faithful re-expression of src/html/projects/create.html: a two-column create
  * form (details + colour picker, timeline with live duration, milestone repeater

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Product Tour (route "pages/tour").
+ * Phause React — Product Tour (route "pages/tour").
  *
  * Faithful re-expression of src/html/pages/tour.html: a sample dashboard whose
  * elements are spotlit by a guided coachmark walkthrough. The Alpine axTour()

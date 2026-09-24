@@ -1,5 +1,5 @@
 /*
- * Vireo React — Utilities · Helper utilities.
+ * Phause React — Utilities · Helper utilities.
  * 1:1 re-expression of src/html/utilities/helpers.html: single-line .ax-truncate,
  * multi-line .ax-clamp-N, tabular .ax-num numerics, .visually-hidden + .ax-skeleton
  * a11y/loading helpers and inline typography helpers (.ax-code/.ax-kbd/.ax-mark/

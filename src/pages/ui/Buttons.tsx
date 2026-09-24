@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Buttons.
+ * Phause React — UI · Buttons.
  * Faithful re-expression of src/html/ui/buttons.html: variants, pills, semantic
  * tones, sizes, icon, icon-only, the interactive loading-state block (Alpine
  * x-data save() → React state + setTimeout) and the variant×tone matrix table.

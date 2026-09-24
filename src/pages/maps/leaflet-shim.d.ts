@@ -1,5 +1,5 @@
 /*
- * Vireo React — minimal ambient shim for Leaflet.
+ * Phause React — minimal ambient shim for Leaflet.
  *
  * The leaflet runtime is available (hoisted from the repo root), but no
  * @types/leaflet is installed in this edition. The maps/Leaflet page lazy-imports

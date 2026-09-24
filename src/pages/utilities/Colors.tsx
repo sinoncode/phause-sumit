@@ -1,5 +1,5 @@
 /*
- * Vireo React — Utilities · Color tokens.
+ * Phause React — Utilities · Color tokens.
  * 1:1 re-expression of src/html/utilities/colors.html: surfaces & borders, text
  * emphasis steps, the status palette (50/200/500), the constant data-viz palette,
  * the live-derived accent ramp and a "never hard-code a hex" guidance alert. Every

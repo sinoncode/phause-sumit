@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Tour & Coachmarks.
+ * Phause React — UI · Tour & Coachmarks.
  * Faithful re-expression of src/html/ui/tour.html: a spotlighted walkthrough that
  * dims the page and anchors a coachmark popover to each real [data-tour] element,
  * with progress dots, keyboard nav (←/→/Enter/Esc), a skip path and a completion

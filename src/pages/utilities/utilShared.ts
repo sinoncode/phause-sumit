@@ -1,5 +1,5 @@
 /*
- * Vireo React — shared copy-flash hook for the utility/token pages.
+ * Phause React — shared copy-flash hook for the utility/token pages.
  *
  * Ports the Alpine `x-data="{ flash:null, copy(v){…} }"` pattern from the utilities
  * reference pages: clicking a token tile copies its CSS var to the clipboard and

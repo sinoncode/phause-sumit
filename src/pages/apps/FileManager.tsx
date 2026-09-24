@@ -1,5 +1,5 @@
 /*
- * Vireo React — File Manager (apps/file-manager).
+ * Phause React — File Manager (apps/file-manager).
  * 1:1 re-expression of src/html/apps/file-manager.html: rail (quick filters,
  * folder tree, storage) + grid/list browser + preview drawer + upload modal.
  * Alpine axFiles() → native React state.

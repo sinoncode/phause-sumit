@@ -1,5 +1,5 @@
 /*
- * Vireo React — eCommerce dashboard (route "dashboards/ecommerce").
+ * Phause React — eCommerce dashboard (route "dashboards/ecommerce").
  *
  * Faithful re-expression of src/html/dashboards/ecommerce.html: 4 KPI cards, a
  * Revenue & Orders mixed chart, Sales-by-category donut, channel breakdown,

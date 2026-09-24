@@ -1,5 +1,5 @@
 /*
- * Vireo React — icon glyph data for the icons/* gallery pages.
+ * Phause React — icon glyph data for the icons/* gallery pages.
  * Verbatim copy of the inline `iconGallery({icons:[…]})` arrays from the
  * reference src/html/icons/{tabler,line,solid,brands}.html. `o` = outline paths,
  * `f` = filled paths (24×24 grid, currentColor).

@@ -1,5 +1,5 @@
 /*
- * Vireo React — CRM Deals pipeline (route "crm/deals").
+ * Phause React — CRM Deals pipeline (route "crm/deals").
  *
  * Faithful re-expression of src/html/crm/deals.html: CRM pill sub-nav, a search
  * + owner filter + board/list segment toolbar, a drag-and-drop pipeline board

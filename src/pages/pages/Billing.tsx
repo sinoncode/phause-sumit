@@ -1,5 +1,5 @@
 /*
- * Vireo React — Billing (route "pages/billing").
+ * Phause React — Billing (route "pages/billing").
  *
  * Faithful re-expression of src/html/pages/billing.html: plan summary, usage
  * meters, dynamic payment-method list (add/remove/set-default), billing address,

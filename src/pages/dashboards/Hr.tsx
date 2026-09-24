@@ -1,5 +1,5 @@
 /*
- * Vireo React — HR & Payroll dashboard (route "dashboards/hr").
+ * Phause React — HR & Payroll dashboard (route "dashboards/hr").
  *
  * Faithful re-expression of src/html/dashboards/hr.html: a full-width "Key
  * figures" .ax-statgroup band on a --filled card, a headcount mixed chart +
@@ -56,10 +56,10 @@ const LEAVE_ROWS: Leave[] = [
 ];
 
 const HIRES = [
-  { color: '#38BDF8', name: 'Eli Whitman', email: 'eli.w@vireo.co', role: 'Frontend Engineer', dept: 'Engineering', deptTone: 'info', date: 'Jun 2', status: 'Active', statusTone: 'success' },
-  { color: '#A78BFA', name: 'Sofia Marin', email: 'sofia.m@vireo.co', role: 'Account Executive', dept: 'Sales', deptTone: 'accent', date: 'Jun 5', status: 'Active', statusTone: 'success' },
-  { color: '#FBBF24', name: 'Jordan Blake', email: 'jordan.b@vireo.co', role: 'Product Designer', dept: 'Design', deptTone: 'neutral', date: 'Jun 9', status: 'Onboarding', statusTone: 'warning' },
-  { color: '#34D399', name: 'Hana Suzuki', email: 'hana.s@vireo.co', role: 'Support Specialist', dept: 'Support', deptTone: 'info', date: 'Jun 12', status: 'Onboarding', statusTone: 'warning' },
+  { color: '#38BDF8', name: 'Eli Whitman', email: 'eli.w@phause.co', role: 'Frontend Engineer', dept: 'Engineering', deptTone: 'info', date: 'Jun 2', status: 'Active', statusTone: 'success' },
+  { color: '#A78BFA', name: 'Sofia Marin', email: 'sofia.m@phause.co', role: 'Account Executive', dept: 'Sales', deptTone: 'accent', date: 'Jun 5', status: 'Active', statusTone: 'success' },
+  { color: '#FBBF24', name: 'Jordan Blake', email: 'jordan.b@phause.co', role: 'Product Designer', dept: 'Design', deptTone: 'neutral', date: 'Jun 9', status: 'Onboarding', statusTone: 'warning' },
+  { color: '#34D399', name: 'Hana Suzuki', email: 'hana.s@phause.co', role: 'Support Specialist', dept: 'Support', deptTone: 'info', date: 'Jun 12', status: 'Onboarding', statusTone: 'warning' },
 ];
 
 export function Hr() {

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Stocks & Trading dashboard (route "dashboards/stocks").
+ * Phause React — Stocks & Trading dashboard (route "dashboards/stocks").
  *
  * Faithful re-expression of src/html/dashboards/stocks.html: a full-width index
  * strip with sparklines, 4 KPI cards, a portfolio-vs-benchmark area chart, a

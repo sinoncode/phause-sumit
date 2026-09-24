@@ -1,5 +1,5 @@
 /*
- * Vireo React — Events (route "pages/events").
+ * Phause React — Events (route "pages/events").
  *
  * Faithful re-expression of src/html/pages/events.html (+ its inline axEvents()
  * store): a featured next-up event, a toolbar (search / time filter / card-list

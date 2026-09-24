@@ -1,5 +1,5 @@
 /*
- * Vireo React — Floating Labels (route "forms/floating-labels").
+ * Phause React — Floating Labels (route "forms/floating-labels").
  *
  * Faithful re-expression of src/html/forms/floating-labels.html: basic floating
  * inputs, leading-icon variants, select/textarea, valid/invalid states and a
@@ -153,7 +153,7 @@ export function FormsFloatingLabels() {
                 <input id="fl-ok" type="text" className="ax-input ax-float__input is-valid" placeholder=" " defaultValue="northwind-labs" aria-describedby="fl-ok-msg" />
                 <label className="ax-float__label" htmlFor="fl-ok">Workspace handle</label>
               </div>
-              <span id="fl-ok-msg" className="ax-field__message ax-field__message--success" style={{ display: 'block', marginTop: 'var(--ax-space-2)' }}>vireo.app/northwind-labs is available.</span>
+              <span id="fl-ok-msg" className="ax-field__message ax-field__message--success" style={{ display: 'block', marginTop: 'var(--ax-space-2)' }}>phause.app/northwind-labs is available.</span>
             </div>
             <div>
               <div className="ax-float">

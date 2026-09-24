@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Customer details (route "ecommerce/customer-details").
+ * Phause React — Ecommerce / Customer details (route "ecommerce/customer-details").
  *
  * Faithful re-expression of src/html/ecommerce/customer-details.html: a profile
  * rail (avatar, badges, contact rows, tags, message/block actions) and a tabbed

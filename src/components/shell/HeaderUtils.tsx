@@ -1,5 +1,5 @@
 /*
- * Vireo React — shared header utility cluster.
+ * Phause React — shared header utility cluster.
  *
  * Faithful re-expression of partials/header-utils.html: items 4–11 of the
  * reference chrome — language menu, fullscreen, light/dark quick-toggle, app
@@ -249,7 +249,7 @@ export function HeaderUtils({ onCustomizer: _onCustomizer }: { onCustomizer: () 
       >
         <div className="ax-profile__card">
           <img className="ax-avatar" src="https://i.pravatar.cc/80?img=12" alt="" width={40} height={40} />
-          <span className="ax-profile__card-meta"><b>Jacob Gerrald</b><small>jacob@vireo.io</small></span>
+          <span className="ax-profile__card-meta"><b>Jacob Gerrald</b><small>jacob@phause.io</small></span>
         </div>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/profile">View Profile</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/profile-settings">Account Settings</Link>

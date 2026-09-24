@@ -1,5 +1,5 @@
 /*
- * Vireo React — CRM Leads (route "crm/leads").
+ * Phause React — CRM Leads (route "crm/leads").
  *
  * Faithful re-expression of src/html/crm/leads.html: CRM pill sub-nav, a
  * status-funnel KPI row, and the searchable/sortable/paginated leads table with

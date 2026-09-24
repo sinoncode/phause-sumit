@@ -1,5 +1,5 @@
 /*
- * Vireo React — NFT Details (route "nft/nft-details").
+ * Phause React — NFT Details (route "nft/nft-details").
  *
  * Faithful re-expression of src/html/nft/nft-details.html: a media plate, a
  * tabbed info panel (description / properties / history / offers), and a

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Tasks (apps/tasks).
+ * Phause React — Tasks (apps/tasks).
  * 1:1 re-expression of src/html/apps/tasks.html: grouped task table with search,
  * status/priority filters, bulk select. Alpine axTasks() → native React state.
  */

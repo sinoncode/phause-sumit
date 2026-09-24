@@ -1,5 +1,5 @@
 /*
- * Vireo React — Form Elements (route "forms/elements").
+ * Phause React — Form Elements (route "forms/elements").
  *
  * Faithful re-expression of src/html/forms/elements.html: every native control —
  * text/email/password inputs, number stepper, input groups, textarea + counter,
@@ -125,7 +125,7 @@ export function FormsElements() {
             <div className="ax-field">
               <label className="ax-label" htmlFor="fe-handle">Workspace URL</label>
               <div className="ax-input-group">
-                <span className="ax-input-group__addon">vireo.app/</span>
+                <span className="ax-input-group__addon">phause.app/</span>
                 <input id="fe-handle" type="text" className="ax-input" defaultValue="northwind-labs" />
               </div>
             </div>

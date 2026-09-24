@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Ratings.
+ * Phause React — UI · Ratings.
  * Faithful re-expression of src/html/ui/ratings.html: read-only star scores,
  * half-step stars + a review-distribution summary, three sizes, and an
  * interactive radiogroup (Alpine x-data rating/preview → React state) with hover

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Advanced Controls (route "forms/advanced").
+ * Phause React — Advanced Controls (route "forms/advanced").
  *
  * Faithful re-expression of src/html/forms/advanced.html: tag/chip inputs, an
  * email-chip validator, single + multi comboboxes, a typeahead autocomplete, a
@@ -47,7 +47,7 @@ export function FormsAdvanced() {
   const [tagDraft, setTagDraft] = useState('');
   const tagFieldRef = useRef<HTMLInputElement>(null);
 
-  const [emails, setEmails] = useState([{ value: 'maya.chen@vireo.app', valid: true }, { value: 'devon.okafor@vireo.app', valid: true }]);
+  const [emails, setEmails] = useState([{ value: 'maya.chen@phause.app', valid: true }, { value: 'devon.okafor@phause.app', valid: true }]);
   const [emailDraft, setEmailDraft] = useState('');
   const emailFieldRef = useRef<HTMLInputElement>(null);
 

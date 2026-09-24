@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Customers (route "ecommerce/customers").
+ * Phause React — Ecommerce / Customers (route "ecommerce/customers").
  *
  * Faithful re-expression of src/html/ecommerce/customers.html: a KPI strip and a
  * searchable/sortable customers table with segment/location filters, bulk-select,

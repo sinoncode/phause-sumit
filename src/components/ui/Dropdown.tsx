@@ -1,5 +1,5 @@
 /*
- * Vireo React — Dropdown primitive (native re-implementation of Alpine axDropdown).
+ * Phause React — Dropdown primitive (native re-implementation of Alpine axDropdown).
  *
  * Renders the reference DOM contract: a trigger button that toggles a panel,
  * with aria-haspopup/aria-expanded/aria-controls wired, close on outside-click

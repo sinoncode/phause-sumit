@@ -1,5 +1,5 @@
 /*
- * Vireo React — FAQ (route "pages/faq").
+ * Phause React — FAQ (route "pages/faq").
  *
  * Faithful re-expression of src/html/pages/faq.html: searchable + category-
  * filterable accordion with live query highlighting (the Alpine `filtered`
@@ -20,8 +20,8 @@ const ITEMS: Item[] = [
   { id: 'b3', cat: 'billing', q: 'Do prices include tax?', a: 'Listed prices are exclusive of VAT and sales tax. Applicable tax is calculated at checkout based on your billing address and shown on every invoice.' },
   { id: 's1', cat: 'security', q: 'Where is my data stored?', a: 'Data is stored in SOC 2 Type II certified data centers in your chosen region (US, EU or AP). It is encrypted at rest with AES-256 and in transit with TLS 1.3.' },
   { id: 's2', cat: 'security', q: 'Do you support two-factor authentication?', a: 'Yes — TOTP authenticator apps and hardware security keys (WebAuthn) are supported on all plans. Admins can enforce 2FA org-wide from Security settings.' },
-  { id: 's3', cat: 'security', q: 'How do I report a vulnerability?', a: 'Email security@vireo.io or use our responsible-disclosure form. Verified reports are eligible for a bounty and we acknowledge every submission within one business day.' },
-  { id: 'i1', cat: 'integrations', q: 'Which integrations are available?', a: 'Vireo connects natively with Slack, Linear, GitHub, Stripe, Google Workspace and 40+ other tools. Anything else can be wired through our REST API and webhooks.' },
+  { id: 's3', cat: 'security', q: 'How do I report a vulnerability?', a: 'Email security@phause.io or use our responsible-disclosure form. Verified reports are eligible for a bounty and we acknowledge every submission within one business day.' },
+  { id: 'i1', cat: 'integrations', q: 'Which integrations are available?', a: 'Phause connects natively with Slack, Linear, GitHub, Stripe, Google Workspace and 40+ other tools. Anything else can be wired through our REST API and webhooks.' },
   { id: 'i2', cat: 'integrations', q: 'Is there a public API?', a: 'Pro and above include a full REST API plus signed webhooks. Generate keys under Settings → Developer, and explore every endpoint in our interactive API reference.' },
 ];
 

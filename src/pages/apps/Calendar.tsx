@@ -1,5 +1,5 @@
 /*
- * Vireo React — Calendar (apps/calendar).
+ * Phause React — Calendar (apps/calendar).
  * 1:1 re-expression of src/html/apps/calendar.html: mini-month rail + month grid
  * (static cells, mirroring the reference) + agenda fallback + event editor modal.
  * Alpine inline x-data → native React state.

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Basic Tables (tables/basic).
+ * Phause React — Basic Tables (tables/basic).
  *
  * Faithful re-expression of src/html/tables/basic.html: default, striped+hover,
  * bordered, compact, contextual-row and responsive/totals table variants — all

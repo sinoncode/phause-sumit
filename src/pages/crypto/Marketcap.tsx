@@ -1,5 +1,5 @@
 /*
- * Vireo React — Crypto Marketcap (route "crypto/marketcap").
+ * Phause React — Crypto Marketcap (route "crypto/marketcap").
  *
  * Faithful re-expression of src/html/crypto/marketcap.html: crypto pill sub-nav,
  * a global stat strip (4 KPIs), and the searchable/sortable/filterable coins

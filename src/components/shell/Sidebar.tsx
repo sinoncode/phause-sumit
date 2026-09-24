@@ -1,5 +1,5 @@
 /*
- * Vireo React — Sidebar (manifest-driven nav tree).
+ * Phause React — Sidebar (manifest-driven nav tree).
  *
  * RBAC: Admin sees all nav items.
  * Org user sees only items where they hold the required permission.

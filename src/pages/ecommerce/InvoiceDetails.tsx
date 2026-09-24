@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Invoice details (route "ecommerce/invoice-details").
+ * Phause React — Ecommerce / Invoice details (route "ecommerce/invoice-details").
  *
  * Faithful re-expression of src/html/ecommerce/invoice-details.html: a printable
  * invoice paper (letterhead, from/to, meta strip, line items, totals, notes) plus
@@ -85,7 +85,7 @@ export function InvoiceDetails() {
                 <div className="ax-cluster" style={{ gap: 'var(--ax-space-3)' }}>
                   <span className="ax-avatar ax-avatar--lg ax-avatar--squircle" style={{ background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)' }}><svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M9 8l1 0" /><path d="M9 12l1 0" /><path d="M9 16l1 0" /><path d="M14 8l1 0" /><path d="M14 12l1 0" /><path d="M14 16l1 0" /><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" /></svg></span>
                   <div>
-                    <div style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 700, fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)', letterSpacing: '.01em' }}>Vireo Inc.</div>
+                    <div style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 700, fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)', letterSpacing: '.01em' }}>Phause Inc.</div>
                     <div style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>Marketplace operations</div>
                   </div>
                 </div>
@@ -99,7 +99,7 @@ export function InvoiceDetails() {
             <div className="ax-inv-parties" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--ax-space-6)', marginBottom: 'var(--ax-space-7)' }}>
               <div>
                 <div className="ax-label" style={{ marginBottom: 'var(--ax-space-2)' }}>Billed from</div>
-                <div style={{ fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)' }}>Vireo Inc.</div>
+                <div style={{ fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)' }}>Phause Inc.</div>
                 <address style={{ fontStyle: 'normal', color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)', lineHeight: 1.7, marginTop: 4 }}>
                   400 Market Street, Suite 1100<br />San Francisco · CA · <span className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)' }}>94111</span><br />United States<br />VAT <span className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)' }}>US-8841-2207</span>
                 </address>

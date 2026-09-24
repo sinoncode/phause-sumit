@@ -1,5 +1,5 @@
 /*
- * Vireo React — Kanban (apps/kanban).
+ * Phause React — Kanban (apps/kanban).
  * 1:1 re-expression of src/html/apps/kanban.html: 4-column board with native
  * HTML5 drag-and-drop, WIP limits, and a card-detail drawer. Alpine axKanban()
  * → native React state.

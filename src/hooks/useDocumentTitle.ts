@@ -1,5 +1,5 @@
 /*
- * Vireo React — document title sync (port of syncTitle() in src/js/core/nav.js).
+ * Phause React — document title sync (port of syncTitle() in src/js/core/nav.js).
  *
  * The nav manifest is the single source of truth for page titles, so acronym
  * casing ("CRM", "NFT Marketplace", "HR & Payroll") stays correct and can never
@@ -12,7 +12,7 @@ import { useLocation } from 'react-router-dom';
 import { manifest, slugFromPath } from '../lib/manifest';
 
 /** Suffix appended after the page name, matching the reference edition. */
-export const TITLE_SUFFIX = 'Vireo';
+export const TITLE_SUFFIX = 'Phause';
 
 /** Resolve the canonical manifest title for a router path, if one exists. */
 export function titleForPath(pathname: string): string | null {

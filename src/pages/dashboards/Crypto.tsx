@@ -1,5 +1,5 @@
 /*
- * Vireo React — Crypto dashboard (route "dashboards/crypto").
+ * Phause React — Crypto dashboard (route "dashboards/crypto").
  *
  * Faithful re-expression of src/html/dashboards/crypto.html: 4 KPI cards, a
  * market-movers ticker strip, portfolio-performance area + allocation donut,

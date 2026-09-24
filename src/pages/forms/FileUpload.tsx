@@ -1,5 +1,5 @@
 /*
- * Vireo React — File Upload (route "forms/file-upload").
+ * Phause React — File Upload (route "forms/file-upload").
  *
  * Faithful re-expression of src/html/forms/file-upload.html: a primary dropzone
  * with a live per-file progress list (done/uploading/error + retry), an avatar

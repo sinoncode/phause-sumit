@@ -1,5 +1,5 @@
 /*
- * Vireo React — Privacy Policy (route "pages/privacy").
+ * Phause React — Privacy Policy (route "pages/privacy").
  *
  * Faithful re-expression of src/html/pages/privacy.html: a long-form legal
  * document with a sticky TOC rail whose active link tracks the visible section
@@ -156,7 +156,7 @@ export function Privacy() {
             <section id="rights" style={SEC}>
               <h2 style={H2}>6. Your rights</h2>
               <p style={P}>Depending on your location, you may have the right to access, correct, delete or port your personal data, and to object to or restrict certain processing.</p>
-              <p style={P_LAST}>To exercise these rights, contact us at privacy@vireo.io. We will respond within the time required by applicable law, typically within 30 days.</p>
+              <p style={P_LAST}>To exercise these rights, contact us at privacy@phause.io. We will respond within the time required by applicable law, typically within 30 days.</p>
             </section>
 
             <section id="transfers" style={SEC}>
@@ -180,8 +180,8 @@ export function Privacy() {
               <div className="ax-cluster" style={{ gap: 'var(--ax-space-3)', flexWrap: 'nowrap', alignItems: 'center' }}>
                 <span className="ax-avatar ax-avatar--sm ax-avatar--squircle" style={{ background: 'var(--ax-accent-wash)', color: 'var(--ax-accent)' }}><svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg></span>
                 <div>
-                  <p style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>privacy@vireo.io</p>
-                  <p style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>Vireo, Inc. · Data Protection Officer · San Francisco, CA</p>
+                  <p style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>privacy@phause.io</p>
+                  <p style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>Phause, Inc. · Data Protection Officer · San Francisco, CA</p>
                 </div>
               </div>
             </section>

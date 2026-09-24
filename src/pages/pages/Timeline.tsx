@@ -1,5 +1,5 @@
 /*
- * Vireo React — Timeline (route "pages/timeline").
+ * Phause React — Timeline (route "pages/timeline").
  *
  * Faithful re-expression of src/html/pages/timeline.html: a day-grouped activity
  * feed with sticky date labels, a compact release-history rail and a marker-state

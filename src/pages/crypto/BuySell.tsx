@@ -1,5 +1,5 @@
 /*
- * Vireo React — Crypto Buy & Sell (route "crypto/buy-sell").
+ * Phause React — Crypto Buy & Sell (route "crypto/buy-sell").
  *
  * Faithful re-expression of src/html/crypto/buy-sell.html: crypto pill sub-nav,
  * an instant-convert order form (buy/sell toggle, amount, asset, live rate &
@@ -135,7 +135,7 @@ export function BuySell() {
                   <b className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)', color: 'var(--ax-text)' }}>1 <span>{asset}</span> = ${rate.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</b>
                 </div>
                 <div className="ax-cluster" style={{ justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>Vireo fee (0.49%)</span>
+                  <span style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>Phause fee (0.49%)</span>
                   <b className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)', color: 'var(--ax-text)' }}>${fee.toFixed(2)}</b>
                 </div>
                 <div className="ax-cluster" style={{ justifyContent: 'space-between' }}>

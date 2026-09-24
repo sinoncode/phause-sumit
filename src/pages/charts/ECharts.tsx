@@ -1,5 +1,5 @@
 /*
- * Vireo React — ECharts Gallery (charts/echarts).
+ * Phause React — ECharts Gallery (charts/echarts).
  *
  * Faithful re-expression of src/html/charts/echarts.html. As in the reference,
  * the gallery renders through the shared ApexCharts wrapper (gauges → radialBar,

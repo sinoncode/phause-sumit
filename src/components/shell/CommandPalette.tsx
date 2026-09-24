@@ -1,5 +1,5 @@
 /*
- * Vireo React — Command palette (⌘K).
+ * Phause React — Command palette (⌘K).
  *
  * Native re-implementation of core/command-palette.js rendering the shell of
  * partials/command.html: backdrop button, panel, query row (search icon + input

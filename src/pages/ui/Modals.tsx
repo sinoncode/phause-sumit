@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Modals.
+ * Phause React — UI · Modals.
  * Faithful re-expression of src/html/ui/modals.html: dialog sizes (sm/default/
  * lg/fullscreen), a destructive confirm (alertdialog), a form dialog, a
  * scrollable long-content dialog with an agree gate, and centered / top-aligned
@@ -256,7 +256,7 @@ export function Modals() {
           <button type="button" className="ax-modal__close" onClick={() => setScroll(false)} aria-label="Close dialog">{X}</button>
         </div>
         <div className="ax-modal__body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)', color: 'var(--ax-text-muted)' }}>
-          <p style={{ margin: 0 }}><b style={{ color: 'var(--ax-text-strong)' }}>1. Acceptance.</b> By using Vireo you agree to these terms in full. If you do not agree, do not use the product.</p>
+          <p style={{ margin: 0 }}><b style={{ color: 'var(--ax-text-strong)' }}>1. Acceptance.</b> By using Phause you agree to these terms in full. If you do not agree, do not use the product.</p>
           <p style={{ margin: 0 }}><b style={{ color: 'var(--ax-text-strong)' }}>2. License.</b> Northwind Labs grants you a non-exclusive licence to use the template on a single end product per regular licence.</p>
           <p style={{ margin: 0 }}><b style={{ color: 'var(--ax-text-strong)' }}>3. Restrictions.</b> You may not redistribute the source files as a competing template or stock item.</p>
           <p style={{ margin: 0 }}><b style={{ color: 'var(--ax-text-strong)' }}>4. Data.</b> All demo data shipped with the template is fictional and provided for illustration only.</p>

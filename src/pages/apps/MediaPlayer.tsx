@@ -1,5 +1,5 @@
 /*
- * Vireo React — Media Player (apps/media-player).
+ * Phause React — Media Player (apps/media-player).
  * 1:1 re-expression of src/html/apps/media-player.html: library rail + now-playing
  * card (scrubber, transport, volume, visualizer) + queue. Alpine axMedia() →
  * native React state with keyboard transport shortcuts.

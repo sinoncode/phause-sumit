@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Cards.
+ * Phause React — UI · Cards.
  * Faithful re-expression of src/html/ui/cards.html: stat (KPI) cards w/ sparklines,
  * chart + accent-edge card, three media cards, interactive selectable plan tiles
  * and a collapsible card. Charts go through <ApexChart> (effect-guarded, token-

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Widgets gallery (route "widgets").
+ * Phause React — Widgets gallery (route "widgets").
  * 1:1 re-expression of src/html/widgets.html: stat cards (KPI spark, icon+delta,
  * progress-to-goal, gradient stat), chart widgets (area spark, device donut with
  * center total, orders column), list & profile widgets (profile, top products,

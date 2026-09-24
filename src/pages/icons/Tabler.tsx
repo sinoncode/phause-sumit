@@ -1,5 +1,5 @@
 /*
- * Vireo React — Tabler Icons (icons/tabler).
+ * Phause React — Tabler Icons (icons/tabler).
  *
  * Faithful re-expression of src/html/icons/tabler.html. The shared <IconGallery>
  * carries the searchable grid + outline↔filled toggle + size/colour preview +

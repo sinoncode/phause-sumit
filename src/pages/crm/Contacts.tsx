@@ -1,5 +1,5 @@
 /*
- * Vireo React — CRM Contacts (route "crm/contacts").
+ * Phause React — CRM Contacts (route "crm/contacts").
  *
  * Faithful re-expression of src/html/crm/contacts.html: CRM pill sub-nav and a
  * people dataset in a searchable/filterable table with a dropdown sort that

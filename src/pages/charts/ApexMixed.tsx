@@ -1,5 +1,5 @@
 /*
- * Vireo React — Mixed Charts (charts/apex-mixed).
+ * Phause React — Mixed Charts (charts/apex-mixed).
  *
  * Faithful re-expression of src/html/charts/apex-mixed.html via <ApexChart>.
  * Per-series `type` (column/line/area) + dual y-axes are passed through `apex`.

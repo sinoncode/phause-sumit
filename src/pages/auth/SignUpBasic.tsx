@@ -1,5 +1,5 @@
 /*
- * Vireo React — Create your account (basic).
+ * Phause React — Create your account (basic).
  * 1:1 re-expression of src/html/auth/sign-up-basic.html: standalone centered
  * card, social row, name/email/password/confirm with a live strength meter and
  * a terms checkbox gating submit. Demo submit flashes "email already in use".
@@ -107,7 +107,7 @@ export function SignUpBasic() {
 
                 <div className="ax-field">
                   <label className="ax-label" htmlFor="su-email">Email</label>
-                  <input id="su-email" type="email" className={`ax-input${emailErr ? ' is-invalid' : ''}`} autoComplete="email" placeholder="you@vireo.io"
+                  <input id="su-email" type="email" className={`ax-input${emailErr ? ' is-invalid' : ''}`} autoComplete="email" placeholder="you@phause.io"
                     value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={emailErr ? 'true' : 'false'} aria-describedby="su-email-msg" required />
                   {emailErr && <p id="su-email-msg" className="ax-field__message ax-field__message--error">{emailErr}</p>}
                 </div>

@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Dropdowns.
+ * Phause React — UI · Dropdowns.
  * Faithful re-expression of src/html/ui/dropdowns.html: directions (down/up/end/
  * start), an icons+shortcuts+danger menu, a grouped headers/sections profile menu,
  * checkable (radio) sort, multi-toggle (checkbox) columns, and a split-button menu.

@@ -1,5 +1,5 @@
 /*
- * Vireo React — NFT Marketplace (route "nft/marketplace").
+ * Phause React — NFT Marketplace (route "nft/marketplace").
  *
  * Faithful re-expression of src/html/nft/marketplace.html: a sticky filter rail
  * (status chips, price range, category checkboxes, chain, verified switch), a

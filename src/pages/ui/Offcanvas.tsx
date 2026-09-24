@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Offcanvas.
+ * Phause React — UI · Offcanvas.
  * Faithful re-expression of src/html/ui/offcanvas.html: slide-in drawers from
  * every edge (start filters, end cart, top notifications, bottom share sheet)
  * plus compact/wide/default end-drawer widths and a settings drawer. Alpine
@@ -244,7 +244,7 @@ export function OffcanvasPage() {
           <div className="ax-field" style={{ marginTop: 'var(--ax-space-5)' }}>
             <label className="ax-label" htmlFor="oc-link">Shareable link</label>
             <div className="ax-cluster" style={{ gap: 'var(--ax-space-2)', flexWrap: 'nowrap' }}>
-              <input id="oc-link" type="text" className="ax-input" readOnly value="https://app.vireo.io/r/748-2k-jun" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-sm)' }} />
+              <input id="oc-link" type="text" className="ax-input" readOnly value="https://app.phause.io/r/748-2k-jun" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-sm)' }} />
               <button type="button" className="ax-btn ax-btn--primary" onClick={() => toast('Link copied', 2000)}>Copy</button>
             </div>
           </div>

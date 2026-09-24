@@ -1,5 +1,5 @@
 /*
- * Vireo React — Input Masks (route "forms/input-masks").
+ * Phause React — Input Masks (route "forms/input-masks").
  *
  * Faithful re-expression of src/html/forms/input-masks.html: guided entry for
  * phone/EIN/IP, card/expiry/CVC/IBAN, currency/percent/weight, ISO date + clock +

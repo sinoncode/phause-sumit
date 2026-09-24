@@ -1,5 +1,5 @@
 /*
- * Vireo React — Line Charts (charts/apex-line).
+ * Phause React — Line Charts (charts/apex-line).
  *
  * Faithful re-expression of src/html/charts/apex-line.html via <ApexChart>.
  * Basic line has a native chart/table tab toggle. Colours resolve live from

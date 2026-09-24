@@ -1,5 +1,5 @@
 /*
- * Vireo React — CRM dashboard (route "dashboards/crm").
+ * Phause React — CRM dashboard (route "dashboards/crm").
  *
  * Faithful re-expression of src/html/dashboards/crm.html: 4 KPI cards, a
  * Deals-by-stage horizontal stacked bar, lead-source donut, revenue forecast

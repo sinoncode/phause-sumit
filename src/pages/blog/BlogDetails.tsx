@@ -1,5 +1,5 @@
 /*
- * Vireo React — Blog details (route "blog/blog-details").
+ * Phause React — Blog details (route "blog/blog-details").
  *
  * Faithful re-expression of src/html/blog/blog-details.html: a hero cover, a
  * rich article body (callout, code block w/ copy, blockquote, tags), an author

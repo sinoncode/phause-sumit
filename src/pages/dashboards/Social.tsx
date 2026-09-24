@@ -1,5 +1,5 @@
 /*
- * Vireo React — Social Media dashboard (route "dashboards/social").
+ * Phause React — Social Media dashboard (route "dashboards/social").
  *
  * Faithful re-expression of src/html/dashboards/social.html: an audience-growth
  * area chart with an "At a glance" .ax-statgroup rail (.ax-card--flat) beside it,

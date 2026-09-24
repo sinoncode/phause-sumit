@@ -1,5 +1,5 @@
 /*
- * Vireo React — Projects dashboard (route "dashboards/projects").
+ * Phause React — Projects dashboard (route "dashboards/projects").
  *
  * Faithful re-expression of src/html/dashboards/projects.html: 4 KPI cards, a
  * Task-Throughput column chart, project-status donut, a CSS gantt schedule,

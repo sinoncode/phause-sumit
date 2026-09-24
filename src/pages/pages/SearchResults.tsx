@@ -1,5 +1,5 @@
 /*
- * Vireo React — Search Results (route "pages/search-results").
+ * Phause React — Search Results (route "pages/search-results").
  *
  * Faithful re-expression of src/html/pages/search-results.html: a faceted search
  * layout — type facets, date filter, search tips, scrollable result tabs, a
@@ -22,22 +22,22 @@ function AvatarIcon({ kind }: { kind: string }) {
   return <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{ICONS[kind]}</svg>;
 }
 
-// Highlight every "vireo" (case-insensitive) with <mark class="ax-mark">.
+// Highlight every "phause" (case-insensitive) with <mark class="ax-mark">.
 function mark(s: string): ReactNode {
-  const parts = s.split(/(vireo)/gi);
-  return parts.map((p, i) => (/^vireo$/i.test(p) ? <mark key={i} className="ax-mark">{p}</mark> : <span key={i} style={{ display: 'contents' }}>{p}</span>));
+  const parts = s.split(/(phause)/gi);
+  return parts.map((p, i) => (/^phause$/i.test(p) ? <mark key={i} className="ax-mark">{p}</mark> : <span key={i} style={{ display: 'contents' }}>{p}</span>));
 }
 
 interface Result { id: number; type: string; typeLabel: string; tint: string; title: ReactNode; snippet: ReactNode; path: ReactNode; when: string; }
 
 const RAW: { id: number; type: string; typeLabel: string; tint: string; title: string; titleMark?: boolean; snippet: string; path: string; when: string }[] = [
-  { id: 1, type: 'page', typeLabel: 'Page', tint: 'var(--ax-viz-cyan)', title: 'Vireo — Sales dashboard', titleMark: true, snippet: 'The flagship Vireo dashboard with revenue KPIs, area chart and recent transactions.', path: 'Dashboards › Sales', when: '2h ago' },
-  { id: 2, type: 'person', typeLabel: 'Person', tint: 'var(--ax-viz-violet)', title: 'Mara Lindqvist', snippet: 'Staff engineer on the Vireo charts team · mara@vireo.io', path: 'People › Engineering', when: 'Online' },
-  { id: 3, type: 'file', typeLabel: 'File', tint: 'var(--ax-viz-pink)', title: 'vireo-brand-guidelines.pdf', titleMark: true, snippet: 'Aurora visual language — color tokens, typography and the Vireo notch mark.', path: 'Files › Brand', when: 'Jun 24' },
-  { id: 4, type: 'project', typeLabel: 'Project', tint: 'var(--ax-viz-emerald)', title: 'Vireo 2.4 — Aurora migration', titleMark: true, snippet: 'Migrate all specs to the Aurora glass language across the Vireo component kit.', path: 'Projects › Active', when: 'Jun 22' },
-  { id: 5, type: 'page', typeLabel: 'Page', tint: 'var(--ax-viz-cyan)', title: 'Vireo pricing', titleMark: true, snippet: 'Compare Starter, Pro and Business tiers for the Vireo platform.', path: 'Pages › Pricing', when: 'Jun 19' },
-  { id: 6, type: 'file', typeLabel: 'File', tint: 'var(--ax-viz-pink)', title: 'vireo-changelog.md', titleMark: true, snippet: 'Release notes for every Vireo version since 1.0.0.', path: 'Files › Docs', when: 'Jun 18' },
-  { id: 7, type: 'person', typeLabel: 'Person', tint: 'var(--ax-viz-violet)', title: 'Devon Okafor', snippet: 'Product designer — owns the Vireo empty-state illustrations.', path: 'People › Design', when: '2d ago' },
+  { id: 1, type: 'page', typeLabel: 'Page', tint: 'var(--ax-viz-cyan)', title: 'Phause — Sales dashboard', titleMark: true, snippet: 'The flagship Phause dashboard with revenue KPIs, area chart and recent transactions.', path: 'Dashboards › Sales', when: '2h ago' },
+  { id: 2, type: 'person', typeLabel: 'Person', tint: 'var(--ax-viz-violet)', title: 'Mara Lindqvist', snippet: 'Staff engineer on the Phause charts team · mara@phause.io', path: 'People › Engineering', when: 'Online' },
+  { id: 3, type: 'file', typeLabel: 'File', tint: 'var(--ax-viz-pink)', title: 'phause-brand-guidelines.pdf', titleMark: true, snippet: 'Aurora visual language — color tokens, typography and the Phause notch mark.', path: 'Files › Brand', when: 'Jun 24' },
+  { id: 4, type: 'project', typeLabel: 'Project', tint: 'var(--ax-viz-emerald)', title: 'Phause 2.4 — Aurora migration', titleMark: true, snippet: 'Migrate all specs to the Aurora glass language across the Phause component kit.', path: 'Projects › Active', when: 'Jun 22' },
+  { id: 5, type: 'page', typeLabel: 'Page', tint: 'var(--ax-viz-cyan)', title: 'Phause pricing', titleMark: true, snippet: 'Compare Starter, Pro and Business tiers for the Phause platform.', path: 'Pages › Pricing', when: 'Jun 19' },
+  { id: 6, type: 'file', typeLabel: 'File', tint: 'var(--ax-viz-pink)', title: 'phause-changelog.md', titleMark: true, snippet: 'Release notes for every Phause version since 1.0.0.', path: 'Files › Docs', when: 'Jun 18' },
+  { id: 7, type: 'person', typeLabel: 'Person', tint: 'var(--ax-viz-violet)', title: 'Devon Okafor', snippet: 'Product designer — owns the Phause empty-state illustrations.', path: 'People › Design', when: '2d ago' },
 ];
 
 const RESULTS: Result[] = RAW.map((r) => ({
@@ -48,8 +48,8 @@ const RESULTS: Result[] = RAW.map((r) => ({
 }));
 
 export function SearchResults() {
-  const [query] = useState('vireo');
-  const [draft, setDraft] = useState('vireo');
+  const [query] = useState('phause');
+  const [draft, setDraft] = useState('phause');
   const [tab, setTab] = useState('all');
 
   const total = RESULTS.length;

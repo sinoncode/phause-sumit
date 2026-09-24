@@ -1,5 +1,5 @@
 /*
- * Vireo React — School Admin dashboard (route "dashboards/school").
+ * Phause React — School Admin dashboard (route "dashboards/school").
  *
  * Faithful re-expression of src/html/dashboards/school.html: a full-width "Key
  * figures" .ax-statgroup band on an .ax-card--filled, an

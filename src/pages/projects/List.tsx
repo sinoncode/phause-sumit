@@ -1,5 +1,5 @@
 /*
- * Vireo React — Projects list (route "projects/list").
+ * Phause React — Projects list (route "projects/list").
  *
  * Faithful re-expression of src/html/projects/list.html: a filter toolbar
  * (search, status pills, sort select, card/list view segment) over a projects

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Profile (route "pages/profile").
+ * Phause React — Profile (route "pages/profile").
  *
  * Faithful re-expression of src/html/pages/profile.html: an identity header with
  * cover band + ringed avatar, a 4-stat strip, a left rail (About / Skills /

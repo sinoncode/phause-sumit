@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Accordions.
+ * Phause React — UI · Accordions.
  * Faithful re-expression of src/html/ui/accordions.html: single-open, multi-open,
  * bordered, flush and icon-led variants. The Alpine x-data/x-collapse open state
  * is ported to React state; aria-expanded + aria-controls preserved. The icon-led
@@ -57,7 +57,7 @@ export function Accordions() {
           </div>
           <div className="ax-card__body" style={{ paddingTop: 0 }}>
             <div className="ax-accordion">
-              <Item id="sa-1" title="What is included in the Vireo license?" expanded={single === 1} onToggle={() => setSingle(single === 1 ? null : 1)}>
+              <Item id="sa-1" title="What is included in the Phause license?" expanded={single === 1} onToggle={() => setSingle(single === 1 ? null : 1)}>
                 A single regular license covers one end product. It bundles all 9 framework editions, lifetime updates and 6 months of support, extendable to 12.
               </Item>
               <Item id="sa-2" title="Can I use it for a client project?" expanded={single === 2} onToggle={() => setSingle(single === 2 ? null : 2)}>
@@ -106,7 +106,7 @@ export function Accordions() {
           <div className="ax-card__body" style={{ paddingTop: 0 }}>
             <div className="ax-accordion ax-accordion--bordered">
               <Item id="ba-1" title="Connect your data source" expanded={bordered === 1} onToggle={() => setBordered(bordered === 1 ? null : 1)}>
-                Link a warehouse, a REST endpoint or upload a CSV. Vireo maps columns automatically and previews the first rows before import.
+                Link a warehouse, a REST endpoint or upload a CSV. Phause maps columns automatically and previews the first rows before import.
               </Item>
               <Item id="ba-2" title="Build your first dashboard" expanded={bordered === 2} onToggle={() => setBordered(bordered === 2 ? null : 2)}>
                 Drag KPI cards, charts and tables onto the grid. Every widget rethemes with your accent and respects the 12-column layout.

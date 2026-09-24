@@ -1,5 +1,5 @@
 /*
- * Vireo React — CRM Companies (route "crm/companies").
+ * Phause React — CRM Companies (route "crm/companies").
  *
  * Faithful re-expression of src/html/crm/companies.html: CRM pill sub-nav, a
  * KPI row, and a companies dataset rendered as either a sortable/paginated

@@ -1,5 +1,5 @@
 /*
- * Vireo React — NFT Marketplace dashboard (route "dashboards/nft").
+ * Phause React — NFT Marketplace dashboard (route "dashboards/nft").
  *
  * Faithful re-expression of src/html/dashboards/nft.html: a full-width "Key
  * figures" .ax-statgroup band on a --filled card, a Volume & Floor mixed chart,

@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Button group.
+ * Phause React — UI · Button group.
  * Faithful re-expression of src/html/ui/button-group.html: joined groups,
  * vertical, segmented radios, multi-toggle, the editor toolbar, split button
  * with an outside/Escape-closing caret menu, and a full-width billing switch.

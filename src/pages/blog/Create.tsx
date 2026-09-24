@@ -1,5 +1,5 @@
 /*
- * Vireo React — New Post (route "blog/create").
+ * Phause React — New Post (route "blog/create").
  *
  * Faithful re-expression of src/html/blog/create.html: a title/slug/excerpt
  * card, a cover-image dropzone/preview, a body editor w/ toolbar + word count,
@@ -158,7 +158,7 @@ export function BlogCreate() {
             <div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Search &amp; social preview</h2><p className="ax-card__subtitle">How this post appears in search results and shares.</p></div></div>
             <div className="ax-card__body" style={{ paddingTop: 0, display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-5)' }}>
               <div style={{ padding: 'var(--ax-space-4)', border: '1px solid var(--ax-border)', borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-surface-subtle)' }}>
-                <span className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>{'vireo.blog › blog › ' + (slug || 'your-post-slug')}</span>
+                <span className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>{'phause.blog › blog › ' + (slug || 'your-post-slug')}</span>
                 <div style={{ color: 'var(--ax-accent)', fontSize: 'var(--ax-text-md)', fontWeight: 'var(--ax-weight-medium)', marginTop: 4 }}>{metaTitle || title || 'Your post title'}</div>
                 <div style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)', lineHeight: 1.4, marginTop: 2 }}>{metaDesc || excerpt || 'Your meta description appears here. Aim for 120–155 characters.'}</div>
               </div>

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Post a Job (route "jobs/job-post").
+ * Phause React — Post a Job (route "jobs/job-post").
  *
  * Faithful re-expression of src/html/jobs/job-post.html: a 6-step posting form
  * (role details, compensation, description w/ editor toolbar, dynamic

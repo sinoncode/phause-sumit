@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Typography.
+ * Phause React — UI · Typography.
  * Faithful re-expression of src/html/ui/typography.html: the Aurora type scale,
  * the three typefaces, headings, lead/body prose, inline elements, blockquote,
  * lists and a syntax-tinted code block. Static markup; the "Copy" button uses
@@ -111,7 +111,7 @@ export function Typography() {
           </div>
           <div className="ax-card__body" style={{ paddingTop: 0, display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-3)' }}>
             <p style={{ margin: 0, fontSize: 'var(--ax-text-lg)', lineHeight: 1.5, color: 'var(--ax-text)', fontWeight: 'var(--ax-weight-medium)' }}>
-              Vireo ships nine dashboard editions from one design system, so a Sales view feels identical whether it renders in React, Vue, or Laravel.
+              Phause ships nine dashboard editions from one design system, so a Sales view feels identical whether it renders in React, Vue, or Laravel.
             </p>
             <p style={{ margin: 0, fontSize: 'var(--ax-text-md)', lineHeight: 1.65, color: 'var(--ax-text-muted)' }}>
               Every surface resolves to a role token, which is why all twelve accent presets retheme with no extra CSS. Body copy sits at the medium step with comfortable leading; the lead line above carries slightly more weight and air to anchor the section.
@@ -152,7 +152,7 @@ export function Typography() {
           <div className="ax-card__body" style={{ paddingTop: 0 }}>
             <blockquote style={{ margin: 0, padding: 'var(--ax-space-2) 0 var(--ax-space-2) var(--ax-space-5)', borderInlineStart: '3px solid var(--ax-accent)' }}>
               <p style={{ margin: 0, fontSize: 'var(--ax-text-lg)', lineHeight: 1.55, color: 'var(--ax-text-strong)', fontWeight: 'var(--ax-weight-medium)' }}>
-                We replaced four bespoke admin builds with Vireo and shipped the new billing flow in a single sprint — the token system did most of the work.
+                We replaced four bespoke admin builds with Phause and shipped the new billing flow in a single sprint — the token system did most of the work.
               </p>
               <footer style={{ marginTop: 'var(--ax-space-3)', fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
                 — <cite style={{ fontStyle: 'normal', fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text)' }}>Marcus Reyes</cite>, Engineering Manager at Northwind Labs

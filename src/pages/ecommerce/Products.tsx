@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Products (route "ecommerce/products").
+ * Phause React — Ecommerce / Products (route "ecommerce/products").
  *
  * Faithful re-expression of src/html/ecommerce/products.html: a sticky filter
  * rail (category tree, price range, availability, rating) over a searchable,

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Sparklines (charts/sparklines).
+ * Phause React — Sparklines (charts/sparklines).
  *
  * Faithful re-expression of src/html/charts/sparklines.html via <ApexChart> in
  * sparkline mode (no axes/grid/legend). Hero KPI tiles, compact metric tiles,

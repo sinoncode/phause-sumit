@@ -1,5 +1,5 @@
 /*
- * Vireo React — router + route registry (FULL wiring, code-split).
+ * Phause React — router + route registry (FULL wiring, code-split).
  *
  * Every one of the 185 manifest slugs resolves to its real page component, each
  * lazy-loaded (React.lazy) so the shell ships small and page code is fetched on

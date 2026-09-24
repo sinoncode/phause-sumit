@@ -1,5 +1,5 @@
 /*
- * Vireo React — Testimonials (route "pages/testimonials").
+ * Phause React — Testimonials (route "pages/testimonials").
  *
  * Faithful re-expression of src/html/pages/testimonials.html: a featured quote,
  * role filter chips (Alpine `filter` ported to React state), a masonry wall of
@@ -37,9 +37,9 @@ interface Quote {
 
 const QUOTES: Quote[] = [
   { role: 'engineer', stars: 5, body: "The component library is genuinely the best I've used. Tokens are clean, dark mode just works, and the charts re-theme with the accent automatically. Saved us weeks.", init: 'MB', tint: 'var(--ax-viz-cyan)', name: 'Marcus Bell', meta: 'Staff Engineer · Quanta', label: 'Testimonial from Marcus Bell' },
-  { role: 'founder', stars: 5, body: 'We launched our SaaS admin on Vireo and closed our first enterprise deal partly because the product looked so polished in the demo. It punches way above a template.', init: 'PA', tint: 'var(--ax-viz-pink)', name: 'Priya Anand', meta: 'Co-founder & CEO · Cadence', label: 'Testimonial from Priya Anand' },
-  { role: 'designer', stars: 4, body: "As a designer I'm picky about spacing and type. Vireo is the first template where I didn't immediately want to rip out the styles. The Aurora glass is tasteful.", init: 'TR', tint: 'var(--ax-viz-amber)', name: 'Tom Riley', meta: 'Lead Product Designer · Vellum', label: 'Testimonial from Tom Riley' },
-  { role: 'pm', stars: 5, body: 'Onboarding new PMs is so much faster now — every internal tool shares the same Vireo shell, so people already know where everything lives.', init: 'SC', tint: 'var(--ax-viz-emerald)', name: 'Sofia Castellano', meta: 'Group PM · Helio', label: 'Testimonial from Sofia Castellano' },
+  { role: 'founder', stars: 5, body: 'We launched our SaaS admin on Phause and closed our first enterprise deal partly because the product looked so polished in the demo. It punches way above a template.', init: 'PA', tint: 'var(--ax-viz-pink)', name: 'Priya Anand', meta: 'Co-founder & CEO · Cadence', label: 'Testimonial from Priya Anand' },
+  { role: 'designer', stars: 4, body: "As a designer I'm picky about spacing and type. Phause is the first template where I didn't immediately want to rip out the styles. The Aurora glass is tasteful.", init: 'TR', tint: 'var(--ax-viz-amber)', name: 'Tom Riley', meta: 'Lead Product Designer · Vellum', label: 'Testimonial from Tom Riley' },
+  { role: 'pm', stars: 5, body: 'Onboarding new PMs is so much faster now — every internal tool shares the same Phause shell, so people already know where everything lives.', init: 'SC', tint: 'var(--ax-viz-emerald)', name: 'Sofia Castellano', meta: 'Group PM · Helio', label: 'Testimonial from Sofia Castellano' },
   { role: 'engineer', stars: 5, body: "The Vite + Tailwind v4 setup is exactly how I'd build it myself. No fighting the framework. I added a custom dashboard in an afternoon and it felt native.", init: 'DO', tint: 'var(--ax-viz-cyan)', name: 'Daniel Okonkwo', meta: 'Frontend Lead · Brightside', label: 'Testimonial from Daniel Okonkwo' },
   { role: 'founder', stars: 5, body: 'Support has been outstanding — a real engineer answered my edge-case question within hours with a working snippet. That\'s rare for a one-time purchase.', init: 'HL', tint: 'var(--ax-viz-violet)', name: 'Hannah Lindqvist', meta: 'Founder · Tideway', label: 'Testimonial from Hannah Lindqvist' },
   { role: 'designer', stars: 5, body: '12 accent presets and they all stay accessible. I switched our brand to teal in one click and every chart, badge and button followed. Honestly delightful.', init: 'KW', tint: 'var(--ax-viz-pink)', name: 'Kenji Watanabe', meta: 'Design Systems · Pace', label: 'Testimonial from Kenji Watanabe' },
@@ -70,7 +70,7 @@ export function Testimonials() {
     <>
       <PageHead
         title="Testimonials"
-        subtitle="What product teams, founders and engineers say about building on Vireo."
+        subtitle="What product teams, founders and engineers say about building on Phause."
         actions={
           <>
             <a className="ax-btn ax-btn--secondary" href="#"><span className="ax-btn__label">See pricing</span></a>
@@ -87,7 +87,7 @@ export function Testimonials() {
           <div className="ax-card__body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-5)', padding: 'var(--ax-space-8)' }}>
             <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--ax-accent)" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ opacity: 0.9 }}><path d="M10 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5" /><path d="M19 11h-4a1 1 0 0 1 -1 -1v-3a1 1 0 0 1 1 -1h3a1 1 0 0 1 1 1v6c0 2.667 -1.333 4.333 -4 5" /></svg>
             <blockquote style={{ margin: 0, fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-xl)', lineHeight: 1.5, color: 'var(--ax-text-strong)', fontWeight: 500, maxWidth: '60ch' }}>
-              Vireo replaced three separate tools for us. The Aurora design system meant we shipped a fully branded admin in a weekend, not a quarter — and our customers actually compliment the dashboards now.
+              Phause replaced three separate tools for us. The Aurora design system meant we shipped a fully branded admin in a weekend, not a quarter — and our customers actually compliment the dashboards now.
             </blockquote>
             <div className="ax-cluster" style={{ gap: 'var(--ax-space-3)', flexWrap: 'nowrap', alignItems: 'center' }}>
               <span className="ax-avatar ax-avatar--lg ax-avatar--ringed" style={{ background: 'color-mix(in oklab,var(--ax-viz-violet) 22%,transparent)', color: 'var(--ax-viz-violet)' }}><span className="ax-avatar__initials">EM</span></span>
@@ -123,7 +123,7 @@ export function Testimonials() {
       </div>
 
       <div className="ax-dash-grid" style={{ marginBlockStart: 'var(--ax-space-8)' }}>
-        <section className="ax-card ax-col--12" role="region" aria-label="Companies building on Vireo">
+        <section className="ax-card ax-col--12" role="region" aria-label="Companies building on Phause">
           <div className="ax-card__body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--ax-space-5)', paddingBlock: 'var(--ax-space-7)' }}>
             <p className="ax-eyebrow" style={{ textAlign: 'center' }}>Trusted by teams at</p>
             <div className="ax-cluster" style={{ justifyContent: 'center', gap: 'var(--ax-space-8)', flexWrap: 'wrap', color: 'var(--ax-text-subtle)' }}>

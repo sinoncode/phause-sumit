@@ -1,5 +1,5 @@
 /*
- * Vireo React — FULL-SCREEN APP SHELL layout.
+ * Phause React — FULL-SCREEN APP SHELL layout.
  *
  * The chrome for the 13 standalone app routes (apps/*). Mirrors the reference
  * body structure of src/html/apps/**: page loader, ambient glow, then
