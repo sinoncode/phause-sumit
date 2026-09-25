@@ -364,7 +364,8 @@ export function RBAC() {
       </div>
 
       {/* ── Roles list ────────────────────────────────────────────────── */}
-      <div className="ax-card">
+      <div className="ax-dash-grid">
+        <div className="ax-card ax-col--12" style={{ minInlineSize: 0 }}>
         <div className="ax-card__header">
           <div className="ax-card__titles"><h2 className="ax-card__title">Roles</h2><p className="ax-card__subtitle">Click a role to expand its permissions.</p></div>
         </div>
@@ -449,24 +450,25 @@ export function RBAC() {
       </div>
 
       {/* ── Permission reference ───────────────────────────────────────── */}
-      <div className="ax-card" style={{ marginTop:'var(--ax-space-6)' }}>
+        <div className="ax-card ax-col--12" style={{ minInlineSize: 0 }}>
         <div className="ax-card__header">
           <div className="ax-card__titles"><h2 className="ax-card__title">Permission Reference</h2><p className="ax-card__subtitle">All available permissions grouped by resource.</p></div>
         </div>
-        <div className="ax-card__body" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:'var(--ax-space-5)' }}>
+        <div className="ax-card__body" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(min(280px,100%),1fr))', gap:'var(--ax-space-5)' }}>
           {PERMISSION_GROUPS.map((g) => (
             <div key={g.group}>
               <p style={{ margin:'0 0 var(--ax-space-2)', fontSize:'var(--ax-text-xs)', fontWeight:700, textTransform:'uppercase', letterSpacing:'.06em', color:'var(--ax-text-muted)' }}>{g.group}</p>
-              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:4, minInlineSize: 0 }}>
                 {g.permissions.map((p) => (
-                  <div key={p.key} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ fontSize:'var(--ax-text-xs)', color:'var(--ax-text)' }}>{p.label}</span>
-                    <code style={{ fontSize:'var(--ax-text-2xs)', color:'var(--ax-text-subtle)', fontFamily:'var(--ax-font-mono)' }}>{p.key}</code>
+                  <div key={p.key} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'var(--ax-space-2)' }}>
+                    <span style={{ minInlineSize: 0, fontSize:'var(--ax-text-xs)', color:'var(--ax-text)' }}>{p.label}</span>
+                    <code style={{ minInlineSize: 0, overflowWrap:'anywhere', textAlign:'end', fontSize:'var(--ax-text-2xs)', color:'var(--ax-text-subtle)', fontFamily:'var(--ax-font-mono)' }}>{p.key}</code>
                   </div>
                 ))}
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </>

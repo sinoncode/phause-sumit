@@ -367,7 +367,8 @@ export function Training() {
       </div>
 
       {/* ── Tab bar ───────────────────────────────────────────────────── */}
-      <div className="ax-card">
+      <div className="ax-dash-grid">
+        <div className="ax-card ax-col--12" style={{ minInlineSize: 0 }}>
         <div className="ax-card__header" style={{ borderBottom:'1px solid var(--ax-border)', paddingBottom:0 }}>
           <div role="tablist" className="ax-cluster" style={{ gap:0, borderBottom:'none' }}>
             {(['modules','enrolments','completions'] as Tab[]).map((t) => (
@@ -594,6 +595,7 @@ export function Training() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </>
   );
