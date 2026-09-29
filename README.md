@@ -1,6 +1,8 @@
-# Vireo — React Edition
+# Phause Simulation
 
-A modern admin dashboard template built with **React 19 + TypeScript** on **Vite**, styled with **Tailwind CSS v4** (Aurora design language).
+**Phause** is a phishing simulation platform that helps organizations train their employees to recognize and avoid phishing attacks. It provides a safe environment for users to practice identifying phishing emails, links, and other malicious content.
+
+Built with **React 19 + TypeScript** on **Vite**, and styled with **Tailwind CSS v4**.
 
 ## Requirements
 
@@ -8,34 +10,32 @@ A modern admin dashboard template built with **React 19 + TypeScript** on **Vite
 
 ## Getting started
 
-From this folder (`react/`), run:
+From the project's frontend folder (`react/`), run:
 
 1. **Install dependencies**
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 2. **Start the dev server** (hot reload)
 
-   ```bash
-   npm run dev
-   ```
+```bash
+npm run dev
+```
 
 3. **Create a production build** (outputs to `dist/`)
 
-   ```bash
-   npm run build
-   ```
+```bash
+npm run build
+```
 
 4. **Preview the production build locally**
 
-   ```bash
-   npm run preview
-   ```
+```bash
+npm run preview
+```
 
-## Documentation
+## Disclaimer
 
-Full setup, customization, and component documentation is available here:
-
-[../../Documentation/index.html](../../Documentation/index.html)
+Phause is intended for **authorized security awareness training only**. Run simulations only with the knowledge and approval of your organization.

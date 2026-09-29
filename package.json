@@ -1,9 +1,9 @@
 {
-  "name": "vireo-react",
+  "name": "Phause Simulation",
   "private": true,
   "version": "1.1.0",
   "type": "module",
-  "description": "Vireo — React 19 edition (Vite + TypeScript + Tailwind v4). Aurora design language on the shared --ax-* token core.",
+  "description": "Phause — It is a phishing simulation platform that helps organizations train their employees to recognize and avoid phishing attacks. It provides a safe environment for users to practice identifying phishing emails, links, and other malicious content.",
   "license": "LicenseRef-Envato-Regular",
   "scripts": {
     "dev": "vite",
