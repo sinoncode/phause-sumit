@@ -8,7 +8,7 @@
  * blurred modal with Cancel. The eye-icon action hands the row to
  * `onViewOrganisation` so the host app can route to the detail page.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { listOrganisations, createOrganisation as createOrganisationApi, recordAuthorization } from '../../api/organisations/organisations.api';
@@ -293,7 +293,7 @@ function RoEModal({
   const [succeeded, setSucceeded] = useState(false);
 
   const titleId  = 'roe-modal-title';
-  const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const ACCEPTED = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
   const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
