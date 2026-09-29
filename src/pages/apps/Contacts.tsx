@@ -1,5 +1,5 @@
 /*
- * Vireo React — Contacts (apps/contacts).
+ * Phause React — Contacts (apps/contacts).
  * 1:1 re-expression of src/html/apps/contacts.html: grid/list views, detail
  * drawer, add-contact modal with validation. Alpine axContacts() → React state.
  */
@@ -12,12 +12,12 @@ interface Contact {
 }
 const DATA: Contact[] = [
   { id: 1, name: 'Maya Lindqvist', role: 'CFO', company: 'Northwind', initials: 'ML', color: '#34D399', presence: 'online', tag: 'Clients', groupColor: '#38BDF8', email: 'maya.l@northwind.co', phone: '+1 (415) 555-0188', location: 'San Francisco, CA', fav: true, tags: ['Decision maker', 'Finance', 'VIP'], notes: 'Primary finance contact on the Q3 retainer. Prefers morning calls (PT).' },
-  { id: 2, name: 'Devon Okafor', role: 'Engineering Lead', company: 'Vireo', initials: 'DO', color: '#38BDF8', presence: 'online', tag: 'Team', groupColor: '#34D399', email: 'devon@vireo.app', phone: '+1 (628) 555-0143', location: 'Remote · Lagos', fav: false, tags: ['Frontend', 'On-call'], notes: 'Owns the design-system migration. Reach via chat for anything urgent.' },
+  { id: 2, name: 'Devon Okafor', role: 'Engineering Lead', company: 'Phause', initials: 'DO', color: '#38BDF8', presence: 'online', tag: 'Team', groupColor: '#34D399', email: 'devon@phause.app', phone: '+1 (628) 555-0143', location: 'Remote · Lagos', fav: false, tags: ['Frontend', 'On-call'], notes: 'Owns the design-system migration. Reach via chat for anything urgent.' },
   { id: 3, name: 'Tomás Herrera', role: 'Account Director', company: 'Brightline', initials: 'TH', color: '#A78BFA', presence: 'away', tag: 'Clients', groupColor: '#38BDF8', email: 'tomas@brightline.io', phone: '+34 612 55 01 77', location: 'Madrid, ES', fav: true, tags: ['Contract', 'Renewal Q3'], notes: 'Negotiating the SLA window. Follow up Friday on section 4.2.' },
-  { id: 4, name: 'Priya Nair', role: 'Data Analyst', company: 'Vireo', initials: 'PN', color: '#FBBF24', presence: 'away', tag: 'Team', groupColor: '#34D399', email: 'priya@vireo.app', phone: '+91 98765 43210', location: 'Bengaluru, IN', fav: false, tags: ['Analytics', 'Reporting'], notes: 'Sends the weekly digest every Monday at 8 AM.' },
+  { id: 4, name: 'Priya Nair', role: 'Data Analyst', company: 'Phause', initials: 'PN', color: '#FBBF24', presence: 'away', tag: 'Team', groupColor: '#34D399', email: 'priya@phause.app', phone: '+91 98765 43210', location: 'Bengaluru, IN', fav: false, tags: ['Analytics', 'Reporting'], notes: 'Sends the weekly digest every Monday at 8 AM.' },
   { id: 5, name: 'Lena Brandt', role: 'Brand Designer', company: 'Studioform', initials: 'LB', color: '#F472B6', presence: 'offline', tag: 'Vendors', groupColor: '#FBBF24', email: 'lena@studioform.de', phone: '+49 30 5550 0199', location: 'Berlin, DE', fav: false, tags: ['Illustration', 'Contract'], notes: 'Delivering empty-state illustrations. Invoices via Receipts label.' },
   { id: 6, name: 'Daniel Cho', role: 'Product Manager', company: 'Loop', initials: 'DC', color: '#FB7185', presence: 'offline', tag: 'Clients', groupColor: '#38BDF8', email: 'daniel@loop.com', phone: '+1 (212) 555-0166', location: 'New York, NY', fav: false, tags: ['Roadmap'], notes: 'Casual contact — usually catches up over lunch.' },
-  { id: 7, name: 'Ava Sutton', role: 'Marketing Lead', company: 'Vireo', initials: 'AS', color: '#34D399', presence: 'online', tag: 'Team', groupColor: '#34D399', email: 'ava@vireo.app', phone: '+1 (310) 555-0120', location: 'Los Angeles, CA', fav: true, tags: ['Campaigns', 'Email'], notes: 'Owns the launch campaign going live at noon.' },
+  { id: 7, name: 'Ava Sutton', role: 'Marketing Lead', company: 'Phause', initials: 'AS', color: '#34D399', presence: 'online', tag: 'Team', groupColor: '#34D399', email: 'ava@phause.app', phone: '+1 (310) 555-0120', location: 'Los Angeles, CA', fav: true, tags: ['Campaigns', 'Email'], notes: 'Owns the launch campaign going live at noon.' },
   { id: 8, name: 'Henry Whitlock', role: 'Procurement', company: 'Crate & Co', initials: 'HW', color: '#38BDF8', presence: 'offline', tag: 'Vendors', groupColor: '#FBBF24', email: 'henry@crateco.com', phone: '+44 20 7946 0102', location: 'London, UK', fav: false, tags: ['Hardware', 'Supplier'], notes: 'Supplies office hardware. Net-30 terms.' },
 ];
 

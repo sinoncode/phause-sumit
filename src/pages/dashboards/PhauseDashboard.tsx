@@ -12,12 +12,13 @@
  * All fetches fall back gracefully when the API is offline.
  */
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { listOrganisations } from '../../api/organisations/organisations.api';
 import { listEmployees } from '../../api/employees/employees.api';
 import { campaignsApiReal } from '../../api/campaigns/campaigns.real';
 import { listRiskScores, getRiskTrend, listReports } from '../../api/reports/reports.api';
+import { ApiError } from '../../api/client';
 import type { Campaign } from '../../features/campaigns/types';
 import type { ReportSummary, RiskTrendPoint, EmployeeRiskScore } from '../reports/reportsData';
 
@@ -106,6 +107,7 @@ const IC_RISK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 
 // ─── main component ───────────────────────────────────────────────────────────
 export function PhauseDashboard() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [orgCount, setOrgCount]       = useState(0);
   const [empCount, setEmpCount]       = useState(0);
@@ -115,23 +117,42 @@ export function PhauseDashboard() {
   const [reports, setReports]         = useState<ReportSummary[]>([]);
 
   useEffect(() => {
-    Promise.all([
+    let cancelled = false;
+    Promise.allSettled([
       listOrganisations(),
       listEmployees(),
       campaignsApiReal.list(),
       listRiskScores(),
       getRiskTrend(),
       listReports(),
-    ]).then(([orgs, emps, camps, risks, trend, rpts]) => {
-      setOrgCount(orgs.length);
-      setEmpCount(emps.length);
-      setCampaigns(camps);
-      setRiskScores(risks);
-      setRiskTrend(trend);
-      setReports(rpts.slice(0, 5));
+    ]).then((results) => {
+      if (cancelled) return;
+
+      // Check if any result is a 401 — if so redirect to login immediately
+      for (const result of results) {
+        if (result.status === 'rejected') {
+          const err = result.reason;
+          if (err instanceof ApiError && err.status === 401) {
+            navigate('/admin/login', { replace: true });
+            return;
+          }
+        }
+      }
+
+      const val = <T,>(r: PromiseSettledResult<T>, fallback: T): T =>
+        r.status === 'fulfilled' ? r.value : fallback;
+
+      const [r0, r1, r2, r3, r4, r5] = results;
+      setOrgCount(val(r0 as PromiseSettledResult<Awaited<ReturnType<typeof listOrganisations>>>,   []).length);
+      setEmpCount(val(r1 as PromiseSettledResult<Awaited<ReturnType<typeof listEmployees>>>,       []).length);
+      setCampaigns(val(r2 as PromiseSettledResult<Awaited<ReturnType<typeof campaignsApiReal.list>>>, []));
+      setRiskScores(val(r3 as PromiseSettledResult<Awaited<ReturnType<typeof listRiskScores>>>,    []));
+      setRiskTrend(val(r4 as PromiseSettledResult<Awaited<ReturnType<typeof getRiskTrend>>>,       []));
+      setReports(val(r5 as PromiseSettledResult<Awaited<ReturnType<typeof listReports>>>,          []).slice(0, 5));
       setLoading(false);
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [navigate]);
 
   // derived numbers
   const activeCampaigns  = campaigns.filter((c) => c.status === 'running').length;

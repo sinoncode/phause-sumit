@@ -1,5 +1,5 @@
 /*
- * Vireo React — Gallery (apps/gallery).
+ * Phause React — Gallery (apps/gallery).
  * 1:1 re-expression of src/html/apps/gallery.html: masonry/grid wall, select
  * mode, and keyboard-driven lightbox. Alpine axGallery() → native React state.
  */

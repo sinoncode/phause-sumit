@@ -1,5 +1,5 @@
 /*
- * Vireo React — Search Jobs (route "jobs/search-jobs").
+ * Phause React — Search Jobs (route "jobs/search-jobs").
  *
  * Faithful re-expression of src/html/jobs/search-jobs.html: a hero search bar,
  * a sticky filters sidebar (type, work-mode, salary range, level, posted-within),

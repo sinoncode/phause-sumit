@@ -1,5 +1,5 @@
 /*
- * Vireo React — Form Validation (route "forms/validation").
+ * Phause React — Form Validation (route "forms/validation").
  *
  * Faithful re-expression of src/html/forms/validation.html: a static field-state
  * reference card and a live signup form that validates on submit then re-validates

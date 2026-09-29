@@ -1,5 +1,5 @@
 /*
- * Vireo React — 401 Authentication required.
+ * Phause React — 401 Authentication required.
  * 1:1 re-expression of src/html/error/401.html: standalone status screen with a
  * closed-door + key illustration (accent highlight on the key), sign-in / go-home
  * actions and a reset-password helper link.

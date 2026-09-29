@@ -1,5 +1,5 @@
 /*
- * Vireo React — Jobs List (route "jobs/list").
+ * Phause React — Jobs List (route "jobs/list").
  *
  * Faithful re-expression of src/html/jobs/list.html: a sticky filter rail
  * (keyword, location, employment type, department, min-salary range, experience)

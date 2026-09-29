@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Scrollspy.
+ * Phause React — UI · Scrollspy.
  * Faithful re-expression of src/html/ui/scrollspy.html: a sticky table-of-contents
  * that tracks scroll position inside the doc panel via an IntersectionObserver,
  * lighting the active section and smooth-scrolling links into view. The Alpine
@@ -89,7 +89,7 @@ export function Scrollspy() {
           <div className="ax-card__header">
             <div className="ax-card__titles">
               <span className="ax-card__eyebrow">Documentation</span>
-              <h2 className="ax-card__title">Getting started with Vireo</h2>
+              <h2 className="ax-card__title">Getting started with Phause</h2>
               <p className="ax-card__subtitle">Scroll inside this panel — the contents rail follows along.</p>
             </div>
             <span className="ax-badge ax-badge--soft ax-badge--accent ax-badge--pill">{cap}</span>
@@ -98,7 +98,7 @@ export function Scrollspy() {
             <div ref={scrollerRef} className="ax-scroll-y" style={{ maxBlockSize: '62vh', paddingInlineEnd: 'var(--ax-space-3)' }}>
               <section id="introduction" style={{ scrollMarginTop: 'var(--ax-space-4)', paddingBlock: 'var(--ax-space-3) var(--ax-space-6)' }}>
                 <h3 style={{ margin: '0 0 var(--ax-space-3)', fontSize: 'var(--ax-text-xl)', fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)' }}>Introduction</h3>
-                <p style={{ margin: '0 0 var(--ax-space-3)', lineHeight: 1.7, color: 'var(--ax-text-muted)' }}>Vireo is a premium admin template that ships nine framework editions from one design system. Every surface is defined as a role token, so light, dark and twelve accent presets all retheme without touching component code.</p>
+                <p style={{ margin: '0 0 var(--ax-space-3)', lineHeight: 1.7, color: 'var(--ax-text-muted)' }}>Phause is a premium admin template that ships nine framework editions from one design system. Every surface is defined as a role token, so light, dark and twelve accent presets all retheme without touching component code.</p>
                 <p style={{ margin: 0, lineHeight: 1.7, color: 'var(--ax-text-muted)' }}>This guide walks through installing the kit, the token layers, the component vocabulary, charts, and the accessibility guarantees baked in.</p>
               </section>
               <div className="ax-divider" />

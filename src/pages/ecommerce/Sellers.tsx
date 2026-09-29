@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Sellers (route "ecommerce/sellers").
+ * Phause React — Ecommerce / Sellers (route "ecommerce/sellers").
  *
  * Faithful re-expression of src/html/ecommerce/sellers.html: a KPI strip, a
  * toolbar (search, status/category filters, sort, grid/table view segment),

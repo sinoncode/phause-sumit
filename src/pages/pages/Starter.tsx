@@ -1,5 +1,5 @@
 /*
- * Vireo React — Starter Page (route "pages/starter").
+ * Phause React — Starter Page (route "pages/starter").
  *
  * Faithful re-expression of src/html/pages/starter.html: the canonical empty-state
  * scaffold (first-run CTA, state-variant reference list and a loading-skeleton

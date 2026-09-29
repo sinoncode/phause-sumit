@@ -1,5 +1,5 @@
 /*
- * Vireo React — Email settings (apps/email-settings).
+ * Phause React — Email settings (apps/email-settings).
  * 1:1 re-expression of src/html/apps/email-settings.html. Alpine axMailSettings()
  * → native React state (tab rail + 6 panels, save toast).
  */
@@ -110,14 +110,14 @@ export function EmailSettings() {
                   </div>
                   <div className="ax-field">
                     <label className="ax-label" htmlFor="reply-to">Reply-to address</label>
-                    <input id="reply-to" type="email" className="ax-input" defaultValue="jawad@vireo.app" />
+                    <input id="reply-to" type="email" className="ax-input" defaultValue="jawad@phause.app" />
                   </div>
                   <div className="ax-field">
                     <label className="ax-label" htmlFor="default-from">Default sending address</label>
                     <select id="default-from" className="ax-select">
-                      <option>jawad@vireo.app</option>
-                      <option>support@vireo.app</option>
-                      <option>billing@vireo.app</option>
+                      <option>jawad@phause.app</option>
+                      <option>support@phause.app</option>
+                      <option>billing@phause.app</option>
                     </select>
                   </div>
                   <div className="ax-field">
@@ -161,8 +161,8 @@ export function EmailSettings() {
                   </div>
                   <div contentEditable aria-multiline="true" aria-label="Signature content" suppressContentEditableWarning style={{ minHeight: 130, padding: 'var(--ax-space-4)', border: '1px solid var(--ax-border)', borderRadius: '0 0 var(--ax-radius-sm) var(--ax-radius-sm)', background: 'var(--ax-surface)', lineHeight: 1.6, fontSize: 'var(--ax-text-sm)', outline: 'none' }}>
                     <b style={{ color: 'var(--ax-text-strong)' }}>Jawad Ahbab</b><br />
-                    <span style={{ color: 'var(--ax-text-muted)' }}>Product Lead · Vireo</span><br />
-                    <span style={{ color: 'var(--ax-text-subtle)' }}>+1 (415) 555-0142 · </span><span style={{ color: 'var(--ax-accent)' }}>vireo.app</span>
+                    <span style={{ color: 'var(--ax-text-muted)' }}>Product Lead · Phause</span><br />
+                    <span style={{ color: 'var(--ax-text-subtle)' }}>+1 (415) 555-0142 · </span><span style={{ color: 'var(--ax-accent)' }}>phause.app</span>
                   </div>
                 </div>
                 <label className="ax-check"><input type="checkbox" className="ax-checkbox" defaultChecked /><span style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text)' }}>Insert signature before quoted text in replies</span></label>
@@ -233,7 +233,7 @@ export function EmailSettings() {
                 <div className="ax-field"><label className="ax-label" htmlFor="vac-subject">Subject</label><input id="vac-subject" type="text" className="ax-input" defaultValue="Out of office until July 14" /></div>
                 <div className="ax-field">
                   <label className="ax-label" htmlFor="vac-msg">Message</label>
-                  <textarea id="vac-msg" className="ax-textarea" rows={5} defaultValue="Thanks for your email. I'm away until July 14 with limited access to mail. For anything urgent, please reach Priya Nair at priya@vireo.app. I'll respond when I'm back." />
+                  <textarea id="vac-msg" className="ax-textarea" rows={5} defaultValue="Thanks for your email. I'm away until July 14 with limited access to mail. For anything urgent, please reach Priya Nair at priya@phause.app. I'll respond when I'm back." />
                 </div>
                 <label className="ax-check"><input type="checkbox" className="ax-checkbox" defaultChecked /><span style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text)' }}>Only send to people in my contacts</span></label>
               </div>

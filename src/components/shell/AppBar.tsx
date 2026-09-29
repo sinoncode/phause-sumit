@@ -1,5 +1,5 @@
 /*
- * Vireo React — full-screen APP BAR.
+ * Phause React — full-screen APP BAR.
  *
  * Chrome for the 13 standalone app routes (src/pages/apps/**). Faithful
  * re-expression of partials/app-bar.html: it replaces the sidebar + dashboard
@@ -145,7 +145,7 @@ export function AppBar({ onCommand, onCustomizer }: { onCommand: () => void; onC
         <span className="ax-appbar__mark" aria-hidden="true">
           <svg className="ax-icon" viewBox="0 0 32 32" width={24} height={24} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="axmkapp" x1={4} y1={4} x2={28} y2={28} gradientUnits="userSpaceOnUse"><stop stopColor="#2BC4B0" /><stop offset="0.55" stopColor="#1E9E96" /><stop offset="1" stopColor="#6D5CF0" /></linearGradient></defs><path d="M4 4 H16 A12 12 0 0 1 28 16 V28 A0 0 0 0 1 28 28 H16 A12 12 0 0 1 4 16 V4 Z" fill="url(#axmkapp)" stroke="none" /><circle cx="20.5" cy="11.5" r="2.6" fill="#0A0C11" fillOpacity="0.92" stroke="none" /></svg>
         </span>
-        <span className="ax-appbar__wordmark">VIREO</span>
+        <span className="ax-appbar__wordmark">PHAUSE</span>
         <svg className="ax-icon ax-appbar__exit" {...s}><path d="M9 6l-6 6l6 6" /><path d="M21 12h-18" /></svg>
       </Link>
 

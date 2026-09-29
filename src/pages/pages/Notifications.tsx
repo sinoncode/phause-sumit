@@ -1,5 +1,5 @@
 /*
- * Vireo React — Notifications (route "pages/notifications").
+ * Phause React — Notifications (route "pages/notifications").
  *
  * Faithful re-expression of src/html/pages/notifications.html: filter tabs
  * (All / Unread / Mentions / System), a "mark all as read" action with an undo

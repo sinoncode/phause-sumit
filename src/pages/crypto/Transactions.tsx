@@ -1,5 +1,5 @@
 /*
- * Vireo React — Crypto Transactions (route "crypto/transactions").
+ * Phause React — Crypto Transactions (route "crypto/transactions").
  *
  * Faithful re-expression of src/html/crypto/transactions.html: crypto pill
  * sub-nav, a 4-KPI summary strip, and the searchable/filterable transactions

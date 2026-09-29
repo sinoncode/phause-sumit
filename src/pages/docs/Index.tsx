@@ -1,5 +1,5 @@
 /*
- * Vireo React — Documentation (route "docs/index").
+ * Phause React — Documentation (route "docs/index").
  * 1:1 re-expression of src/html/docs/index.html: a sticky TOC sidebar (active link
  * highlight), a doc body (getting-started hero, install terminal with copy button,
  * project structure, theming, components live example, charts live example via
@@ -39,7 +39,7 @@ export function DocsIndex() {
     <>
       <PageHead
         title="Documentation"
-        subtitle="Everything you need to install, theme & extend Vireo. Version 1.0.0."
+        subtitle="Everything you need to install, theme & extend Phause. Version 1.0.0."
         actions={
           <>
             <button type="button" className="ax-btn ax-btn--secondary ax-btn--pill">
@@ -90,7 +90,7 @@ export function DocsIndex() {
             <div className="ax-card__body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }}>
               <span className="ax-badge ax-badge--soft ax-badge--accent ax-badge--pill" style={{ alignSelf: 'flex-start' }}>Getting started</span>
               <h2 style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-2xl)', fontWeight: 700, color: 'var(--ax-text-strong)', lineHeight: 1.2 }}>Build premium admin UIs in minutes</h2>
-              <p style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-md)', lineHeight: 1.7 }}>Vireo is a token-driven admin template that ships nine framework editions, light & dark themes, twelve accents and a live customizer — all from a single role-token layer. This guide gets you from zero to a running dashboard.</p>
+              <p style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-md)', lineHeight: 1.7 }}>Phause is a token-driven admin template that ships nine framework editions, light & dark themes, twelve accents and a live customizer — all from a single role-token layer. This guide gets you from zero to a running dashboard.</p>
               <div className="ax-cluster" style={{ gap: 'var(--ax-space-3)', flexWrap: 'wrap', marginTop: 'var(--ax-space-1)' }}>
                 <a href="#installation" onClick={() => setActive('installation')} className="ax-btn ax-btn--primary"><svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg><span className="ax-btn__label">Quick start</span></a>
                 <a href="#components" onClick={() => setActive('components')} className="ax-btn ax-btn--secondary"><span className="ax-btn__label">Browse components</span></a>

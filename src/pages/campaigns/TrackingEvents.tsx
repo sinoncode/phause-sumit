@@ -14,20 +14,16 @@
  *      role="radiogroup") matching the Week/Month/Year pattern used elsewhere.
  *   3. Paginated events table — 10 rows/page, running total, prev/next.
  *
- * Data comes from seedTrackingEvents() — swap for a real fetch to
- * GET /api/campaigns/:campaignId/tracking-events when the API is confirmed.
- * See trackingEventsData.ts for endpoint placeholder details.
+ * Event data comes from the authenticated campaign tracking-events API.
  *
  * No create/edit/delete actions — tracking events are system-generated.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
-import {
-  seedTrackingEvents,
-  type TrackingEvent,
-  type TrackingEventType,
-} from './trackingEventsData';
+import type { TrackingEvent, TrackingEventType } from './trackingEventsData';
+import { listCampaignTrackingEvents } from '../../api/campaigns/tracking.api';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -344,12 +340,31 @@ function FunnelCard({ counts }: FunnelCardProps) {
 // ---------------------------------------------------------------------------
 
 export function TrackingEvents() {
-  const { campaignId = 'CMP-1002' } = useParams<{ campaignId: string }>();
+  const { campaignId = '' } = useParams<{ campaignId: string }>();
+  const [events, setEvents] = useState<TrackingEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const handleApiError = useApiErrorHandler();
 
-  // Seed data — replace with a real fetch to TRACKING_EVENTS_ENDPOINT(campaignId)
-  // when the API is confirmed. See trackingEventsData.ts for details.
-  // Example: fetch(TRACKING_EVENTS_ENDPOINT(campaignId))
-  const [events] = useState<TrackingEvent[]>(() => seedTrackingEvents(campaignId));
+  useEffect(() => {
+    if (!campaignId) {
+      setEvents([]);
+      setLoading(false);
+      return;
+    }
+    let active = true;
+    setLoading(true);
+    setLoadError('');
+    listCampaignTrackingEvents(campaignId).then((data) => {
+      if (active) setEvents(data);
+    }).catch((err: unknown) => {
+      if (active) setLoadError(handleApiError(err, 'Unable to load campaign events.'));
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaignId]);
 
   const [filter, setFilter] = useState<FilterOption>('all');
   const [page, setPage] = useState(1);
@@ -390,15 +405,15 @@ export function TrackingEvents() {
     setPage(1);
   };
 
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleString(undefined, {
+  const formatDate = (iso: string) => iso
+    ? new Date(iso).toLocaleString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit',
-    });
+    }) : '—';
 
   return (
     <>
@@ -411,6 +426,8 @@ export function TrackingEvents() {
           </Link>
         }
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
+      {loading && <p style={{ color: 'var(--ax-text-muted)' }}>Loading campaign events…</p>}
 
       <div className="ax-dash-grid">
         {/* ── 1. Funnel summary ──────────────────────────────────────────── */}

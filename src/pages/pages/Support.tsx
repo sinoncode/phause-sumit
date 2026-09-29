@@ -1,5 +1,5 @@
 /*
- * Vireo React — Help Center / Support (route "pages/support").
+ * Phause React — Help Center / Support (route "pages/support").
  *
  * Faithful re-expression of src/html/pages/support.html: a hero search with live
  * article results, a 6-tile category grid, a popular-articles accordion, a
@@ -40,10 +40,10 @@ const POPULAR = [
 ];
 
 const CHANNELS: { label: string; sub: string; tint: string; icon: ReactNode }[] = [
-  { label: 'Email', sub: 'support@vireo.io', tint: 'var(--ax-viz-cyan)', icon: <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg> },
+  { label: 'Email', sub: 'support@phause.io', tint: 'var(--ax-viz-cyan)', icon: <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg> },
   { label: 'Live chat', sub: 'Mon–Fri, 9am–6pm', tint: 'var(--ax-viz-emerald)', icon: <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9a1 1 0 0 1 1 1v10" /><path d="M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2" /></svg> },
-  { label: 'Docs', sub: 'docs.vireo.io', tint: 'var(--ax-viz-violet)', icon: <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12" /><path d="M19 16h-12a2 2 0 0 0 -2 2" /><path d="M9 8h6" /></svg> },
-  { label: 'Community', sub: 'community.vireo.io', tint: 'var(--ax-viz-amber)', icon: <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg> },
+  { label: 'Docs', sub: 'docs.phause.io', tint: 'var(--ax-viz-violet)', icon: <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 4v16h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12" /><path d="M19 16h-12a2 2 0 0 0 -2 2" /><path d="M9 8h6" /></svg> },
+  { label: 'Community', sub: 'community.phause.io', tint: 'var(--ax-viz-amber)', icon: <svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg> },
 ];
 
 export function Support() {
@@ -86,7 +86,7 @@ export function Support() {
           <div className="ax-card__body" style={{ textAlign: 'center', paddingBlock: 'var(--ax-space-8)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'var(--ax-space-5)' }}>
             <div>
               <h2 style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-2xl)', fontWeight: 600, color: 'var(--ax-text-strong)', margin: 0 }}>How can we help?</h2>
-              <p style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-md)', marginTop: 'var(--ax-space-2)' }}>Search 200+ articles across every Vireo feature.</p>
+              <p style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-md)', marginTop: 'var(--ax-space-2)' }}>Search 200+ articles across every Phause feature.</p>
             </div>
             <div style={{ position: 'relative', maxWidth: 600, width: '100%' }}>
               <svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke="var(--ax-text-subtle)" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ position: 'absolute', insetInlineStart: 'var(--ax-space-4)', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>

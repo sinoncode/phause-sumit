@@ -1,5 +1,5 @@
 /*
- * Vireo React — Candidate Details (route "jobs/candidate-details").
+ * Phause React — Candidate Details (route "jobs/candidate-details").
  *
  * Faithful re-expression of src/html/jobs/candidate-details.html: a profile
  * rail (match score, contacts, skills, actions), a hiring-stage stepper, a

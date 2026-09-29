@@ -1,5 +1,5 @@
 /*
- * Vireo React — Bar & Column Charts (charts/apex-bar).
+ * Phause React — Bar & Column Charts (charts/apex-bar).
  *
  * Faithful re-expression of src/html/charts/apex-bar.html via <ApexChart>.
  * Basic column has a native chart/table tab toggle. Colours resolve live from

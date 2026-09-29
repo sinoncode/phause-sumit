@@ -1,5 +1,5 @@
 /*
- * Vireo React — To-Do (apps/todo).
+ * Phause React — To-Do (apps/todo).
  * 1:1 re-expression of src/html/apps/todo.html. Alpine axTodo() → native React state.
  */
 import { useRef, useState } from 'react';

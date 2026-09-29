@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Swiper.
+ * Phause React — UI · Swiper.
  * Faithful re-expression of src/html/ui/swiper.html: a hero slider with switchable
  * slide/fade/cards effects, a vertical release-notes slider, and a thumbnail
  * gallery whose main stage and filmstrip stay in sync. The Alpine x-data sliders
@@ -16,7 +16,7 @@ const CHEV_UP = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" st
 const CHEV_DN = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 9l6 6l6 -6" /></svg>;
 
 const HERO = [
-  { tag: 'New release', tone: 'accent', c1: 'var(--ax-viz-violet)', c2: 'var(--ax-viz-cyan)', t: 'Vireo 3.0 is here', d: 'Twelve Aurora accents, a live customizer and 200+ pages — shipped today.' },
+  { tag: 'New release', tone: 'accent', c1: 'var(--ax-viz-violet)', c2: 'var(--ax-viz-cyan)', t: 'Phause 3.0 is here', d: 'Twelve Aurora accents, a live customizer and 200+ pages — shipped today.' },
   { tag: 'Workshop', tone: 'warning', c1: 'var(--ax-viz-amber)', c2: 'var(--ax-viz-pink)', t: 'Charts that re-theme live', d: 'Switch accent or mode and every chart re-colours in 200ms — no reload, no flash.' },
   { tag: 'Performance', tone: 'success', c1: 'var(--ax-viz-emerald)', c2: 'var(--ax-viz-cyan)', t: '98 Lighthouse, zero jank', d: 'Lazy-loaded plugins and token-only styling keep the bundle lean and fast.' },
   { tag: 'Accessible', tone: 'info', c1: 'var(--ax-viz-cyan)', c2: 'var(--ax-viz-violet)', t: 'Keyboard-first by design', d: 'Arrow keys, focus-visible rings and ARIA roles on every interactive surface.' },

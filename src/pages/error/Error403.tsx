@@ -1,5 +1,5 @@
 /*
- * Vireo React — 403 Access denied.
+ * Phause React — 403 Access denied.
  * 1:1 re-expression of src/html/error/403.html: standalone status screen with a
  * shield + lock illustration (accent highlight on the lock dot), dashboard /
  * request-access actions and a switch-user helper link.

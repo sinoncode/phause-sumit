@@ -19,6 +19,7 @@ import {
   type TrainingCompletion,
   type TrainingModuleFormValues,
 } from '../../api/training/training.api';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 // ── icons ─────────────────────────────────────────────────────────────────────
 const IC_PLUS   = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
@@ -59,9 +60,10 @@ function ModalWrap({ children, onClose }: { children: React.ReactNode; onClose: 
 
 // ── Create Module modal ───────────────────────────────────────────────────────
 function CreateModuleModal({ onClose, onSave }: { onClose: () => void; onSave: (m: TrainingModule) => void }) {
-  const EMPTY: TrainingModuleFormValues = { title:'', description:'', durationMinutes:30, category:'', mandatory:false };
+  const EMPTY: TrainingModuleFormValues = { title:'', category:'', contentRef:'' };
   const [form, setForm] = useState<TrainingModuleFormValues>(EMPTY);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const set = <K extends keyof TrainingModuleFormValues>(k: K, v: TrainingModuleFormValues[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
@@ -69,6 +71,7 @@ function CreateModuleModal({ onClose, onSave }: { onClose: () => void; onSave: (
     e.preventDefault();
     setSaving(true);
     try { onSave(await createTrainingModule(form)); }
+    catch (err) { setError(err instanceof Error ? err.message : 'Unable to create training module.'); }
     finally { setSaving(false); }
   }
 
@@ -87,27 +90,16 @@ function CreateModuleModal({ onClose, onSave }: { onClose: () => void; onSave: (
               <input id="tm-title" className="ax-input" value={form.title} onChange={(e) => set('title', e.target.value)} required />
             </div>
             <div className="ax-field">
-              <label className="ax-label" htmlFor="tm-desc">Description</label>
-              <textarea id="tm-desc" className="ax-input" rows={3} value={form.description}
-                onChange={(e) => set('description', e.target.value)} style={{ resize:'vertical' }} />
+              <label className="ax-label" htmlFor="tm-cat">Category</label>
+              <input id="tm-cat" className="ax-input" value={form.category} placeholder="e.g. Phishing"
+                onChange={(e) => set('category', e.target.value)} required />
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--ax-space-3)' }}>
-              <div className="ax-field">
-                <label className="ax-label" htmlFor="tm-dur">Duration (minutes)</label>
-                <input id="tm-dur" className="ax-input" type="number" min={1} value={form.durationMinutes}
-                  onChange={(e) => set('durationMinutes', Number(e.target.value))} required />
-              </div>
-              <div className="ax-field">
-                <label className="ax-label" htmlFor="tm-cat">Category</label>
-                <input id="tm-cat" className="ax-input" value={form.category} placeholder="e.g. Phishing"
-                  onChange={(e) => set('category', e.target.value)} required />
-              </div>
+            <div className="ax-field">
+              <label className="ax-label" htmlFor="tm-content-ref">Content reference</label>
+              <input id="tm-content-ref" className="ax-input" value={form.contentRef} placeholder="URL or internal content ID"
+                onChange={(e) => set('contentRef', e.target.value)} required />
             </div>
-            <label className="ax-check" style={{ fontSize:'var(--ax-text-sm)', color:'var(--ax-text)' }}>
-              <input type="checkbox" className="ax-checkbox" checked={form.mandatory}
-                onChange={(e) => set('mandatory', e.target.checked)} />
-              <span>Mandatory for all employees</span>
-            </label>
+            {error && <p role="alert" className="ax-field__error">{error}</p>}
           </div>
           <div className="ax-card__footer ax-cluster" style={{ justifyContent:'flex-end', gap:'var(--ax-space-3)' }}>
             <button type="button" className="ax-btn ax-btn--secondary" onClick={onClose}>Cancel</button>
@@ -129,8 +121,8 @@ function RecordCompletionModal({
   const [employeeId, setEmployeeId] = useState('');
   const [moduleId, setModuleId] = useState(modules[0]?.id ?? '');
   const [score, setScore] = useState('');
-  const [passed, setPassed] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -140,8 +132,9 @@ function RecordCompletionModal({
         employeeId,
         moduleId,
         score:  score ? Number(score) : undefined,
-        passed,
       }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to record completion.');
     } finally { setSaving(false); }
   }
 
@@ -166,20 +159,12 @@ function RecordCompletionModal({
                 {modules.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
               </select>
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--ax-space-3)' }}>
-              <div className="ax-field">
-                <label className="ax-label" htmlFor="rc-score">Score (optional)</label>
-                <input id="rc-score" className="ax-input" type="number" min={0} max={100} placeholder="0–100"
-                  value={score} onChange={(e) => setScore(e.target.value)} />
-              </div>
-              <div className="ax-field">
-                <label className="ax-label" htmlFor="rc-passed">Result</label>
-                <select id="rc-passed" className="ax-select" value={String(passed)} onChange={(e) => setPassed(e.target.value === 'true')}>
-                  <option value="true">Passed</option>
-                  <option value="false">Failed</option>
-                </select>
-              </div>
+            <div className="ax-field">
+              <label className="ax-label" htmlFor="rc-score">Quiz score (optional)</label>
+              <input id="rc-score" className="ax-input" type="number" min={0} max={100} placeholder="0–100"
+                value={score} onChange={(e) => setScore(e.target.value)} />
             </div>
+            {error && <p role="alert" className="ax-field__error">{error}</p>}
           </div>
           <div className="ax-card__footer ax-cluster" style={{ justifyContent:'flex-end', gap:'var(--ax-space-3)' }}>
             <button type="button" className="ax-btn ax-btn--secondary" onClick={onClose}>Cancel</button>
@@ -230,7 +215,6 @@ function EmployeeHistoryModal({ employeeId, onClose }: { employeeId: string; onC
                     <th className="ax-table__th" scope="col">Module</th>
                     <th className="ax-table__th" scope="col">Completed</th>
                     <th className="ax-table__th ax-table__th--num" scope="col">Score</th>
-                    <th className="ax-table__th" scope="col">Result</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -242,11 +226,6 @@ function EmployeeHistoryModal({ employeeId, onClose }: { employeeId: string; onC
                       </td>
                       <td className="ax-table__td ax-table__td--num" style={{ fontFamily:'var(--ax-font-mono)', color:'var(--ax-text-muted)' }}>
                         {c.score != null ? `${c.score}%` : '—'}
-                      </td>
-                      <td className="ax-table__td">
-                        <span style={{ fontWeight:600, color: c.passed ? 'var(--ax-viz-emerald)' : 'var(--ax-danger-500)' }}>
-                          {c.passed ? 'Passed' : 'Failed'}
-                        </span>
                       </td>
                     </tr>
                   ))}
@@ -285,11 +264,18 @@ export function Training() {
   const [completions, setCompletions]   = useState<TrainingCompletion[]>([]);
   const [compLoading, setCompLoading]   = useState(false);
   const [compSearched, setCompSearched] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const handleApiError = useApiErrorHandler();
 
   // load on mount
   useEffect(() => {
-    listTrainingModules().then((data) => { setModules(data); setModLoading(false); });
-    listTrainingEnrolments().then((data) => { setEnrolments(data); setEnrolLoading(false); });
+    listTrainingModules().then(setModules).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load training modules.'));
+    }).finally(() => setModLoading(false));
+    listTrainingEnrolments().then(setEnrolments).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load enrolments.'));
+    }).finally(() => setEnrolLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function onModuleSaved(m: TrainingModule) {
@@ -310,6 +296,8 @@ export function Training() {
     setCompSearched(true);
     try {
       setCompletions(await listCompletionsForEmployee(searchEmpId.trim()));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to load training completions.');
     } finally { setCompLoading(false); }
   }
 
@@ -348,13 +336,13 @@ export function Training() {
           </>
         }
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
 
       {/* ── KPI strip ─────────────────────────────────────────────────── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))', gap:'var(--ax-space-4)', marginBottom:'var(--ax-space-6)' }}>
         {[
           { label:'Total Modules',   value: modules.length,   color:'var(--ax-accent)' },
           { label:'Pending / Active', value: pendingCount,    color:'var(--ax-viz-cyan)' },
-          { label:'Overdue',          value: overdueCount,    color:'var(--ax-danger-500)' },
           { label:'Completed',        value: doneCount,       color:'var(--ax-viz-emerald)' },
         ].map(({ label, value, color }) => (
           <div key={label} className="ax-card ax-kpi" role="region" aria-label={label}>
@@ -367,7 +355,8 @@ export function Training() {
       </div>
 
       {/* ── Tab bar ───────────────────────────────────────────────────── */}
-      <div className="ax-card">
+      <div className="ax-dash-grid">
+        <div className="ax-card ax-col--12" style={{ minInlineSize: 0 }}>
         <div className="ax-card__header" style={{ borderBottom:'1px solid var(--ax-border)', paddingBottom:0 }}>
           <div role="tablist" className="ax-cluster" style={{ gap:0, borderBottom:'none' }}>
             {(['modules','enrolments','completions'] as Tab[]).map((t) => (
@@ -398,8 +387,7 @@ export function Training() {
                 <tr>
                   <th className="ax-table__th" scope="col">Title</th>
                   <th className="ax-table__th" scope="col">Category</th>
-                  <th className="ax-table__th ax-table__th--num" scope="col">Duration</th>
-                  <th className="ax-table__th" scope="col">Mandatory</th>
+                  <th className="ax-table__th" scope="col">Content reference</th>
                   <th className="ax-table__th" scope="col">Created</th>
                 </tr>
               </thead>
@@ -407,7 +395,7 @@ export function Training() {
                 {modLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <tr key={i} className="ax-table__row">
-                      {Array.from({ length: 5 }).map((_, j) => (
+                      {Array.from({ length: 4 }).map((_, j) => (
                         <td key={j} className="ax-table__td">
                           <span className="ax-skeleton" style={{ display:'inline-block', width: j===0?160:80, height:14, borderRadius:4 }} />
                         </td>
@@ -416,7 +404,7 @@ export function Training() {
                   ))
                 ) : modules.length === 0 ? (
                   <tr className="ax-table__row">
-                    <td className="ax-table__td" colSpan={5} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
+                    <td className="ax-table__td" colSpan={4} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
                       No modules yet — click <strong>New Module</strong> to create one.
                     </td>
                   </tr>
@@ -425,22 +413,12 @@ export function Training() {
                     <tr key={m.id} className="ax-table__row">
                       <td className="ax-table__td">
                         <div style={{ fontWeight:'var(--ax-weight-medium)', color:'var(--ax-text-strong)' }}>{m.title}</div>
-                        {m.description && (
-                          <div style={{ fontSize:'var(--ax-text-xs)', color:'var(--ax-text-subtle)', marginTop:2, maxWidth:320, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                            {m.description}
-                          </div>
-                        )}
                       </td>
                       <td className="ax-table__td">
                         <span className="ax-badge ax-badge--soft ax-badge--pill ax-badge--info">{m.category || '—'}</span>
                       </td>
-                      <td className="ax-table__td ax-table__td--num" style={{ fontFamily:'var(--ax-font-mono)', color:'var(--ax-text-muted)' }}>
-                        {m.durationMinutes} min
-                      </td>
                       <td className="ax-table__td">
-                        {m.mandatory
-                          ? <span className="ax-badge ax-badge--soft ax-badge--pill ax-badge--danger">Required</span>
-                          : <span className="ax-badge ax-badge--soft ax-badge--pill">Optional</span>}
+                        {m.contentRef || '—'}
                       </td>
                       <td className="ax-table__td" style={{ color:'var(--ax-text-muted)', fontSize:'var(--ax-text-sm)' }}>
                         {new Date(m.createdAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })}
@@ -464,7 +442,6 @@ export function Training() {
                     <th className="ax-table__th" scope="col">Module</th>
                     <th className="ax-table__th" scope="col">Status</th>
                     <th className="ax-table__th" scope="col">Enrolled</th>
-                    <th className="ax-table__th" scope="col">Due</th>
                     <th className="ax-table__th" scope="col">Actions</th>
                   </tr>
                 </thead>
@@ -472,7 +449,7 @@ export function Training() {
                   {enrolLoading ? (
                     Array.from({ length: 4 }).map((_, i) => (
                       <tr key={i} className="ax-table__row">
-                        {Array.from({ length: 6 }).map((_, j) => (
+                        {Array.from({ length: 5 }).map((_, j) => (
                           <td key={j} className="ax-table__td">
                             <span className="ax-skeleton" style={{ display:'inline-block', width: j===0?140:80, height:14, borderRadius:4 }} />
                           </td>
@@ -481,7 +458,7 @@ export function Training() {
                     ))
                   ) : enrolments.length === 0 ? (
                     <tr className="ax-table__row">
-                      <td className="ax-table__td" colSpan={6} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
+                      <td className="ax-table__td" colSpan={5} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
                         No enrolments found.
                       </td>
                     </tr>
@@ -496,9 +473,6 @@ export function Training() {
                         <td className="ax-table__td"><StatusBadge status={en.status} /></td>
                         <td className="ax-table__td" style={{ color:'var(--ax-text-muted)', fontSize:'var(--ax-text-sm)' }}>
                           {new Date(en.enrolledAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short' })}
-                        </td>
-                        <td className="ax-table__td" style={{ color:'var(--ax-text-muted)', fontSize:'var(--ax-text-sm)' }}>
-                          {en.dueAt ? new Date(en.dueAt).toLocaleDateString('en-GB', { day:'2-digit', month:'short' }) : '—'}
                         </td>
                         <td className="ax-table__td">
                           <button
@@ -544,7 +518,6 @@ export function Training() {
                     <th className="ax-table__th" scope="col">Employee ID</th>
                     <th className="ax-table__th" scope="col">Completed</th>
                     <th className="ax-table__th ax-table__th--num" scope="col">Score</th>
-                    <th className="ax-table__th" scope="col">Result</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -560,13 +533,13 @@ export function Training() {
                     ))
                   ) : !compSearched ? (
                     <tr className="ax-table__row">
-                      <td className="ax-table__td" colSpan={5} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
+                      <td className="ax-table__td" colSpan={4} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
                         Enter an employee ID above to load completions, or click <strong>Record Completion</strong> to add one.
                       </td>
                     </tr>
                   ) : completions.length === 0 ? (
                     <tr className="ax-table__row">
-                      <td className="ax-table__td" colSpan={5} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
+                      <td className="ax-table__td" colSpan={4} style={{ textAlign:'center', color:'var(--ax-text-subtle)', padding:'var(--ax-space-10)' }}>
                         No completions found for <code>{searchEmpId}</code>.
                       </td>
                     </tr>
@@ -581,11 +554,6 @@ export function Training() {
                         <td className="ax-table__td ax-table__td--num" style={{ fontFamily:'var(--ax-font-mono)', color:'var(--ax-text-muted)' }}>
                           {c.score != null ? `${c.score}%` : '—'}
                         </td>
-                        <td className="ax-table__td">
-                          <span style={{ fontWeight:600, color: c.passed ? 'var(--ax-viz-emerald)' : 'var(--ax-danger-500)' }}>
-                            {c.passed ? 'Passed' : 'Failed'}
-                          </span>
-                        </td>
                       </tr>
                     ))
                   )}
@@ -594,6 +562,7 @@ export function Training() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </>
   );

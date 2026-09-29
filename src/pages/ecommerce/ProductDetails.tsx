@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Product details (route "ecommerce/product-details").
+ * Phause React — Ecommerce / Product details (route "ecommerce/product-details").
  *
  * Faithful re-expression of src/html/ecommerce/product-details.html: a gallery
  * with thumbnail strip, a buy box (wishlist, swatches, size pills, qty stepper,

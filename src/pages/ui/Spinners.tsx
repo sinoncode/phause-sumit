@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Spinners & Loaders.
+ * Phause React — UI · Spinners & Loaders.
  * Faithful re-expression of src/html/ui/spinners.html: ring sizes & colors, dot
  * and bar loaders, in-button busy states, and skeleton placeholders. The page-
  * local dots/bars keyframes are kept verbatim in an inline <style> (they are not

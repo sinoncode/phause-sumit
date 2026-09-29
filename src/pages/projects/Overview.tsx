@@ -1,5 +1,5 @@
 /*
- * Vireo React — Project overview (route "projects/overview").
+ * Phause React — Project overview (route "projects/overview").
  *
  * Faithful re-expression of src/html/projects/overview.html: a project summary
  * header card with a progress ring + tabs, a four-stat row, a main column

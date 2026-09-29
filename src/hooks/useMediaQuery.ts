@@ -1,5 +1,5 @@
 /*
- * Vireo React — media-query hook.
+ * Phause React — media-query hook.
  *
  * The idiomatic replacement for the reference's resize-bound width watchers
  * (`_bindBands()` in js/alpine/index.js, `sidebar.isMobile()` in

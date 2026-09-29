@@ -1,5 +1,5 @@
 /*
- * Vireo React — Analytics dashboard (route "dashboards/analytics").
+ * Phause React — Analytics dashboard (route "dashboards/analytics").
  *
  * Faithful re-expression of src/html/dashboards/analytics.html: 4 KPI cards with
  * sparklines, an Audience Overview mixed chart, conversion funnel, two device/

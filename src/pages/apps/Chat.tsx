@@ -1,5 +1,5 @@
 /*
- * Vireo React — Chat (apps/chat).
+ * Phause React — Chat (apps/chat).
  * 1:1 re-expression of src/html/apps/chat.html: 2-pane chat (conversation list +
  * thread + info drawer + composer). Alpine axChat() → native React state.
  */

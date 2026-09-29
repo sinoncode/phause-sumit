@@ -1,5 +1,5 @@
 /*
- * Vireo React — Brand Icons (icons/brands).
+ * Phause React — Brand Icons (icons/brands).
  *
  * Faithful re-expression of src/html/icons/brands.html. Mono brand marks in the
  * shared gallery, plus two "in context" showcases (sign-in buttons, share row +

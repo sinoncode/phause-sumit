@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Popovers.
+ * Phause React — UI · Popovers.
  * Faithful re-expression of src/html/ui/popovers.html: four anchored positions
  * (top/bottom/start/end, click-toggled + dismiss-on-outside + Esc), click/hover/
  * focus triggers, a rich header+body+footer confirm flow, and a hover profile

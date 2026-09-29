@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Skeletons.
+ * Phause React — UI · Skeletons.
  * Faithful re-expression of src/html/ui/skeletons.html: primitive shapes (line,
  * circle, rect, pulse), plus card / KPI / avatar-list / table / profile skeletons
  * that swap for their real content. The reference's Alpine `loading` toggle (which

@@ -1,5 +1,5 @@
 /*
- * Vireo React — application shell layout.
+ * Phause React — application shell layout.
  *
  * Reproduces the reference body structure (index.html): page loader, ambient
  * glow, .ax-layout → Sidebar + .ax-shell (Header + <main> Outlet + Footer),

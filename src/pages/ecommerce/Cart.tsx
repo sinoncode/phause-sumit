@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Shopping cart (route "ecommerce/cart").
+ * Phause React — Ecommerce / Shopping cart (route "ecommerce/cart").
  *
  * Faithful re-expression of src/html/ecommerce/cart.html: editable line items
  * with qty steppers, save-for-later, remove-with-undo and out-of-stock blocker,

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Footer (1:1 with partials/footer.html).
+ * Phause React — Footer (1:1 with partials/footer.html).
  */
 import { Link } from 'react-router-dom';
 

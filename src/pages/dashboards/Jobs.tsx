@@ -1,5 +1,5 @@
 /*
- * Vireo React — Recruitment / Jobs dashboard (route "dashboards/jobs").
+ * Phause React — Recruitment / Jobs dashboard (route "dashboards/jobs").
  *
  * Faithful re-expression of src/html/dashboards/jobs.html: a hiring-funnel
  * horizontal bar, a stacked .ax-statgroup KPI rail on a --flat card,

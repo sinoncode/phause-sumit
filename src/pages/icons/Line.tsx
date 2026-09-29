@@ -1,5 +1,5 @@
 /*
- * Vireo React — Line Icons (icons/line).
+ * Phause React — Line Icons (icons/line).
  *
  * Faithful re-expression of src/html/icons/line.html. Outline glyphs at a 1.5px
  * hairline stroke (no variant toggle). DOM/classes/ARIA + usage note match 1:1.

@@ -22,25 +22,23 @@ function adapt(raw: Record<string, unknown>): OrganisationRecord {
                          : Array.isArray(raw.verifyDomain)
                            ? (raw.verifyDomain as string[])
                            : [],
-    plan:              (raw.plan ?? '12') as OrganisationRecord['plan'],
+    plan:              String(raw.planName ?? raw.plan ?? ''),
     authRef: {
-      label: String((raw.authorizationDocRef ?? raw.authRef ?? 'pending-authorization.pdf')),
-      url:   '#',
+      label: String(raw.authorizationDocRef ?? raw.authRef ?? ''),
+      url:   '',
     },
-    authAccept:       Boolean(raw.authorizedAt ?? raw.authAccept ?? false),
-    authSignature:    String(raw.signatory ?? raw.authSignature ?? '—'),
-    authAt:           String(raw.authorizedAt ?? raw.authAt ?? new Date().toISOString()),
+    authAccept:       Boolean(raw.authorizationAccepted ?? raw.authAccept ?? false),
+    authSignature:    String(raw.authorizationSignature ?? raw.signatory ?? raw.authSignature ?? ''),
+    authAt:           String(raw.authorizedAt ?? raw.authAt ?? ''),
     region:           String(raw.region ?? ''),
     disclaimerEnabled: Boolean(raw.disclaimerEnabled ?? raw.disclaimer_enabled ?? false),
   };
 }
 
 export async function listOrganisations(): Promise<OrganisationRecord[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/organizations', getAppToken);
-    if (!Array.isArray(raw)) return [];
-    return raw.map((r) => adapt(r as Record<string, unknown>));
-  } catch { return []; }
+  const raw = await apiClient.get<unknown[]>('/api/organizations', getAppToken);
+  if (!Array.isArray(raw)) throw new Error('The organizations API returned an invalid response.');
+  return raw.map((r) => adapt(r as Record<string, unknown>));
 }
 
 export async function createOrganisation(values: {
@@ -60,10 +58,19 @@ export async function createOrganisation(values: {
   return adapt(raw);
 }
 
-export async function recordAuthorization(orgId: string, signatory: string, docRef: string): Promise<void> {
+export async function recordAuthorization(
+  orgId: string,
+  signatory: string,
+  docRef: string,
+  docFile?: string,
+): Promise<void> {
   await apiClient.post<unknown>(
     `/api/organizations/${encodeURIComponent(orgId)}/authorization`,
     getAppToken,
-    { signatory, authorizationDocRef: docRef },
+    {
+      signatory,
+      authorizationDocRef: docRef,
+      ...(docFile ? { authorizationDocFile: docFile } : {}),
+    },
   );
 }

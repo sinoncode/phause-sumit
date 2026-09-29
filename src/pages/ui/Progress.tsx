@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Progress.
+ * Phause React — UI · Progress.
  * Faithful re-expression of src/html/ui/progress.html: linear sizes, semantic
  * colors, striped/animated/indeterminate, labeled inline values, stacked
  * multi-segment bars and circular SVG rings. Fully static. DOM/classes/ARIA 1:1.

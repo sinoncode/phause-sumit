@@ -1,5 +1,5 @@
 /*
- * Vireo React — entry point.
+ * Phause React — entry point.
  *
  * Imports the shared Aurora token core (app.css) ONCE as the single stylesheet,
  * runs the non-blocking theme re-sync (the blocking first-paint copy is the

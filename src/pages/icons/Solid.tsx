@@ -1,5 +1,5 @@
 /*
- * Vireo React — Solid Icons (icons/solid).
+ * Phause React — Solid Icons (icons/solid).
  *
  * Faithful re-expression of src/html/icons/solid.html. Filled glyphs
  * (fill=currentColor, no stroke). DOM/classes/ARIA + usage note match 1:1.

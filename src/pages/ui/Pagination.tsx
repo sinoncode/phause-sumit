@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Pagination.
+ * Phause React — UI · Pagination.
  * Faithful re-expression of src/html/ui/pagination.html: numbered + icon
  * controls with ellipsis, first/last jumps, compact "page x of y", pill pager,
  * step dots, a full summary + page-size bar, and a working live table pager

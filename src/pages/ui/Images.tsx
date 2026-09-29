@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Images.
+ * Phause React — UI · Images.
  * Faithful re-expression of src/html/ui/images.html: rounding scale, fixed
  * aspect ratios, a selectable thumbnail strip (Alpine x-data → React state),
  * object-fit strategies, a captioned figure with scrim, and avatar crops with

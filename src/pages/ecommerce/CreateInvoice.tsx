@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Create invoice (route "ecommerce/create-invoice").
+ * Phause React — Ecommerce / Create invoice (route "ecommerce/create-invoice").
  *
  * Faithful re-expression of src/html/ecommerce/create-invoice.html: a left form
  * (client picker, invoice meta with term→due date math, editable line-item grid,
@@ -223,7 +223,7 @@ export function CreateInvoice() {
                   <div className="ax-cluster" style={{ justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--ax-space-4)' }}>
                     <div className="ax-cluster" style={{ gap: 'var(--ax-space-2)' }}>
                       <span className="ax-avatar ax-avatar--sm ax-avatar--squircle" style={{ background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)' }}><svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" /><path d="M9 8h6M9 12h6M9 16h2" /></svg></span>
-                      <b style={{ fontFamily: 'var(--ax-font-display)', color: 'var(--ax-text-strong)' }}>Vireo Inc.</b>
+                      <b style={{ fontFamily: 'var(--ax-font-display)', color: 'var(--ax-text-strong)' }}>Phause Inc.</b>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div className="ax-num" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-accent)', fontWeight: 'var(--ax-weight-semibold)' }}>{meta.number}</div>

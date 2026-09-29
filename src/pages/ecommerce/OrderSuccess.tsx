@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Order success (route "ecommerce/order-success").
+ * Phause React — Ecommerce / Order success (route "ecommerce/order-success").
  *
  * Faithful re-expression of src/html/ecommerce/order-success.html: a confirmation
  * hero (success check, copyable order number, track/receipt CTAs, delivery strip),

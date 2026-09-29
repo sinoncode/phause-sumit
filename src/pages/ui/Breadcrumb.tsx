@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Breadcrumb.
+ * Phause React — UI · Breadcrumb.
  * Faithful re-expression of src/html/ui/breadcrumb.html: chevron & slash trails,
  * home-glyph start, per-step icons, and a truncated-overflow trail whose hidden
  * middle collapses into an outside/Escape-closing menu (Alpine x-data → React
@@ -39,7 +39,7 @@ export function Breadcrumb() {
             <div className="ax-card__titles">
               <span className="ax-card__eyebrow">Default</span>
               <h2 className="ax-card__title">Chevron separators</h2>
-              <p className="ax-card__subtitle">The standard trail used across Vireo.</p>
+              <p className="ax-card__subtitle">The standard trail used across Phause.</p>
             </div>
           </div>
           <div className="ax-card__body" style={{ paddingTop: 0 }}>

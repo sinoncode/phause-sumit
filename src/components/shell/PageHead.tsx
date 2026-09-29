@@ -1,5 +1,5 @@
 /*
- * Vireo React — page head (breadcrumb + title + subtitle + actions).
+ * Phause React — page head (breadcrumb + title + subtitle + actions).
  * Mirrors the .ax-page-head block at the top of every reference page. The
  * breadcrumb resolves from the current route via the manifest.
  */

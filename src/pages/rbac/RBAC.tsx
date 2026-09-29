@@ -8,14 +8,19 @@
  */
 import { useEffect, useState } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
+import { listAdminOrganizations } from '../../api/organisations/orgUsers.api';
+import { useAuthStore } from '../../stores/auth.store';
 import {
   listRoles,
   createRole,
+  updateRole,
+  deleteRole,
   assignRole,
   PERMISSION_GROUPS,
   type Role,
   type RoleFormValues,
 } from '../../api/roles/roles.api';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 // ── icons ─────────────────────────────────────────────────────────────────────
 const IC_PLUS  = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>;
@@ -49,10 +54,10 @@ function PermTag({ perm }: { perm: string }) {
 // ── Create Role modal ──────────────────────────────────────────────────────────
 function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (r: Role) => void }) {
   const [name, setName]           = useState('');
-  const [desc, setDesc]           = useState('');
   const [selected, setSelected]   = useState<Set<string>>(new Set());
   const [saving, setSaving]       = useState(false);
   const [search, setSearch]       = useState('');
+  const [error, setError]         = useState('');
 
   function toggle(perm: string) {
     setSelected((prev) => {
@@ -88,10 +93,11 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (r:
     try {
       const values: RoleFormValues = {
         name: name.trim(),
-        description: desc.trim(),
         permissions: Array.from(selected),
       };
       onSave(await createRole(values));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to create role.');
     } finally { setSaving(false); }
   }
 
@@ -113,17 +119,14 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (r:
         <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
           <div className="ax-card__body" style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:'var(--ax-space-4)' }}>
 
-            {/* name + description */}
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--ax-space-3)' }}>
+            {/* role name */}
+            <div>
               <div className="ax-field">
                 <label className="ax-label" htmlFor="cr-name">Role name <span style={{color:'var(--ax-danger-500)'}}>*</span></label>
                 <input id="cr-name" className="ax-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Campaign Manager" required />
               </div>
-              <div className="ax-field">
-                <label className="ax-label" htmlFor="cr-desc">Description</label>
-                <input id="cr-desc" className="ax-input" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Brief description…" />
-              </div>
             </div>
+            {error && <p role="alert" className="ax-field__error">{error}</p>}
 
             {/* permissions header */}
             <div>
@@ -223,6 +226,171 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (r:
   );
 }
 
+// ── Edit Role modal ────────────────────────────────────────────────────────────
+function EditRoleModal({ role, onClose, onSave }: { role: Role; onClose: () => void; onSave: (r: Role) => void }) {
+  const [selected, setSelected]   = useState<Set<string>>(new Set(role.permissions));
+  const [saving, setSaving]       = useState(false);
+  const [search, setSearch]       = useState('');
+  const [error, setError]         = useState('');
+
+  function toggle(perm: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(perm) ? next.delete(perm) : next.add(perm);
+      return next;
+    });
+  }
+  function toggleGroup(perms: string[]) {
+    const allOn = perms.every((p) => selected.has(p));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      perms.forEach((p) => allOn ? next.delete(p) : next.add(p));
+      return next;
+    });
+  }
+  function selectAll() { setSelected(new Set(PERMISSION_GROUPS.flatMap((g) => g.permissions.map((p) => p.key)))); }
+  function clearAll()  { setSelected(new Set()); }
+
+  const filteredGroups = search.trim()
+    ? PERMISSION_GROUPS.map((g) => ({
+        ...g,
+        permissions: g.permissions.filter(
+          (p) => p.key.includes(search.toLowerCase()) || p.label.toLowerCase().includes(search.toLowerCase()),
+        ),
+      })).filter((g) => g.permissions.length > 0)
+    : PERMISSION_GROUPS;
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      onSave(await updateRole(role.name, Array.from(selected)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to update role.');
+    } finally { setSaving(false); }
+  }
+
+  return (
+    <div
+      role="presentation"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'var(--ax-space-4)', background:'rgba(15,18,25,.55)', backdropFilter:'blur(4px)' }}
+    >
+      <div className="ax-card" role="dialog" aria-modal="true" aria-labelledby="er-modal-title"
+        style={{ width:'100%', maxWidth:620, maxHeight:'90vh', display:'flex', flexDirection:'column' }}>
+
+        {/* header */}
+        <div className="ax-card__header" style={{ flexShrink:0 }}>
+          <div className="ax-card__titles">
+            <h2 className="ax-card__title" id="er-modal-title">Edit Role</h2>
+            <p className="ax-card__subtitle">Editing <strong>{role.name}</strong> — update its permissions below.</p>
+          </div>
+          <button type="button" className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" aria-label="Close" onClick={onClose}>{IC_CLOSE}</button>
+        </div>
+
+        <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', flex:1, minHeight:0 }}>
+          <div className="ax-card__body" style={{ flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:'var(--ax-space-4)' }}>
+
+            {error && <p role="alert" className="ax-field__error">{error}</p>}
+
+            {/* permissions header */}
+            <div>
+              <div className="ax-cluster" style={{ justifyContent:'space-between', marginBottom:'var(--ax-space-2)' }}>
+                <span style={{ fontWeight:600, fontSize:'var(--ax-text-sm)', color:'var(--ax-text-strong)' }}>
+                  Permissions
+                  {selected.size > 0 && (
+                    <span style={{ marginLeft:6, padding:'1px 7px', borderRadius:99, background:'var(--ax-accent)', color:'var(--ax-on-accent)', fontSize:'var(--ax-text-2xs)', fontWeight:700, verticalAlign:'middle' }}>
+                      {selected.size}
+                    </span>
+                  )}
+                </span>
+                <div className="ax-cluster" style={{ gap:'var(--ax-space-2)' }}>
+                  <button type="button" className="ax-btn ax-btn--ghost ax-btn--xs" onClick={selectAll}>Select all</button>
+                  <button type="button" className="ax-btn ax-btn--ghost ax-btn--xs" onClick={clearAll}>Clear</button>
+                </div>
+              </div>
+              <input
+                className="ax-input ax-input--sm"
+                placeholder="Search permissions…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ marginBottom:'var(--ax-space-3)' }}
+              />
+
+              {/* permission groups */}
+              <div style={{ display:'flex', flexDirection:'column', gap:'var(--ax-space-4)' }}>
+                {filteredGroups.map((g) => {
+                  const keys = g.permissions.map((p) => p.key);
+                  const allOn = keys.every((k) => selected.has(k));
+                  const someOn = keys.some((k) => selected.has(k));
+                  return (
+                    <div key={g.group}>
+                      {/* group header with "select group" checkbox */}
+                      <button
+                        type="button"
+                        onClick={() => toggleGroup(keys)}
+                        style={{ display:'flex', alignItems:'center', gap:'var(--ax-space-2)', background:'none', border:'none', cursor:'pointer', padding:'0 0 var(--ax-space-2)', width:'100%', textAlign:'left' }}
+                      >
+                        <span style={{
+                          width:16, height:16, borderRadius:4, flexShrink:0,
+                          border: `2px solid ${allOn || someOn ? 'var(--ax-accent)' : 'var(--ax-border-strong)'}`,
+                          background: allOn ? 'var(--ax-accent)' : someOn ? 'color-mix(in oklch,var(--ax-accent) 30%,transparent)' : 'transparent',
+                          display:'flex', alignItems:'center', justifyContent:'center', color:'white',
+                        }}>
+                          {allOn && IC_CHECK}
+                          {someOn && !allOn && <span style={{width:6,height:2,background:'var(--ax-accent)',borderRadius:1,display:'block'}}/>}
+                        </span>
+                        <span style={{ fontSize:'var(--ax-text-xs)', fontWeight:700, textTransform:'uppercase', letterSpacing:'.06em', color:'var(--ax-text-muted)' }}>
+                          {g.group}
+                        </span>
+                      </button>
+
+                      {/* individual permissions */}
+                      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'var(--ax-space-1)' }}>
+                        {g.permissions.map((p) => (
+                          <label
+                            key={p.key}
+                            style={{ display:'flex', alignItems:'center', gap:'var(--ax-space-2)', cursor:'pointer', padding:'var(--ax-space-2) var(--ax-space-2)', borderRadius:'var(--ax-radius-md)', background: selected.has(p.key) ? 'color-mix(in oklch,var(--ax-accent) 8%,transparent)' : 'transparent', border: `1px solid ${selected.has(p.key) ? 'color-mix(in oklch,var(--ax-accent) 30%,transparent)' : 'transparent'}` }}
+                          >
+                            <span style={{
+                              width:16, height:16, borderRadius:4, flexShrink:0,
+                              border: `2px solid ${selected.has(p.key) ? 'var(--ax-accent)' : 'var(--ax-border-strong)'}`,
+                              background: selected.has(p.key) ? 'var(--ax-accent)' : 'transparent',
+                              display:'flex', alignItems:'center', justifyContent:'center', color:'white',
+                            }}>
+                              {selected.has(p.key) && IC_CHECK}
+                            </span>
+                            <input type="checkbox" className="ax-visually" checked={selected.has(p.key)} onChange={() => toggle(p.key)} />
+                            <span style={{ fontSize:'var(--ax-text-xs)', color: selected.has(p.key) ? 'var(--ax-text-strong)' : 'var(--ax-text)' }}>{p.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* footer */}
+          <div className="ax-card__footer ax-cluster" style={{ justifyContent:'space-between', flexShrink:0 }}>
+            <span style={{ fontSize:'var(--ax-text-xs)', color:'var(--ax-text-subtle)' }}>
+              {selected.size} permission{selected.size !== 1 ? 's' : ''} selected
+            </span>
+            <div className="ax-cluster" style={{ gap:'var(--ax-space-3)' }}>
+              <button type="button" className="ax-btn ax-btn--secondary" onClick={onClose}>Cancel</button>
+              <button type="submit" className={`ax-btn ax-btn--primary${saving ? ' is-loading':''}`} aria-busy={saving}>
+                <span className="ax-btn__spinner" aria-hidden="true"/>
+                <span className="ax-btn__label">Save changes</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Assign Role modal ──────────────────────────────────────────────────────────
 function AssignRoleModal({ roles, onClose }: { roles: Role[]; onClose: () => void }) {
   const [userId, setUserId]   = useState('');
@@ -230,16 +398,39 @@ function AssignRoleModal({ roles, onClose }: { roles: Role[]; onClose: () => voi
   const [saving, setSaving]   = useState(false);
   const [success, setSuccess] = useState(false);
   const [err, setErr]         = useState('');
+  const [orgUsers, setOrgUsers] = useState<Array<{ id: string; email: string; role: string }>>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+
+  // Load org users when modal opens so admin can pick from a list
+  useEffect(() => {
+    import('../../api/organisations/orgUsers.api').then(({ listOrgUsers }) => {
+      listOrgUsers()
+        .then((users) => {
+          setOrgUsers(users.map((u) => ({ id: u.id, email: u.email, role: u.role })));
+          if (users.length > 0) setUserId(users[0].id);
+        })
+        .catch(() => { /* fallback: user can type manually */ })
+        .finally(() => setLoadingUsers(false));
+    });
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!userId.trim() || !roleId) return;
     setSaving(true); setErr('');
     try {
-      await assignRole({ userId: userId.trim(), roleId });
+      // Find the selected role's permissions so we can pass them explicitly.
+      // This ensures permissions are set on the user even if the backend's
+      // role-name lookup fails due to normalization differences.
+      const selectedRole = roles.find((r) => r.id === roleId);
+      await assignRole({
+        userId: userId.trim(),
+        roleId,
+        permissions: selectedRole?.permissions,
+      });
       setSuccess(true);
-    } catch {
-      setErr('Failed to assign role. Please try again.');
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : 'Failed to assign role. Please try again.');
     } finally { setSaving(false); }
   }
 
@@ -271,9 +462,22 @@ function AssignRoleModal({ roles, onClose }: { roles: Role[]; onClose: () => voi
                 </div>
               )}
               <div className="ax-field">
-                <label className="ax-label" htmlFor="ar-user">Org User ID</label>
-                <input id="ar-user" className="ax-input" placeholder="e.g. user-123 or email" value={userId} onChange={(e) => setUserId(e.target.value)} required />
-                <p className="ax-field__message">Enter the user's ID or email address.</p>
+                <label className="ax-label" htmlFor="ar-user">Org User</label>
+                {loadingUsers ? (
+                  <div className="ax-skeleton" style={{ height: 38, borderRadius: 'var(--ax-radius-md)' }} />
+                ) : orgUsers.length > 0 ? (
+                  <select id="ar-user" className="ax-select" value={userId} onChange={(e) => setUserId(e.target.value)} required>
+                    <option value="">Select a user</option>
+                    {orgUsers.map((u) => (
+                      <option key={u.id} value={u.id}>{u.email} ({u.role})</option>
+                    ))}
+                  </select>
+                ) : (
+                  <input id="ar-user" className="ax-input" placeholder="User email or ID" value={userId} onChange={(e) => setUserId(e.target.value)} required />
+                )}
+                {orgUsers.length === 0 && !loadingUsers && (
+                  <p className="ax-field__message">No users found — enter an email or ID manually.</p>
+                )}
               </div>
               <div className="ax-field">
                 <label className="ax-label" htmlFor="ar-role">Role</label>
@@ -310,21 +514,104 @@ function AssignRoleModal({ roles, onClose }: { roles: Role[]; onClose: () => voi
   );
 }
 
+// ── Confirm Delete modal ───────────────────────────────────────────────────────
+function ConfirmDeleteModal({ role, onClose, onConfirm, deleting }: { role: Role; onClose: () => void; onConfirm: () => void; deleting: boolean }) {
+  return (
+    <div
+      role="presentation"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+      style={{ position:'fixed', inset:0, zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:'var(--ax-space-4)', background:'rgba(15,18,25,.55)', backdropFilter:'blur(4px)' }}
+    >
+      <div className="ax-card" role="dialog" aria-modal="true" aria-labelledby="del-modal-title" style={{ width:'100%', maxWidth:420 }}>
+        <div className="ax-card__header">
+          <div className="ax-card__titles">
+            <h2 className="ax-card__title" id="del-modal-title">Delete Role</h2>
+          </div>
+          <button type="button" className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" aria-label="Close" onClick={onClose}>{IC_CLOSE}</button>
+        </div>
+        <div className="ax-card__body" style={{ display:'flex', flexDirection:'column', gap:'var(--ax-space-4)' }}>
+          <div style={{ display:'flex', gap:'var(--ax-space-3)', alignItems:'flex-start' }}>
+            <span style={{ flexShrink:0, width:40, height:40, borderRadius:'50%', background:'color-mix(in oklch,var(--ax-danger-500) 12%,transparent)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <svg viewBox="0 0 24 24" width={20} height={20} fill="none" stroke="var(--ax-danger-500)" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M4.99 19H19a2 2 0 0 0 1.74-2.99L13.74 5a2 2 0 0 0-3.48 0l-7 12A2 2 0 0 0 4.99 19"/></svg>
+            </span>
+            <div>
+              <p style={{ margin:0, fontWeight:600, color:'var(--ax-text-strong)' }}>
+                Delete <strong>{role.name}</strong>?
+              </p>
+              <p style={{ margin:'var(--ax-space-1) 0 0', fontSize:'var(--ax-text-sm)', color:'var(--ax-text-subtle)' }}>
+                This action cannot be undone. Any users assigned this role will lose their associated permissions.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="ax-card__footer ax-cluster" style={{ justifyContent:'flex-end', gap:'var(--ax-space-3)' }}>
+          <button type="button" className="ax-btn ax-btn--secondary" onClick={onClose} disabled={deleting}>Cancel</button>
+          <button
+            type="button"
+            className={`ax-btn ax-btn--danger${deleting ? ' is-loading' : ''}`}
+            aria-busy={deleting}
+            onClick={onConfirm}
+            disabled={deleting}
+          >
+            <span className="ax-btn__spinner" aria-hidden="true"/>
+            <span className="ax-btn__label">Delete role</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main RBAC page ─────────────────────────────────────────────────────────────
-type Modal = 'create' | 'assign' | null;
+type Modal = 'create' | 'assign' | { type: 'edit'; role: Role } | { type: 'delete'; role: Role } | null;
 
 export function RBAC() {
+  const orgId = useAuthStore((state) => state.orgId);
+  const setOrgId = useAuthStore((state) => state.setOrgId);
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; region: string }>>([]);
   const [roles, setRoles]     = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [modal, setModal]     = useState<Modal>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const handleApiError = useApiErrorHandler();
 
   useEffect(() => {
-    listRoles().then((data) => { setRoles(data); setLoading(false); });
-  }, []);
+    listAdminOrganizations().then((items) => {
+      setOrganizations(items);
+      const currentOrgId = useAuthStore.getState().orgId;
+      if (items.length && !items.some((organization) => organization.id === currentOrgId)) {
+        setOrgId(items[0].id);
+      }
+    }).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load organizations.'));
+      setLoading(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setOrgId]);
+
+  useEffect(() => {
+    if (!orgId) return;
+    setLoading(true);
+    listRoles().then(setRoles).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load roles.'));
+    }).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgId]);
 
   function onRoleCreated(r: Role) {
     setRoles((prev) => [r, ...prev]);
+    setModal(null);
+  }
+
+  function onRoleUpdated(r: Role) {
+    setRoles((prev) => prev.map((x) => x.id === r.id ? r : x));
+    setModal(null);
+  }
+
+  async function onRoleDeleted(roleName: string) {
+    await deleteRole(roleName);
+    setRoles((prev) => prev.filter((r) => r.name !== roleName));
     setModal(null);
   }
 
@@ -332,6 +619,13 @@ export function RBAC() {
     <>
       {modal === 'create' && <CreateRoleModal onClose={() => setModal(null)} onSave={onRoleCreated} />}
       {modal === 'assign' && <AssignRoleModal roles={roles} onClose={() => setModal(null)} />}
+      {modal && typeof modal === 'object' && modal.type === 'edit' && (
+        <EditRoleModal role={modal.role} onClose={() => setModal(null)} onSave={onRoleUpdated} />
+      )}
+      {modal && typeof modal === 'object' && modal.type === 'delete' && (
+        <ConfirmDeleteModal role={modal.role} onClose={() => setModal(null)}
+          onConfirm={() => onRoleDeleted(modal.role.name)} deleting={false} />
+      )}
 
       <PageHead
         title="Roles & Permissions"
@@ -347,6 +641,14 @@ export function RBAC() {
           </>
         }
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
+      <div className="ax-field" style={{ maxWidth: 420, marginBlockEnd: 'var(--ax-space-5)' }}>
+        <label className="ax-label" htmlFor="rbac-tenant">Organization</label>
+        <select id="rbac-tenant" className="ax-select" value={orgId ?? ''} onChange={(event) => setOrgId(event.target.value)}>
+          <option value="" disabled>Select organization</option>
+          {organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}
+        </select>
+      </div>
 
       {/* ── summary strip ─────────────────────────────────────────────── */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:'var(--ax-space-4)', marginBottom:'var(--ax-space-6)' }}>
@@ -364,7 +666,8 @@ export function RBAC() {
       </div>
 
       {/* ── Roles list ────────────────────────────────────────────────── */}
-      <div className="ax-card">
+      <div className="ax-dash-grid">
+        <div className="ax-card ax-col--12" style={{ minInlineSize: 0 }}>
         <div className="ax-card__header">
           <div className="ax-card__titles"><h2 className="ax-card__title">Roles</h2><p className="ax-card__subtitle">Click a role to expand its permissions.</p></div>
         </div>
@@ -388,11 +691,13 @@ export function RBAC() {
                   key={role.id}
                   style={{ border:'1px solid var(--ax-border)', borderRadius:'var(--ax-radius-lg)', overflow:'hidden', transition:'border-color .15s' }}
                 >
-                  {/* role header row */}
-                  <button
-                    type="button"
+                  {/* role header row — using div+role to allow nested action buttons */}
+                  <div
+                    role="button"
+                    tabIndex={0}
                     style={{ display:'flex', alignItems:'center', gap:'var(--ax-space-3)', width:'100%', padding:'var(--ax-space-4)', background:'none', border:'none', cursor:'pointer', textAlign:'left' }}
                     onClick={() => setExpanded(open ? null : role.id)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setExpanded(open ? null : role.id)}
                     aria-expanded={open}
                   >
                     {/* chevron */}
@@ -416,7 +721,28 @@ export function RBAC() {
                     <span style={{ flexShrink:0, padding:'2px 8px', borderRadius:99, background:'color-mix(in oklch,var(--ax-accent) 12%,transparent)', color:'var(--ax-accent)', fontSize:'var(--ax-text-xs)', fontWeight:600 }}>
                       {role.permissions.length} perm{role.permissions.length !== 1 ? 's':''}
                     </span>
-                  </button>
+                    {/* Edit button */}
+                    <button
+                      type="button"
+                      className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                      aria-label={`Edit ${role.name}`}
+                      onClick={(e) => { e.stopPropagation(); setModal({ type: 'edit', role }); }}
+                    >
+                      {/* pencil icon */}
+                      <svg viewBox="0 0 24 24" width={15} height={15} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/><path d="M13.5 6.5l4 4"/></svg>
+                    </button>
+                    {/* Delete button */}
+                    <button
+                      type="button"
+                      className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                      aria-label={`Delete ${role.name}`}
+                      onClick={(e) => { e.stopPropagation(); setModal({ type: 'delete', role }); }}
+                      style={{ color: 'var(--ax-danger-500)' }}
+                    >
+                      {/* trash icon */}
+                      <svg viewBox="0 0 24 24" width={15} height={15} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M4 7h16"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12"/><path d="M9 7v-3h6v3"/><path d="M10 12l0 6"/><path d="M14 12l0 6"/></svg>
+                    </button>
+                  </div>
 
                   {/* expanded permissions */}
                   {open && (
@@ -449,24 +775,25 @@ export function RBAC() {
       </div>
 
       {/* ── Permission reference ───────────────────────────────────────── */}
-      <div className="ax-card" style={{ marginTop:'var(--ax-space-6)' }}>
+        <div className="ax-card ax-col--12" style={{ minInlineSize: 0 }}>
         <div className="ax-card__header">
           <div className="ax-card__titles"><h2 className="ax-card__title">Permission Reference</h2><p className="ax-card__subtitle">All available permissions grouped by resource.</p></div>
         </div>
-        <div className="ax-card__body" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:'var(--ax-space-5)' }}>
+        <div className="ax-card__body" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(min(280px,100%),1fr))', gap:'var(--ax-space-5)' }}>
           {PERMISSION_GROUPS.map((g) => (
             <div key={g.group}>
               <p style={{ margin:'0 0 var(--ax-space-2)', fontSize:'var(--ax-text-xs)', fontWeight:700, textTransform:'uppercase', letterSpacing:'.06em', color:'var(--ax-text-muted)' }}>{g.group}</p>
-              <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:4, minInlineSize: 0 }}>
                 {g.permissions.map((p) => (
-                  <div key={p.key} style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                    <span style={{ fontSize:'var(--ax-text-xs)', color:'var(--ax-text)' }}>{p.label}</span>
-                    <code style={{ fontSize:'var(--ax-text-2xs)', color:'var(--ax-text-subtle)', fontFamily:'var(--ax-font-mono)' }}>{p.key}</code>
+                  <div key={p.key} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:'var(--ax-space-2)' }}>
+                    <span style={{ minInlineSize: 0, fontSize:'var(--ax-text-xs)', color:'var(--ax-text)' }}>{p.label}</span>
+                    <code style={{ minInlineSize: 0, overflowWrap:'anywhere', textAlign:'end', fontSize:'var(--ax-text-2xs)', color:'var(--ax-text-subtle)', fontFamily:'var(--ax-font-mono)' }}>{p.key}</code>
                   </div>
                 ))}
               </div>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </>

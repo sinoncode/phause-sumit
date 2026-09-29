@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Avatars.
+ * Phause React — UI · Avatars.
  * Faithful re-expression of src/html/ui/avatars.html: sizes, shapes & rings,
  * fallback chain (portrait → initials → glyph), status dots, stacks/overflow,
  * and the name+role list-row pattern. Static, presentational — DOM/classes 1:1.

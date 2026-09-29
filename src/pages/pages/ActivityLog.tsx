@@ -1,5 +1,5 @@
 /*
- * Vireo React — Activity Log (route "pages/activity-log").
+ * Phause React — Activity Log (route "pages/activity-log").
  *
  * Faithful re-expression of src/html/pages/activity-log.html: a filter bar with
  * search, date/actor selects and event-type chips, plus a Today / Yesterday /

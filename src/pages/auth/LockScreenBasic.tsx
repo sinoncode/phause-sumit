@@ -1,8 +1,8 @@
 /*
- * Vireo React — Lock screen (basic).
+ * Phause React — Lock screen (basic).
  * 1:1 re-expression of src/html/auth/lock-screen-basic.html: identity avatar
  * (Ava Sutton), password unlock with reveal toggle, an error banner that escalates
- * after 3 attempts. Demo password is "vireo" → redirects to "/".
+ * after 3 attempts. Demo password is "phause" → redirects to "/".
  */
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -40,7 +40,7 @@ export function LockScreenBasic() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      if (pw === 'vireo') {
+      if (pw === 'phause') {
         navigate('/');
       } else {
         attempts.current++;
@@ -59,9 +59,9 @@ export function LockScreenBasic() {
       <main className="ax-center" id="ax-main" style={{ position: 'relative', zIndex: 1, width: '100%' }}>
         <div style={{ width: '100%', maxWidth: 400 }}>
           <div className="ax-center" style={{ marginBlockEnd: 'var(--ax-space-6)' }}>
-            <Link to="/" className="ax-cluster" style={{ gap: 'var(--ax-space-3)', textDecoration: 'none' }} aria-label="Vireo home">
+            <Link to="/" className="ax-cluster" style={{ gap: 'var(--ax-space-3)', textDecoration: 'none' }} aria-label="Phause home">
               <span style={{ display: 'inline-grid', placeItems: 'center', width: 40, height: 40, borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)', boxShadow: '0 8px 22px -8px rgba(var(--ax-accent-rgb),.7)' }}>{HEX}</span>
-              <b style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)' }}>Vireo</b>
+              <b style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)' }}>Phause</b>
             </Link>
           </div>
 
@@ -109,7 +109,7 @@ export function LockScreenBasic() {
           </div>
 
           <p style={{ marginBlockStart: 'var(--ax-space-5)', textAlign: 'center', fontSize: 'var(--ax-text-2xs)', color: 'var(--ax-text-subtle)' }}>
-            Protected workspace · Vireo keeps your session encrypted while you're away.
+            Protected workspace · Phause keeps your session encrypted while you're away.
           </p>
         </div>
       </main>

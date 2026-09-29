@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Navbar.
+ * Phause React — UI · Navbar.
  * Faithful re-expression of src/html/ui/navbar.html: an app brand bar, an
  * interactive section-tab rail (Alpine x-data tab → React state), a pill filter
  * nav (seg → state), a marketing site header, and an editor toolbar whose Save
@@ -69,7 +69,7 @@ export function Navbar() {
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 30, height: 30, borderRadius: 'var(--ax-radius-sm)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)' }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9z" /><path d="M12 12l8 -4.5" /><path d="M12 12v9" /><path d="M12 12l-8 -4.5" /></svg>
                 </span>
-                <b style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-md)' }}>Vireo</b>
+                <b style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-md)' }}>Phause</b>
               </a>
               <div className="ax-cluster" style={{ gap: 'var(--ax-space-1)', marginInlineStart: 'var(--ax-space-4)', flexWrap: 'nowrap' }}>
                 <a href="#" className="ax-btn ax-btn--ghost ax-btn--sm" aria-current="page" style={{ color: 'var(--ax-accent)', background: 'var(--ax-accent-wash)' }}><span className="ax-btn__label">Dashboard</span></a>
@@ -154,7 +154,7 @@ export function Navbar() {
                 <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 3l8 4.5v9l-8 4.5l-8 -4.5v-9z" /></svg>
                 </span>
-                <b style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-md)' }}>Vireo</b>
+                <b style={{ fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-md)' }}>Phause</b>
               </a>
               <span className="ax-spacer" />
               <div className="ax-cluster" style={{ gap: 'var(--ax-space-5)', marginInline: 'auto', flexWrap: 'nowrap' }}>

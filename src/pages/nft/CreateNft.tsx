@@ -1,5 +1,5 @@
 /*
- * Vireo React — Create NFT (route "nft/create-nft").
+ * Phause React — Create NFT (route "nft/create-nft").
  *
  * Faithful re-expression of src/html/nft/create-nft.html: a 4-step creation
  * form (upload dropzone/preview, details, dynamic traits, pricing & supply with

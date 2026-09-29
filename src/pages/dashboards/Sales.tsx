@@ -1,5 +1,5 @@
 /*
- * Vireo React — Sales dashboard (route "/").
+ * Phause React — Sales dashboard (route "/").
  *
  * Faithful re-expression of src/html/dashboards/sales.html (v2 redesign): a
  * welcome band + gradient revenue spotlight opener, one flat card holding the
@@ -243,7 +243,7 @@ export function Sales() {
               <span aria-hidden="true" style={{ position: 'absolute', top: -40, right: -30, width: 140, height: 140, borderRadius: '50%', background: 'rgba(255,255,255,.18)', filter: 'blur(6px)' }} />
               <span aria-hidden="true" style={{ position: 'absolute', bottom: -50, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.12)' }} />
               <div className="ax-cluster" style={{ justifyContent: 'space-between', position: 'relative' }}>
-                <b style={{ fontFamily: 'var(--ax-font-display)', letterSpacing: '.02em', color: 'inherit' }}>Vireo</b>
+                <b style={{ fontFamily: 'var(--ax-font-display)', letterSpacing: '.02em', color: 'inherit' }}>Phause</b>
                 <svg viewBox="0 0 24 24" width={26} height={26} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ opacity: 0.9 }}><path d="M3 10h18" /><path d="M7 15h.01" /><path d="M11 15h2" /><path d="M5 5h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2" /></svg>
               </div>
               <div style={{ marginTop: 'auto', position: 'relative' }}>

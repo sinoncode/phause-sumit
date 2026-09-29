@@ -1,16 +1,17 @@
 /*
- * Vireo React — Sidebar (manifest-driven nav tree).
+ * Phause React — Sidebar (manifest-driven nav tree).
  *
  * RBAC: Admin sees all nav items.
  * Org user sees only items where they hold the required permission.
  * Items with no permission requirement are always visible (e.g. Dashboard).
  */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { slugFromPath } from '../../lib/manifest';
 import { Icon } from '../ui/Icon';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
-import { useAuthStore } from '../../stores/auth.store';
+import { useAuthStore, getAppToken } from '../../stores/auth.store';
+import { apiClient } from '../../api/client';
 
 import LogoIcon from '../../image/logo.png';
 import LogoText from '../../image/logo-text.png';
@@ -35,27 +36,27 @@ const NAV_ITEMS: NavItem[] = [
   { section: '',               slug: 'dashboard',              to: '/dashboard',              label: 'Dashboard',             icon: 'layout-dashboard' },
 
   // ── Organisations ───────────────────────────────────────────────────────────
-  { section: 'Organisations',  slug: 'organisations/org',      to: '/organisations/org',      label: 'Org',                   icon: 'building',       permission: 'organisations:read' },
-  { section: '',               slug: 'organisations/org-user', to: '/organisations/org-user', label: 'Org User',              icon: 'user',           permission: 'organisations:read' },
+  { section: 'Organisations',  slug: 'organisations/org',      to: '/organisations/org',      label: 'Org',                   icon: 'building',       permission: 'organization:read' },
+  { section: '',               slug: 'organisations/org-user', to: '/organisations/org-user', label: 'Org User',              icon: 'user',           adminOnly: true },
 
   // ── Employees ───────────────────────────────────────────────────────────────
-  { section: 'Employees',      slug: 'employees',              to: '/employees',              label: 'Employees',             icon: 'users-group',    permission: 'employees:read' },
+  { section: 'Employees',      slug: 'employees',              to: '/employees',              label: 'Employees',             icon: 'users-group',    permission: 'employee:read' },
 
   // ── Templates ───────────────────────────────────────────────────────────────
-  { section: 'Templates',      slug: 'templates',              to: '/templates',              label: 'Templates',             icon: 'article',        permission: 'templates:read' },
+  { section: 'Templates',      slug: 'templates',              to: '/templates',              label: 'Templates',             icon: 'article',        permission: 'template:read' },
 
   // ── Campaigns ───────────────────────────────────────────────────────────────
-  { section: 'Campaigns',      slug: 'api/campaigns',          to: '/api/campaigns',          label: 'Campaigns',             icon: 'article',        permission: 'campaigns:read',  alsoActive: ['api/campaigns/new'] },
-  { section: '',               slug: 'tracking-events',        to: '/tracking-events',        label: 'Tracking Events',       icon: 'activity',       permission: 'campaigns:read' },
+  { section: 'Campaigns',      slug: 'api/campaigns',          to: '/api/campaigns',          label: 'Campaigns',             icon: 'article',        permission: 'campaign:read',   alsoActive: ['api/campaigns/new'] },
+  { section: '',               slug: 'tracking-events',        to: '/tracking-events',        label: 'Tracking Events',       icon: 'activity',       permission: 'campaign:read' },
 
   // ── Reports ─────────────────────────────────────────────────────────────────
-  { section: 'Reports',        slug: 'reports',                to: '/reports',                label: 'Reports & Risk Scores', icon: 'files',          permission: 'reports:read' },
+  { section: 'Reports',        slug: 'reports',                to: '/reports',                label: 'Reports & Risk Scores', icon: 'files',          permission: 'report:read' },
 
   // ── Training ────────────────────────────────────────────────────────────────
   { section: 'Training',       slug: 'training',               to: '/training',               label: 'Training & Remediation',icon: 'school',         permission: 'training:read' },
 
   // ── Billing ─────────────────────────────────────────────────────────────────
-  { section: 'Billing',        slug: 'billing',                to: '/billing',                label: 'Billing & Plans',       icon: 'credit-card',    permission: 'billing:read' },
+  { section: 'Billing',        slug: 'billing',                to: '/billing',                label: 'Billing & Plans',       icon: 'credit-card',    permission: 'plan:read' },
 
   // ── Access Control (admin-only) ──────────────────────────────────────────────
   { section: 'Access Control', slug: 'rbac',                   to: '/rbac',                   label: 'Roles & Permissions',   icon: 'shield-lock',    adminOnly: true },
@@ -70,6 +71,26 @@ export function Sidebar({ drawerOpen = false }: { drawerOpen?: boolean }) {
 
   const userRole    = useAuthStore((s) => s.userRole);
   const permissions = useAuthStore((s) => s.permissions);
+  const appToken    = useAuthStore((s) => s.appToken);
+
+  // Fetch fresh permissions from the server whenever the Sidebar mounts or
+  // the appToken changes. This ensures roles assigned after login are visible
+  // immediately without requiring a sign-out/sign-in cycle.
+  useEffect(() => {
+    if (userRole !== 'org_user' || !appToken) return;
+    apiClient
+      .get<{ permissions?: string[]; user?: { permissions?: string[] } }>(
+        '/api/auth/me',
+        getAppToken,
+      )
+      .then((me) => {
+        const fresh = me.permissions ?? me.user?.permissions ?? [];
+        if (fresh.length > 0) {
+          useAuthStore.getState().setPermissions(fresh);
+        }
+      })
+      .catch(() => { /* silently keep stored permissions if endpoint fails */ });
+  }, [appToken, userRole]);
 
   const isAdmin = userRole === 'admin' || userRole === null; // null = not logged in, show all (guard elsewhere)
 

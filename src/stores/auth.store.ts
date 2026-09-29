@@ -82,8 +82,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 }));
 
 /** Getters for use outside React components (e.g. in API modules). */
-export const getAppToken   = () => useAuthStore.getState().appToken;
 export const getAdminToken = () => useAuthStore.getState().adminToken;
+
+/**
+ * Returns the appToken, falling back to adminToken when the admin is signed in
+ * but no org-user token exists.  This lets the super-admin access every module
+ * (organisations, employees, campaigns, reports, etc.) without needing a second
+ * sign-in as an org user.
+ */
+export const getAppToken = (): string | null => {
+  const { appToken, adminToken } = useAuthStore.getState();
+  return appToken ?? adminToken;
+};
 
 /** Returns true if the current user has a given permission */
 export const hasPermission = (permission: string) =>

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Utilities · Breakpoints.
+ * Phause React — Utilities · Breakpoints.
  * 1:1 re-expression of src/html/utilities/breakpoints.html: a live tier indicator
  * that tracks window.innerWidth (resize listener), the --ax-bp-* reference table
  * with the active row highlighted, and grid-collapse demos. Ports the Alpine

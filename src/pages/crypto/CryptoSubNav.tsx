@@ -1,5 +1,5 @@
 /*
- * Vireo React — crypto pill sub-nav shared by the five crypto section pages
+ * Phause React — crypto pill sub-nav shared by the five crypto section pages
  * (wallet / exchange / buy-sell / marketcap / transactions). Mirrors the
  * .ax-tabs--pill block at the top of each reference crypto page; the active tab
  * is set per page.

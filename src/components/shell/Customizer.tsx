@@ -1,5 +1,5 @@
 /*
- * Vireo React — Theme Customizer offcanvas (re-expression of partials/customizer.html).
+ * Phause React — Theme Customizer offcanvas (re-expression of partials/customizer.html).
  *
  * Native React drawer (Alpine axCustomizer re-implementation): color mode,
  * direction, 12 accent presets, custom colors, navigation, shell style, sidebar,

@@ -7,6 +7,7 @@ import {
   updateEmployee as updateEmployeeApi,
   deleteEmployee as deleteEmployeeApi,
 } from '../../api/employees/employees.api';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 export type EmployeeSeniority = 'junior' | 'mid' | 'senior' | 'lead' | 'critical';
 
@@ -49,14 +50,6 @@ const ICON_EDIT = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" 
 const ICON_DELETE = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12h12l1-12M9 7V4h6v3" /></svg>;
 const ICON_CLOSE = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>;
 
-const SEED_EMPLOYEES: EmployeeRecord[] = [
-  { id: 'EMP-1001', organisationId: 'ORG-2001', email: 'bob@acme.com', name: 'Bob Jones', department: 'HR', seniority: 'junior', hasConsent: true },
-  { id: 'EMP-1002', organisationId: 'ORG-2001', email: 'carol@acme.com', name: 'Carol White', department: 'IT', seniority: 'senior', hasConsent: true },
-  { id: 'EMP-1003', organisationId: 'ORG-2002', email: 'dave@acme.com', name: 'Dave Brown', department: 'Finance', seniority: 'lead', hasConsent: true },
-  { id: 'EMP-1004', organisationId: 'ORG-2002', email: 'maya@northwind.io', name: 'Maya Patel', department: 'Security', seniority: 'critical', hasConsent: false },
-  { id: 'EMP-1005', organisationId: 'ORG-2003', email: 'liam@globex.co', name: 'Liam Smith', department: 'Operations', seniority: 'mid', hasConsent: true },
-];
-
 function ConsentBadge({ value }: { value: boolean }) {
   return <span className={`ax-badge ax-badge--soft ax-badge--pill ${value ? 'ax-badge--success' : 'ax-badge--warning'}`}><span className="ax-badge__dot" />{value ? 'True' : 'False'}</span>;
 }
@@ -96,17 +89,21 @@ function parseCsv(csv: string): EmployeeFormValues[] {
 }
 
 export function Employees() {
-  const [employees, setEmployees] = useState<EmployeeRecord[]>(SEED_EMPLOYEES);
+  const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
+  const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState<'create' | 'import' | { edit: EmployeeRecord } | { view: EmployeeRecord } | null>(null);
   const [importError, setImportError] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
   const pageCount = Math.max(1, Math.ceil(employees.length / PAGE_SIZE));
   const rows = useMemo(() => employees.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE), [employees, page]);
+  const handleApiError = useApiErrorHandler();
 
-  // Load employees from API on mount; fall back to seed data silently
   useEffect(() => {
-    listEmployees().then((data) => { if (data.length) setEmployees(data); });
+    listEmployees().then(setEmployees).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load employees.'));
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addEmployees = async (values: EmployeeFormValues[]) => {
@@ -115,18 +112,16 @@ export function Employees() {
         const created = await createEmployee(values[0]);
         setEmployees((current) => [created, ...current]);
       } else {
-        // Bulk: build CSV and send to import endpoint
         const header = 'email,name,department,seniority,hasConsent';
         const rows = values.map((v) => `${v.email},${v.name},${v.department},${v.seniority},${v.hasConsent}`);
         const created = await importEmployeesCsv([header, ...rows].join('\n'));
         setEmployees((current) => [...created, ...current]);
       }
-    } catch {
-      // Fallback: optimistic local add
-      setEmployees((current) => [...values.map((value, index) => ({ ...value, id: `EMP-${Date.now()}-${index}`, organisationId: 'ORG-2001' })), ...current]);
+      setPage(1);
+      setModal(null);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Unable to save employees.');
     }
-    setPage(1);
-    setModal(null);
   };
   const handleFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -134,18 +129,11 @@ export function Employees() {
     setImportError('');
     try {
       const csvText = await file.text();
-      const parsed = parseCsv(csvText);
-      // Try real API first; fall back to client-side parse
-      try {
-        const created = await importEmployeesCsv(csvText);
-        setEmployees((current) => [...created, ...current]);
-        setPage(1);
-        setModal(null);
-      } catch {
-        setEmployees((current) => [...parsed.map((value, index) => ({ ...value, id: `EMP-${Date.now()}-${index}`, organisationId: 'ORG-2001' })), ...current]);
-        setPage(1);
-        setModal(null);
-      }
+      parseCsv(csvText);
+      const created = await importEmployeesCsv(csvText);
+      setEmployees((current) => [...created, ...current]);
+      setPage(1);
+      setModal(null);
     } catch (error) { setImportError(error instanceof Error ? error.message : 'Unable to import CSV.'); }
     event.target.value = '';
   };
@@ -154,20 +142,26 @@ export function Employees() {
       try {
         const updated = await updateEmployeeApi(modal.edit.id, values);
         setEmployees((current) => current.map((emp) => emp.id === modal.edit.id ? updated : emp));
-      } catch {
-        setEmployees((current) => current.map((emp) => emp.id === modal.edit.id ? { ...modal.edit, ...values } : emp));
+      } catch (error) {
+        setImportError(error instanceof Error ? error.message : 'Unable to update employee.');
+        return;
       }
     }
     setModal(null);
   };
   const deleteEmployee = async (id: string) => {
-    try { await deleteEmployeeApi(id); } catch { /* soft-delete endpoint returns 204; ignore errors */ }
-    setEmployees((current) => current.filter((emp) => emp.id !== id));
-    setPage(1);
+    try {
+      await deleteEmployeeApi(id);
+      setEmployees((current) => current.filter((emp) => emp.id !== id));
+      setPage(1);
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : 'Unable to delete employee.');
+    }
   };
 
   return <>
     <PageHead title="Employees" subtitle="Manage employees eligible for authorised phishing simulations." />
+    {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
     <div className="ax-cluster" style={{ gap: 'var(--ax-space-2)', marginBlockEnd: 'var(--ax-space-5)' }}>
       <button type="button" className="ax-btn ax-btn--primary" onClick={() => setModal('create')}>{ICON_PLUS}<span className="ax-btn__label">Create Employee</span></button>
       <button type="button" className="ax-btn ax-btn--secondary" onClick={() => setModal('import')}>{ICON_UPLOAD}<span className="ax-btn__label">Bulk Import (CSV)</span></button>

@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Sortable.
+ * Phause React — UI · Sortable.
  * Faithful re-expression of src/html/ui/sortable.html: a reorderable task list
  * (drag handle + arrow-key reordering), a two-column kanban-lite (drag cards
  * between lists), and a reorderable image grid. The Alpine axSortable/axBoards

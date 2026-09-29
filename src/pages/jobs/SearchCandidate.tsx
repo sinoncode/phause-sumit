@@ -1,5 +1,5 @@
 /*
- * Vireo React — Search Candidates (route "jobs/search-candidate").
+ * Phause React — Search Candidates (route "jobs/search-candidate").
  *
  * Faithful re-expression of src/html/jobs/search-candidate.html: a hero search
  * bar, a sticky filters sidebar (skills, availability, min-experience,

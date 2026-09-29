@@ -1,5 +1,5 @@
 /*
- * Vireo React — Area Charts (charts/apex-area).
+ * Phause React — Area Charts (charts/apex-area).
  *
  * Faithful re-expression of src/html/charts/apex-area.html. The reference renders
  * via data-attr + the charts.js wrapper; here every chart goes through <ApexChart>

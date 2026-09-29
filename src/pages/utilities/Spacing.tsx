@@ -1,5 +1,5 @@
 /*
- * Vireo React — Utilities · Spacing scale.
+ * Phause React — Utilities · Spacing scale.
  * 1:1 re-expression of src/html/utilities/spacing.html: the 4px-based --ax-space-N
  * ruler (click a row to copy), a nesting padding demo, gap tokens, .ax-stack
  * vertical rhythm and a snap-to-the-scale info alert.

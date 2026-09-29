@@ -1,5 +1,5 @@
 /*
- * Vireo React — Form Wizard (route "forms/wizard").
+ * Phause React — Form Wizard (route "forms/wizard").
  *
  * Faithful re-expression of src/html/forms/wizard.html: a four-step onboarding
  * flow (Account → Workspace → Preferences → Review) validated per step, with a
@@ -193,7 +193,7 @@ export function FormsWizard() {
                 <div className="ax-field">
                   <label className="ax-label" htmlFor="w-url">Workspace URL</label>
                   <div className="ax-input-group">
-                    <span className="ax-input-group__addon">vireo.app/</span>
+                    <span className="ax-input-group__addon">phause.app/</span>
                     <input id="w-url" type="text" className="ax-input ax-mono" value={slug()} readOnly aria-label="Workspace URL slug" />
                   </div>
                   <span className="ax-help">Generated from the workspace name.</span>
@@ -251,7 +251,7 @@ export function FormsWizard() {
               <div className="ax-flex" style={{ flexDirection: 'column', gap: 'var(--ax-space-5)' }}>
                 <p style={{ margin: 0, color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>Confirm your details below. Use the <b style={{ color: 'var(--ax-text)' }}>Edit</b> links to jump back to any section.</p>
                 <ReviewBlock title="Account" onEdit={() => goTo(0)} rows={[['Name', (form.first + ' ' + form.last).trim() || '—'], ['Email', form.email || '—']]} />
-                <ReviewBlock title="Workspace" onEdit={() => goTo(1)} rows={[['Name', form.workspace || '—'], ['URL', 'vireo.app/' + slug(), true], ['Team size', form.teamSize], ['Primary use', (USES.find((u) => u.id === form.use) || { label: '—' }).label]]} />
+                <ReviewBlock title="Workspace" onEdit={() => goTo(1)} rows={[['Name', form.workspace || '—'], ['URL', 'phause.app/' + slug(), true], ['Team size', form.teamSize], ['Primary use', (USES.find((u) => u.id === form.use) || { label: '—' }).label]]} />
                 <ReviewBlock title="Preferences" onEdit={() => goTo(2)} rows={[['Timezone', form.tz], ['Notifications', notifs.filter((n) => n.on).map((n) => n.title).join(', ') || 'None']]} />
               </div>
             )}

@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Alerts.
+ * Phause React — UI · Alerts.
  * Faithful re-expression of src/html/ui/alerts.html: soft, solid, accent-edge,
  * inline tones plus the interactive "actions & dismissible" card. The Alpine
  * x-data dismissal state + the "Restore dismissed" header button are ported to
@@ -46,7 +46,7 @@ export function Alerts() {
               <svg className="ax-alert__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
               <div className="ax-alert__content">
                 <p className="ax-alert__title">Scheduled maintenance</p>
-                <p className="ax-alert__message">Vireo will be briefly unavailable on Jun 15, 02:00–02:30 UTC for a database upgrade.</p>
+                <p className="ax-alert__message">Phause will be briefly unavailable on Jun 15, 02:00–02:30 UTC for a database upgrade.</p>
               </div>
             </div>
             <div className="ax-alert ax-alert--success" role="status">

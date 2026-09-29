@@ -1,5 +1,5 @@
 /*
- * Vireo React — Customizer / theme state provider.
+ * Phause React — Customizer / theme state provider.
  *
  * Single source of UI truth for the theme attribute contract. It mirrors the
  * current <html> data-ax-* attributes into React state and exposes setters that

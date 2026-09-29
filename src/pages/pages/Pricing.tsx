@@ -1,5 +1,5 @@
 /*
- * Vireo React — Pricing (route "pages/pricing").
+ * Phause React — Pricing (route "pages/pricing").
  *
  * Faithful re-expression of src/html/pages/pricing.html: monthly/annual billing
  * toggle that re-prices the Pro & Business tiers, four tier cards, a side-by-side
@@ -84,7 +84,7 @@ export function Pricing() {
           <div className="ax-card__body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-5)', height: '100%' }}>
             <div>
               <h2 className="ax-card__title" style={{ fontSize: 'var(--ax-text-md)' }}>Starter</h2>
-              <p className="ax-card__subtitle" style={{ marginTop: 4 }}>For individuals exploring Vireo.</p>
+              <p className="ax-card__subtitle" style={{ marginTop: 4 }}>For individuals exploring Phause.</p>
             </div>
             <div>
               <div className="ax-cluster" style={{ alignItems: 'baseline', gap: 'var(--ax-space-1)' }}>

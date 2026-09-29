@@ -1,5 +1,5 @@
 /*
- * Vireo React — Enhanced Select (route "forms/select").
+ * Phause React — Enhanced Select (route "forms/select").
  *
  * Faithful re-expression of src/html/forms/select.html: a searchable single
  * combobox (grouped), a multi-select with chips, a tag-create input, a tree

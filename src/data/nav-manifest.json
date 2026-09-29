@@ -1,5 +1,5 @@
 {
-  "$schema": "vireo-nav-manifest/v1",
+  "$schema": "phause-nav-manifest/v1",
   "meta": {
     "spec": "specs/02-INFORMATION-ARCHITECTURE.md",
     "registryRoutes": 189,

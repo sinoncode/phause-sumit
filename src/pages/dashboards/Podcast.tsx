@@ -1,5 +1,5 @@
 /*
- * Vireo React — Podcast Studio dashboard (route "dashboards/podcast").
+ * Phause React — Podcast Studio dashboard (route "dashboards/podcast").
  *
  * Faithful re-expression of src/html/dashboards/podcast.html: a full-width "Key
  * figures" .ax-statgroup band on an .ax-card--filled, a

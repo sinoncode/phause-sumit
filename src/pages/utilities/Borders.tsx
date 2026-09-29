@@ -1,5 +1,5 @@
 /*
- * Vireo React — Utilities · Borders & radius.
+ * Phause React — Utilities · Borders & radius.
  * 1:1 re-expression of src/html/utilities/borders.html: the six-step radius scale,
  * stroke width/color tokens, border styles, divider helpers and composed edge
  * treatments. Token tiles copy their var to the clipboard (useCopyFlash).
