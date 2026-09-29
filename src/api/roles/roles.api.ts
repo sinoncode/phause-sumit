@@ -3,13 +3,15 @@
  *
  * All routes use adminToken (Bearer).
  * Endpoints:
- *   GET  /roles          — List roles
- *   POST /roles          — Create role (with permissions array)
- *   POST /roles/assign   — Assign a role to an org user
+ *   GET    /api/admin/roles              — List roles
+ *   POST   /api/admin/roles              — Create role (with permissions array)
+ *   POST   /api/admin/roles/assign       — Assign a role to an org user
+ *   PATCH  /api/admin/roles/:roleName    — Update a role's permissions
+ *   DELETE /api/admin/roles/:roleName    — Delete a role
  */
 
 import { apiClient } from '../client';
-import { getAdminToken } from '../../stores/auth.store';
+import { getAdminToken, useAuthStore } from '../../stores/auth.store';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -24,9 +26,11 @@ export interface Role {
 export interface RoleAssignment {
   userId: string;
   roleId: string;
+  /** Explicit permissions to set on the user — bypasses server-side role lookup */
+  permissions?: string[];
 }
 
-export type RoleFormValues = Omit<Role, 'id' | 'createdAt'>;
+export type RoleFormValues = Pick<Role, 'name' | 'permissions'>;
 
 // ── All available permissions (grouped for the UI) ────────────────────────────
 
@@ -34,47 +38,43 @@ export const PERMISSION_GROUPS: Array<{ group: string; permissions: Array<{ key:
   {
     group: 'Organisations',
     permissions: [
-      { key: 'organisations:read',   label: 'View organisations' },
-      { key: 'organisations:create', label: 'Create organisation' },
-      { key: 'organisations:update', label: 'Update organisation' },
-      { key: 'organisations:delete', label: 'Delete organisation' },
+      { key: 'organization:read', label: 'View organization' },
+      { key: 'organization:create', label: 'Create organization' },
+      { key: 'organization:manage', label: 'Manage organization' },
+      { key: 'organization:authorize', label: 'Authorize organization' },
     ],
   },
   {
     group: 'Employees',
     permissions: [
-      { key: 'employees:read',   label: 'View employees' },
-      { key: 'employees:create', label: 'Add employee' },
-      { key: 'employees:update', label: 'Edit employee' },
-      { key: 'employees:delete', label: 'Remove employee' },
-      { key: 'employees:import', label: 'Bulk import employees' },
+      { key: 'employee:read', label: 'View employees' },
+      { key: 'employee:create', label: 'Add employee' },
+      { key: 'employee:manage', label: 'Manage employees' },
     ],
   },
   {
     group: 'Campaigns',
     permissions: [
-      { key: 'campaigns:read',     label: 'View campaigns' },
-      { key: 'campaigns:create',   label: 'Create campaign' },
-      { key: 'campaigns:dispatch', label: 'Dispatch campaign' },
-      { key: 'campaigns:cancel',   label: 'Cancel campaign' },
+      { key: 'campaign:read', label: 'View campaigns' },
+      { key: 'campaign:create', label: 'Create campaign' },
+      { key: 'campaign:dispatch', label: 'Dispatch campaign' },
+      { key: 'campaign:manage', label: 'Manage campaigns' },
     ],
   },
   {
     group: 'Templates',
     permissions: [
-      { key: 'templates:read',   label: 'View templates' },
-      { key: 'templates:create', label: 'Create template' },
-      { key: 'templates:update', label: 'Edit template' },
-      { key: 'templates:delete', label: 'Delete template' },
+      { key: 'template:read', label: 'View templates' },
+      { key: 'template:create', label: 'Create template' },
+      { key: 'template:manage', label: 'Manage templates' },
     ],
   },
   {
     group: 'Reports & Risk',
     permissions: [
-      { key: 'reports:read',      label: 'View reports' },
-      { key: 'reports:generate',  label: 'Generate reports' },
-      { key: 'reports:export',    label: 'Export reports' },
-      { key: 'risk-scores:read',  label: 'View risk scores' },
+      { key: 'report:read', label: 'View reports' },
+      { key: 'report:generate', label: 'Generate reports' },
+      { key: 'risk:read', label: 'View risk scores' },
     ],
   },
   {
@@ -88,16 +88,18 @@ export const PERMISSION_GROUPS: Array<{ group: string; permissions: Array<{ key:
   {
     group: 'Billing',
     permissions: [
-      { key: 'billing:read',   label: 'View billing & plans' },
-      { key: 'billing:manage', label: 'Manage subscription' },
+      { key: 'plan:read', label: 'View plans' },
+      { key: 'plan:create', label: 'Create plans' },
+      { key: 'plan:manage', label: 'Manage plans' },
+      { key: 'subscription:read', label: 'View subscription' },
+      { key: 'subscription:manage', label: 'Manage subscription' },
     ],
   },
   {
     group: 'RBAC',
     permissions: [
-      { key: 'roles:read',   label: 'View roles' },
-      { key: 'roles:create', label: 'Create roles' },
-      { key: 'roles:assign', label: 'Assign roles to users' },
+      { key: 'role:create', label: 'Create roles' },
+      { key: 'role:assign', label: 'Assign roles to users' },
     ],
   },
 ];
@@ -111,71 +113,68 @@ export const ALL_PERMISSIONS = PERMISSION_GROUPS.flatMap((g) =>
 
 function adaptRole(raw: Record<string, unknown>): Role {
   return {
-    id:          String(raw.id ?? ''),
+    id:          String(raw.id ?? raw.name ?? ''),
     name:        String(raw.name ?? ''),
     description: String(raw.description ?? ''),
     permissions: Array.isArray(raw.permissions) ? (raw.permissions as string[]) : [],
-    createdAt:   String(raw.createdAt ?? raw.created_at ?? new Date().toISOString()),
+    createdAt:   String(raw.createdAt ?? raw.created_at ?? ''),
   };
 }
-
-// ── Seed data (offline fallback) ──────────────────────────────────────────────
-
-export const SEED_ROLES: Role[] = [
-  {
-    id: 'ROLE-001',
-    name: 'Campaign Manager',
-    description: 'Can manage campaigns and view reports.',
-    permissions: ['campaigns:read', 'campaigns:create', 'campaigns:dispatch', 'campaigns:cancel', 'reports:read', 'templates:read'],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'ROLE-002',
-    name: 'Analyst',
-    description: 'Read-only access to reports and risk scores.',
-    permissions: ['reports:read', 'reports:export', 'risk-scores:read', 'employees:read'],
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 'ROLE-003',
-    name: 'HR Admin',
-    description: 'Manage employees and training.',
-    permissions: ['employees:read', 'employees:create', 'employees:update', 'employees:import', 'training:read', 'training:create', 'training:complete'],
-    createdAt: new Date().toISOString(),
-  },
-];
 
 // ── API functions ─────────────────────────────────────────────────────────────
 
 /** List all roles — GET /api/admin/roles */
 export async function listRoles(): Promise<Role[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/admin/roles', getAdminToken);
-    if (!Array.isArray(raw)) return SEED_ROLES;
-    return raw.map((r) => adaptRole(r as Record<string, unknown>));
-  } catch {
-    return SEED_ROLES;
-  }
+  const raw = await apiClient.get<unknown[]>('/api/admin/roles', getAdminToken);
+  if (!Array.isArray(raw)) throw new Error('The roles API returned an invalid response.');
+  return raw.map((r) => adaptRole(r as Record<string, unknown>));
 }
 
 /** Create a role — POST /api/admin/roles */
 export async function createRole(values: RoleFormValues): Promise<Role> {
-  try {
-    const raw = await apiClient.post<Record<string, unknown>>('/api/admin/roles', getAdminToken, values);
-    return adaptRole(raw);
-  } catch {
-    return { ...values, id: `ROLE-${Date.now()}`, createdAt: new Date().toISOString() };
-  }
+  const orgId = useAuthStore.getState().orgId;
+  if (!orgId) throw new Error('Select an organization before creating a role.');
+  const raw = await apiClient.post<Record<string, unknown>>('/api/admin/roles', getAdminToken, {
+    orgId,
+    role: values.name,
+    permissions: values.permissions,
+  });
+  return adaptRole(raw);
 }
 
 /**
- * Assign a role to an org user — PATCH /api/admin/users/:userId
- * The backend updates the user's role field via the existing user-update endpoint.
+ * Assign a role to an org user — POST /api/admin/roles/assign
+ * Requires x-tenant-id header (already set by the api client for admin role).
+ * Always sends permissions explicitly so the backend doesn't have to resolve
+ * them from the role name (which can fail if normalization differs).
  */
 export async function assignRole(assignment: RoleAssignment): Promise<void> {
-  await apiClient.patch<unknown>(
-    `/api/admin/users/${encodeURIComponent(assignment.userId)}`,
+  const body: Record<string, unknown> = {
+    userId: assignment.userId,
+    role: assignment.roleId,
+  };
+  if (assignment.permissions !== undefined) {
+    body.permissions = assignment.permissions;
+  }
+  await apiClient.post<unknown>('/api/admin/roles/assign', getAdminToken, body);
+}
+
+/** Update a role's permissions — PATCH /api/admin/roles/:roleName */
+export async function updateRole(roleName: string, permissions: string[]): Promise<Role> {
+  const orgId = useAuthStore.getState().orgId;
+  if (!orgId) throw new Error('Select an organization before updating a role.');
+  const raw = await apiClient.patch<Record<string, unknown>>(
+    `/api/admin/roles/${encodeURIComponent(roleName)}`,
     getAdminToken,
-    { role: assignment.roleId },
+    { orgId, permissions },
+  );
+  return adaptRole(raw);
+}
+
+/** Delete a role — DELETE /api/admin/roles/:roleName */
+export async function deleteRole(roleName: string): Promise<void> {
+  await apiClient.delete<void>(
+    `/api/admin/roles/${encodeURIComponent(roleName)}`,
+    getAdminToken,
   );
 }

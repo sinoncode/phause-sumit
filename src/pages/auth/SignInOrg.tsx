@@ -6,6 +6,14 @@ import {
 import { useAuthStore } from '../../stores/auth.store';
 import { apiClient, ApiError } from '../../api/client';
 
+/** Decode a JWT without verifying the signature — used to extract claims. */
+function decodeJwt(token: string): Record<string, unknown> {
+  try {
+    const payload = token.split('.')[1];
+    return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+  } catch { return {}; }
+}
+
 export function SignInOrg() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,9 +44,16 @@ export function SignInOrg() {
     if (!validate()) return;
     setLoading(true);
     try {
+      // Response shape: { accessToken, user: { id, orgId, email, role, permissions, hasConsent } }
       const res = await apiClient.post<{
         token?: string; accessToken?: string; access_token?: string;
+        user?: {
+          orgId?: string; organizationId?: string; org_id?: string;
+          permissions?: string[];
+        };
+        // flat fallbacks
         orgId?: string; organizationId?: string; org_id?: string;
+        permissions?: string[];
       }>(
         '/api/auth/login',
         null,
@@ -46,8 +61,81 @@ export function SignInOrg() {
       );
       const token = res.token ?? res.accessToken ?? res.access_token ?? '';
       if (!token) throw new Error('No token in response');
-      const orgId = res.orgId ?? res.organizationId ?? res.org_id;
-      setAppToken(token, orgId);
+
+      const userObj = res.user ?? {};
+      const orgId = userObj.orgId ?? userObj.organizationId ?? userObj.org_id
+                 ?? res.orgId ?? res.organizationId ?? res.org_id;
+
+      // ── Step 1: permissions from the response body ───────────────────────────
+      // Backend may return them in many shapes — check all known field names.
+      const rawResPerms =
+        userObj.permissions ??
+        (res as Record<string, unknown>).permissions ??
+        (res as Record<string, unknown>).roles ??
+        userObj.roles ??
+        null;
+
+      let permissions: string[] = [];
+      if (Array.isArray(rawResPerms) && rawResPerms.length > 0) {
+        // Could be an array of strings OR array of role objects with a `.permissions` sub-array
+        if (typeof rawResPerms[0] === 'string') {
+          permissions = rawResPerms as string[];
+        } else if (typeof rawResPerms[0] === 'object' && rawResPerms[0] !== null) {
+          // e.g. [{ name: 'admin', permissions: ['campaign:read', ...] }]
+          permissions = (rawResPerms as Record<string, unknown>[]).flatMap((r) =>
+            Array.isArray(r.permissions) ? (r.permissions as string[]) : [],
+          );
+        }
+      }
+
+      // ── Step 2: decode JWT and look for permissions claim ────────────────────
+      if (permissions.length === 0) {
+        const payload = decodeJwt(token);
+        const jwtPerms =
+          payload.permissions ??
+          payload.permission ??
+          payload.scopes ??
+          payload.scope ??
+          payload.roles ??
+          payload.role ??
+          payload.authorities ??
+          payload.access;
+
+        if (Array.isArray(jwtPerms) && jwtPerms.length > 0) {
+          if (typeof jwtPerms[0] === 'string') {
+            permissions = jwtPerms as string[];
+          } else if (typeof jwtPerms[0] === 'object' && jwtPerms[0] !== null) {
+            permissions = (jwtPerms as Record<string, unknown>[]).flatMap((r) =>
+              Array.isArray(r.permissions) ? (r.permissions as string[]) : [],
+            );
+          }
+        } else if (typeof jwtPerms === 'string' && jwtPerms) {
+          permissions = jwtPerms.split(/[\s,]+/).filter(Boolean);
+        }
+      }
+
+      // ── Step 3: store token (sets userRole = 'org_user') ────────────────────
+      setAppToken(token, orgId, permissions);
+
+      // ── Step 4: fetch /api/auth/me if still no permissions ───────────────────
+      if (permissions.length === 0) {
+        try {
+          const me = await apiClient.get<Record<string, unknown>>(
+            '/api/auth/me',
+            () => token,
+          );
+          const mePerms =
+            (me.permissions as string[] | undefined) ??
+            (me.user as Record<string, unknown> | undefined)?.permissions as string[] | undefined ??
+            [];
+          if (mePerms.length > 0) {
+            useAuthStore.getState().setPermissions(mePerms);
+          }
+        } catch {
+          // /api/auth/me may not exist — silently continue
+        }
+      }
+
       navigate('/', { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {

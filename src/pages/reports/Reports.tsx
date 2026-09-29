@@ -16,6 +16,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
 import { ApexChart } from '../../components/charts/ApexChart';
+import { useCampaignStore } from '../../stores/campaign.store';
+import type { Campaign } from '../../features/campaigns/types';
 import {
   type DepartmentRisk,
   type EmployeeRiskScore,
@@ -26,8 +28,7 @@ import {
   type TrainingCorrelationRow,
 } from './reportsData';
 import {
-  exportCsvUrl,
-  exportPdfUrl,
+  downloadReport,
   generateReport,
   getRiskByDepartment,
   getRiskTrend,
@@ -36,7 +37,8 @@ import {
   listReports,
   listRiskScores,
 } from '../../api/reports/reports.api';
-import { mockCampaigns } from '../../features/campaigns/mocks';
+import { ApiError } from '../../api/client';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -75,7 +77,7 @@ const ICON_EYE = (
 // ---------------------------------------------------------------------------
 
 const fmt = (iso: string) =>
-  new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
 function Pagination({ page, pageCount, total, start, size, onPage }: { page: number; pageCount: number; total: number; start: number; size: number; onPage: (p: number) => void }) {
   return (
@@ -129,6 +131,15 @@ function StatusBadge({ status }: { status: ReportSummary['status'] }) {
 // ---------------------------------------------------------------------------
 
 function ReportModal({ report, onClose }: { report: ReportSummary; onClose: () => void }) {
+  const [exportError, setExportError] = useState('');
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    setExportError('');
+    try {
+      await downloadReport(report.id, format);
+    } catch (error) {
+      setExportError(error instanceof Error ? error.message : 'Unable to export report.');
+    }
+  };
   return (
     <div
       role="presentation"
@@ -146,7 +157,7 @@ function ReportModal({ report, onClose }: { report: ReportSummary; onClose: () =
         </div>
         <div className="ax-card__body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 'var(--ax-space-3)' }}>
-            {[['Open rate', `${report.openRate}%`], ['Click rate', `${report.clickRate}%`], ['Landing rate', `${report.landingRate}%`]].map(([l, v]) => (
+            {[['Open rate', report.openRate === null ? '—' : `${report.openRate}%`], ['Click rate', `${report.clickRate}%`], ['Landing rate', report.landingRate === null ? '—' : `${report.landingRate}%`]].map(([l, v]) => (
               <div key={l} style={{ background: 'var(--ax-surface-subtle)', borderRadius: 'var(--ax-radius-md)', padding: 'var(--ax-space-3)', textAlign: 'center' }}>
                 <div className="ax-num" style={{ fontSize: 'var(--ax-text-xl)', fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)' }}>{v}</div>
                 <div style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)', marginTop: 'var(--ax-space-1)' }}>{l}</div>
@@ -168,14 +179,15 @@ function ReportModal({ report, onClose }: { report: ReportSummary; onClose: () =
         </div>
         <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end', gap: 'var(--ax-space-3)' }}>
           {/* 10.4 & 10.5 — export buttons — authenticated download links */}
-          <a className="ax-btn ax-btn--secondary" href={exportCsvUrl(report.id)} download aria-label={`Export ${report.id} as CSV`}>
+          <button type="button" className="ax-btn ax-btn--secondary" onClick={() => void handleExport('csv')} aria-label={`Export ${report.id} as CSV`}>
             {ICON_DOWNLOAD}<span className="ax-btn__label">CSV</span>
-          </a>
-          <a className="ax-btn ax-btn--secondary" href={exportPdfUrl(report.id)} download aria-label={`Export ${report.id} as PDF`}>
+          </button>
+          <button type="button" className="ax-btn ax-btn--secondary" onClick={() => void handleExport('pdf')} aria-label={`Export ${report.id} as PDF`}>
             {ICON_DOWNLOAD}<span className="ax-btn__label">PDF</span>
-          </a>
+          </button>
           <button type="button" className="ax-btn ax-btn--primary" onClick={onClose}>Close</button>
         </div>
+        {exportError && <p role="alert" className="ax-field__error">{exportError}</p>}
       </div>
     </div>
   );
@@ -185,17 +197,27 @@ function ReportModal({ report, onClose }: { report: ReportSummary; onClose: () =
 // 10.1 — Generate report modal
 // ---------------------------------------------------------------------------
 
-function GenerateModal({ onClose, onGenerate }: { onClose: () => void; onGenerate: (campaignId: string) => void }) {
-  const [campaignId, setCampaignId] = useState(mockCampaigns[2].id); // default to completed
+function GenerateModal({ campaigns, onClose, onGenerate }: { campaigns: Campaign[]; onClose: () => void; onGenerate: (campaignId: string) => Promise<void> }) {
+  const eligibleCampaigns = campaigns.filter((campaign) => campaign.status === 'completed' || campaign.status === 'running');
+  const [campaignId, setCampaignId] = useState('');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!campaignId && eligibleCampaigns.length) setCampaignId(eligibleCampaigns[0].id);
+  }, [campaignId, eligibleCampaigns]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    // PLACEHOLDER — swap for: fetch(REPORT_ENDPOINTS.generate, { method:'POST', body: JSON.stringify({ campaignId }) })
-    await new Promise((r) => setTimeout(r, 800));
-    onGenerate(campaignId);
-    setBusy(false);
+    setError('');
+    try {
+      await onGenerate(campaignId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to generate report.');
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -214,17 +236,18 @@ function GenerateModal({ onClose, onGenerate }: { onClose: () => void; onGenerat
           <div className="ax-card__body" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }}>
             <div className="ax-field">
               <label className="ax-field__label" htmlFor="gen-campaign">Campaign</label>
-              <select id="gen-campaign" className="ax-select" value={campaignId} onChange={(e) => setCampaignId(e.target.value)}>
-                {mockCampaigns.filter((c) => c.status === 'completed' || c.status === 'running').map((c) => (
+              <select id="gen-campaign" className="ax-select" value={campaignId} onChange={(e) => setCampaignId(e.target.value)} disabled={!eligibleCampaigns.length} required>
+                {eligibleCampaigns.map((c) => (
                   <option key={c.id} value={c.id}>{c.name} ({c.id})</option>
                 ))}
               </select>
-              <p className="ax-field__hint">Only completed or running campaigns can generate a report.</p>
+              <p className="ax-field__hint">{eligibleCampaigns.length ? 'Only completed or running campaigns can generate a report.' : 'No completed or running campaigns are available.'}</p>
+              {error && <p role="alert" className="ax-field__error">{error}</p>}
             </div>
           </div>
           <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end', gap: 'var(--ax-space-3)' }}>
             <button type="button" className="ax-btn ax-btn--secondary" onClick={onClose}>Cancel</button>
-            <button type="submit" className="ax-btn ax-btn--primary" disabled={busy}>
+            <button type="submit" className="ax-btn ax-btn--primary" disabled={busy || !campaignId}>
               <span className="ax-btn__label">{busy ? 'Generating…' : 'Generate report'}</span>
             </button>
           </div>
@@ -239,6 +262,7 @@ function GenerateModal({ onClose, onGenerate }: { onClose: () => void; onGenerat
 // ---------------------------------------------------------------------------
 
 export function Reports() {
+  const { campaigns, load: loadCampaigns } = useCampaignStore();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [riskScores, setRiskScores] = useState<EmployeeRiskScore[]>([]);
   const [riskTrend, setRiskTrend] = useState<RiskTrendPoint[]>([]);
@@ -246,6 +270,8 @@ export function Reports() {
   const [templateEff, setTemplateEff] = useState<TemplateEffectiveness[]>([]);
   const [trainingCorr, setTrainingCorr] = useState<TrainingCorrelationRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const handleApiError = useApiErrorHandler();
 
   const [viewReport, setViewReport] = useState<ReportSummary | null>(null);
   const [showGenerate, setShowGenerate] = useState(false);
@@ -254,23 +280,42 @@ export function Reports() {
 
   // Load all data on mount
   useEffect(() => {
+    if (!campaigns.length) void loadCampaigns();
+  }, [campaigns.length, loadCampaigns]);
+
+  useEffect(() => {
     setLoading(true);
-    Promise.all([
+    setLoadError('');
+    Promise.allSettled([
       listReports(),
       listRiskScores(),
       getRiskTrend(),
       getRiskByDepartment(),
       getTemplateEffectiveness(),
       getTrainingCorrelation(),
-    ]).then(([r, rs, rt, dr, te, tc]) => {
-      setReports(r);
-      setRiskScores(rs);
-      setRiskTrend(rt);
-      setDeptRisks(dr);
-      setTemplateEff(te);
-      setTrainingCorr(tc);
-      setLoading(false);
-    });
+    ]).then((results) => {
+      const [r, rs, rt, dr, te, tc] = results;
+
+      // Redirect on 401
+      for (const result of results) {
+        if (result.status === 'rejected' && result.reason instanceof ApiError && result.reason.status === 401) {
+          handleApiError(result.reason);
+          return;
+        }
+      }
+
+      if (r.status === 'fulfilled') setReports(r.value);
+      if (rs.status === 'fulfilled') setRiskScores(rs.value);
+      if (rt.status === 'fulfilled') setRiskTrend(rt.value);
+      if (dr.status === 'fulfilled') setDeptRisks(dr.value);
+      if (te.status === 'fulfilled') setTemplateEff(te.value);
+      if (tc.status === 'fulfilled') setTrainingCorr(tc.value);
+      const errors = results.flatMap((result) => result.status === 'rejected'
+        ? [result.reason instanceof Error ? result.reason.message : 'A report API request failed.']
+        : []);
+      setLoadError(errors.join(' '));
+    }).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // 10.3 — paginated reports list
@@ -292,6 +337,9 @@ export function Reports() {
     setRptPage(1);
     setShowGenerate(false);
   };
+  const averageRisk = riskScores.length
+    ? Math.round(riskScores.reduce((total, score) => total + score.riskScore, 0) / riskScores.length)
+    : null;
 
   return (
     <>
@@ -304,6 +352,7 @@ export function Reports() {
           </button>
         }
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
 
       {loading && (
         <p style={{ color: 'var(--ax-text-muted)', padding: 'var(--ax-space-4)' }}>Loading reports…</p>
@@ -347,9 +396,9 @@ export function Reports() {
                     <td className="ax-table__td" style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', whiteSpace: 'nowrap' }}>{fmt(r.generatedAt)}</td>
                     <td className="ax-table__td"><StatusBadge status={r.status} /></td>
                     <td className="ax-table__td ax-table__td--num">{r.totalTargeted || '—'}</td>
-                    <td className="ax-table__td ax-table__td--num">{r.status === 'ready' ? `${r.openRate}%` : '—'}</td>
+                    <td className="ax-table__td ax-table__td--num">{r.status === 'ready' && r.openRate !== null ? `${r.openRate}%` : '—'}</td>
                     <td className="ax-table__td ax-table__td--num">{r.status === 'ready' ? `${r.clickRate}%` : '—'}</td>
-                    <td className="ax-table__td ax-table__td--num">{r.status === 'ready' ? `${r.landingRate}%` : '—'}</td>
+                    <td className="ax-table__td ax-table__td--num">{r.status === 'ready' && r.landingRate !== null ? `${r.landingRate}%` : '—'}</td>
                     <td className="ax-table__td">
                       <button
                         type="button"
@@ -408,7 +457,7 @@ export function Reports() {
           <div className="ax-card__body" style={{ paddingTop: 0 }}>
             <div className="ax-statgroup ax-statgroup--stack">
               {[
-                { label: 'Avg risk score', value: '52', sub: '↓ from 72 in Apr' },
+                { label: 'Avg risk score', value: averageRisk === null ? '—' : String(averageRisk), sub: riskTrend.length > 1 ? `Trend: ${riskTrend[0].avgRiskScore} to ${riskTrend[riskTrend.length - 1].avgRiskScore}` : undefined },
                 { label: 'Critical employees', value: String(riskScores.filter((e) => e.riskLevel === 'critical').length) },
                 { label: 'High risk', value: String(riskScores.filter((e) => e.riskLevel === 'high').length) },
                 { label: 'Reports ready', value: String(reports.filter((r) => r.status === 'ready').length) },
@@ -639,7 +688,7 @@ export function Reports() {
 
       {/* Modals */}
       {viewReport && <ReportModal report={viewReport} onClose={() => setViewReport(null)} />}
-      {showGenerate && <GenerateModal onClose={() => setShowGenerate(false)} onGenerate={handleGenerate} />}
+      {showGenerate && <GenerateModal campaigns={campaigns} onClose={() => setShowGenerate(false)} onGenerate={handleGenerate} />}
     </>
   );
 }

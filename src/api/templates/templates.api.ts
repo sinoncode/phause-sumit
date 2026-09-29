@@ -29,11 +29,9 @@ function adapt(raw: Record<string, unknown>): PhishingTemplate {
 }
 
 export async function listTemplates(): Promise<PhishingTemplate[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/templates', getAppToken);
-    if (!Array.isArray(raw)) return [];
-    return raw.map((r) => adapt(r as Record<string, unknown>));
-  } catch { return []; }
+  const raw = await apiClient.get<unknown[]>('/api/templates', getAppToken);
+  if (!Array.isArray(raw)) throw new Error('The templates API returned an invalid response.');
+  return raw.map((r) => adapt(r as Record<string, unknown>));
 }
 
 export async function createTemplate(values: Omit<PhishingTemplate, 'id'>): Promise<PhishingTemplate> {

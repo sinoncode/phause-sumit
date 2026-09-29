@@ -10,18 +10,14 @@
  *   Sidebar → /tracking-events         (this page, campaign picker)
  *   CampaignDetails → Tracking Events  (goes to /api/campaigns/:id/tracking-events)
  *
- * Data: campaign list from the existing Zustand campaign store (same source
- * as CampaignList.tsx); tracking events from seedTrackingEvents() per
- * trackingEventsData.ts conventions.
+ * Campaigns and tracking events come from the authenticated API.
  */
 import { useEffect, useMemo, useState } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
 import { useCampaignStore } from '../../stores/campaign.store';
-import {
-  seedTrackingEvents,
-  type TrackingEvent,
-  type TrackingEventType,
-} from './trackingEventsData';
+import type { TrackingEvent, TrackingEventType } from './trackingEventsData';
+import { listCampaignTrackingEvents } from '../../api/campaigns/tracking.api';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 // ---------------------------------------------------------------------------
 // Constants (duplicated from TrackingEvents.tsx to keep pages self-contained)
@@ -171,8 +167,12 @@ export function TrackingEventsIndex() {
   useEffect(() => { if (!campaigns.length) void load(); }, [campaigns.length, load]);
 
   const [selectedId, setSelectedId] = useState<string>('');
+  const [events, setEvents] = useState<TrackingEvent[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [eventsError, setEventsError] = useState('');
   const [filter, setFilter] = useState<FilterOption>('all');
   const [page, setPage] = useState(1);
+  const handleApiError = useApiErrorHandler();
 
   // Once campaigns load, default to the first one.
   useEffect(() => {
@@ -184,11 +184,25 @@ export function TrackingEventsIndex() {
     ? (templates.find((t) => t.id === selectedCampaign.templateId)?.name ?? selectedCampaign.templateId)
     : '';
 
-  // Seed events for the selected campaign.
-  const events = useMemo<TrackingEvent[]>(
-    () => (selectedId ? seedTrackingEvents(selectedId) : []),
-    [selectedId],
-  );
+  useEffect(() => {
+    if (!selectedId) {
+      setEvents([]);
+      setLoadingEvents(false);
+      return;
+    }
+    let active = true;
+    setLoadingEvents(true);
+    setEventsError('');
+    listCampaignTrackingEvents(selectedId).then((data) => {
+      if (active) setEvents(data);
+    }).catch((err: unknown) => {
+      if (active) setEventsError(handleApiError(err, 'Unable to load campaign events.'));
+    }).finally(() => {
+      if (active) setLoadingEvents(false);
+    });
+    return () => { active = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId]);
 
   const counts = useMemo<Record<TrackingEventType, number>>(() => ({
     pixel_open: events.filter((e) => e.eventType === 'pixel_open').length,
@@ -217,6 +231,8 @@ export function TrackingEventsIndex() {
         title="Tracking Events"
         subtitle="Simulation engagement events across campaigns."
       />
+      {eventsError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{eventsError}</p></div>}
+      {loadingEvents && <p style={{ color: 'var(--ax-text-muted)' }}>Loading campaign events…</p>}
 
       <div className="ax-dash-grid">
 

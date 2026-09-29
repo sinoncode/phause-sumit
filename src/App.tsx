@@ -113,6 +113,8 @@ const TrackingEventsIndex = lazy(() => import('./pages/campaigns/TrackingEventsI
 const Reports = lazy(() => import('./pages/reports/Reports'));
 const Training = lazy(() => import('./pages/training/Training'));
 const Billing  = lazy(() => import('./pages/billing/Billing'));
+const UserProfile = lazy(() => import('./pages/profile/UserProfile'));
+const BillingCheckout = lazy(() => import('./pages/billing/Checkout'));
 const RBACPage = lazy(() => import('./pages/rbac/RBAC'));
 const DocsIndex = lazy(() => import('./pages/docs/Index'));
 const EcommerceAddProduct = lazy(() => import('./pages/ecommerce/AddProduct'));
@@ -434,6 +436,20 @@ const wrap = (C: PageComponent): ReactElement => (
 );
 
 /**
+ * ProtectedRoute — redirects to /admin/login when no token is present.
+ * Wraps all shell routes so unauthenticated visitors can never see data pages.
+ */
+function ProtectedRoute({ children }: { children: ReactElement }): ReactElement {
+  const adminToken = useAuthStore((s) => s.adminToken);
+  const appToken   = useAuthStore((s) => s.appToken);
+
+  if (!adminToken && !appToken) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return children;
+}
+
+/**
  * PermGuard — wraps a route element.
  * - Admin (or unauthenticated): renders the page as-is.
  * - Org user without the required permission: renders the 403 page instead.
@@ -447,11 +463,32 @@ function PermGuard({ permission, children }: { permission: string; children: Rea
   return children;
 }
 
+/**
+ * AdminOnlyGuard — shows 403 to org users.
+ * Use for pages that call admin-only API endpoints (e.g. /api/admin/*).
+ * Prevents org users from triggering 401s that would clear their session.
+ */
+function AdminOnlyGuard({ children }: { children: ReactElement }): ReactElement {
+  const userRole = useAuthStore((s) => s.userRole);
+  if (userRole === 'org_user') {
+    return wrap(standalone['error/403'] as PageComponent);
+  }
+  return children;
+}
+
 function guardedWrap(C: PageComponent, permission: string): ReactElement {
   return (
     <PermGuard permission={permission}>
       {wrap(C)}
     </PermGuard>
+  );
+}
+
+function adminOnlyWrap(C: PageComponent): ReactElement {
+  return (
+    <AdminOnlyGuard>
+      {wrap(C)}
+    </AdminOnlyGuard>
   );
 }
 
@@ -467,31 +504,33 @@ export function App() {
             <Route key={slug} path={slug} element={wrap(C)} />
           ))}
           {/* Full-screen app shell (apps/*) */}
-          <Route element={<AppLayout />}>
+          <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
             {Object.entries(appShell).map(([slug, C]) => (
               <Route key={slug} path={slug} element={wrap(C)} />
             ))}
           </Route>
           {/* Dashboard shell */}
-          <Route element={<Layout />}>
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             {/* <Route index element={wrap(Sales)} />
             <Route path="dashboards/sales" element={<Navigate to="/" replace />} /> */}
             <Route index element={wrap(PhauseDashboard)} />
             <Route path="dashboard" element={wrap(PhauseDashboard)} />
-            <Route path="organisations/org" element={guardedWrap(OrganisationsOrg, 'organisations:read')} />
-            <Route path="organisations/org/:organisationId" element={guardedWrap(OrganisationsOrgDetail, 'organisations:read')} />
-            <Route path="organisations/org-user" element={guardedWrap(OrganisationsOrgUser, 'organisations:read')} />
-            <Route path="employees" element={guardedWrap(Employees, 'employees:read')} />
-            <Route path="templates" element={guardedWrap(Templates, 'templates:read')} />
-            <Route path="api/campaigns" element={guardedWrap(CampaignList, 'campaigns:read')} />
-            <Route path="api/campaigns/new" element={guardedWrap(CampaignCreate, 'campaigns:create')} />
-            <Route path="api/campaigns/:campaignId" element={guardedWrap(CampaignDetails, 'campaigns:read')} />
-            <Route path="api/campaigns/:campaignId/tracking-events" element={guardedWrap(TrackingEvents, 'campaigns:read')} />
-            <Route path="tracking-events" element={guardedWrap(TrackingEventsIndex, 'campaigns:read')} />
-            <Route path="reports" element={guardedWrap(Reports, 'reports:read')} />
+            <Route path="organisations/org" element={guardedWrap(OrganisationsOrg, 'organization:read')} />
+            <Route path="organisations/org/:organisationId" element={guardedWrap(OrganisationsOrgDetail, 'organization:read')} />
+            <Route path="organisations/org-user" element={adminOnlyWrap(OrganisationsOrgUser)} />
+            <Route path="employees" element={guardedWrap(Employees, 'employee:read')} />
+            <Route path="templates" element={guardedWrap(Templates, 'template:read')} />
+            <Route path="api/campaigns" element={guardedWrap(CampaignList, 'campaign:read')} />
+            <Route path="api/campaigns/new" element={guardedWrap(CampaignCreate, 'campaign:create')} />
+            <Route path="api/campaigns/:campaignId" element={guardedWrap(CampaignDetails, 'campaign:read')} />
+            <Route path="api/campaigns/:campaignId/tracking-events" element={guardedWrap(TrackingEvents, 'campaign:read')} />
+            <Route path="tracking-events" element={guardedWrap(TrackingEventsIndex, 'campaign:read')} />
+            <Route path="reports" element={guardedWrap(Reports, 'report:read')} />
             <Route path="training" element={guardedWrap(Training, 'training:read')} />
-            <Route path="billing" element={guardedWrap(Billing, 'billing:read')} />
-            <Route path="rbac" element={guardedWrap(RBACPage, 'roles:read')} />
+            <Route path="billing" element={guardedWrap(Billing, 'plan:read')} />
+            <Route path="billing/checkout" element={guardedWrap(BillingCheckout, 'plan:read')} />
+            <Route path="profile" element={wrap(UserProfile)} />
+            <Route path="rbac" element={guardedWrap(RBACPage, 'role:create')} />
             <Route path="dashboards/sales" element={<Navigate to="/dashboards/stocks" replace />} />
             {Object.entries(shell).map(([slug, C]) => (
               <Route key={slug} path={slug} element={wrap(C)} />

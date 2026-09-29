@@ -11,13 +11,29 @@
  *   POST   /api/campaigns/:id/cancel   — cancel
  *   GET    /api/templates              — list templates (needed for campaign form)
  *
- * Falls back to mock data when the API is unreachable.
+ * API failures are surfaced to the caller; no synthetic campaigns are returned.
  */
 
 import { apiClient } from '../client';
 import { getAppToken } from '../../stores/auth.store';
-import { mockCampaigns, mockCampaignTemplates } from '../../features/campaigns/mocks';
 import type { Campaign, CampaignTemplate, CreateCampaignInput, UpdateCampaignInput } from '../../features/campaigns/types';
+
+function apiTargetMode(mode: Campaign['targeting']['targetMode']): string {
+  if (mode === 'percentage') return 'random';
+  if (mode === 'segment') return 'department';
+  return 'all';
+}
+
+function apiInput(input: CreateCampaignInput | UpdateCampaignInput): Record<string, unknown> {
+  const payload: Record<string, unknown> = { ...input };
+  if (input.targetMode) payload.targetMode = apiTargetMode(input.targetMode);
+  if (input.targetMode === 'segment' && input.targetSegment) {
+    payload.targetSegment = input.targetSegment.startsWith('department:')
+      ? input.targetSegment
+      : `department:${input.targetSegment}`;
+  }
+  return payload;
+}
 
 function adaptCampaign(raw: Record<string, unknown>): Campaign {
   return {
@@ -25,15 +41,23 @@ function adaptCampaign(raw: Record<string, unknown>): Campaign {
     name:                 String(raw.name ?? ''),
     templateId:           String(raw.templateId ?? raw.template_id ?? ''),
     targeting: {
-      targetMode:         (raw.targetMode ?? raw.target_mode ?? 'all') as Campaign['targeting']['targetMode'],
-      targetSegment:      String(raw.targetSegment ?? raw.target_segment ?? ''),
+      targetMode:         ((raw.targetMode ?? raw.target_mode) === 'random' ? 'percentage' : (raw.targetMode ?? raw.target_mode) === 'department' ? 'segment' : raw.targetMode ?? raw.target_mode ?? 'all') as Campaign['targeting']['targetMode'],
+      targetSegment:      String(raw.targetSegment ?? raw.target_segment ?? '').replace(/^department:/, ''),
       targetSamplePercent: raw.targetSamplePercent != null ? Number(raw.targetSamplePercent) : null,
     },
     staggerWindowMinutes: Number(raw.staggerWindowMinutes ?? raw.stagger_window_minutes ?? 0),
     scheduledAt:          raw.scheduledAt ? String(raw.scheduledAt) : null,
-    status:               (raw.status ?? 'draft') as Campaign['status'],
+    status:               (raw.status === 'sent' || raw.status === 'completed'
+      ? 'completed'
+      : raw.status === 'sending' || raw.status === 'running'
+        ? 'running'
+        : raw.status === 'pending'
+          ? (raw.scheduledAt && new Date(String(raw.scheduledAt)).getTime() > Date.now() ? 'scheduled' : 'running')
+          : raw.status === 'scheduled' || raw.status === 'cancelled'
+            ? raw.status
+            : 'draft') as Campaign['status'],
     createdAt:            String(raw.createdAt ?? raw.created_at ?? new Date().toISOString()),
-    dispatchedAt:         raw.dispatchedAt ? String(raw.dispatchedAt) : null,
+    dispatchedAt:         raw.dispatchedAt ? String(raw.dispatchedAt) : raw.sentAt ? String(raw.sentAt) : null,
   };
 }
 
@@ -47,85 +71,47 @@ function adaptTemplate(raw: Record<string, unknown>): CampaignTemplate {
 
 export const campaignsApiReal = {
   async list(): Promise<Campaign[]> {
-    try {
-      const raw = await apiClient.get<unknown[]>('/api/campaigns', getAppToken);
-      if (!Array.isArray(raw)) return mockCampaigns;
-      return raw.map((r) => adaptCampaign(r as Record<string, unknown>));
-    } catch { return mockCampaigns; }
+    const raw = await apiClient.get<unknown[]>('/api/campaigns', getAppToken);
+    if (!Array.isArray(raw)) throw new Error('The campaigns API returned an invalid response.');
+    return raw.map((r) => adaptCampaign(r as Record<string, unknown>));
   },
 
   async getById(id: string): Promise<Campaign | undefined> {
-    try {
-      const raw = await apiClient.get<Record<string, unknown>>(
-        `/api/campaigns/${encodeURIComponent(id)}`, getAppToken,
-      );
-      return adaptCampaign(raw);
-    } catch { return mockCampaigns.find((c) => c.id === id); }
+    const raw = await apiClient.get<Record<string, unknown>>(
+      `/api/campaigns/${encodeURIComponent(id)}`, getAppToken,
+    );
+    return adaptCampaign(raw);
   },
 
   async create(input: CreateCampaignInput): Promise<Campaign> {
-    try {
-      const raw = await apiClient.post<Record<string, unknown>>('/api/campaigns', getAppToken, {
-        name:                input.name,
-        templateId:          input.templateId,
-        targetMode:          input.targetMode,
-        targetSegment:       input.targetSegment,
-        targetSamplePercent: input.targetSamplePercent,
-        staggerWindowMinutes: input.staggerWindowMinutes,
-        scheduledAt:         input.scheduledAt,
-      });
-      return adaptCampaign(raw);
-    } catch {
-      const campaign: Campaign = {
-        id: `CMP-${Date.now()}`, name: input.name, templateId: input.templateId,
-        targeting: { targetMode: input.targetMode, targetSegment: input.targetSegment, targetSamplePercent: input.targetSamplePercent },
-        staggerWindowMinutes: input.staggerWindowMinutes, scheduledAt: input.scheduledAt,
-        status: input.scheduledAt ? 'scheduled' : 'draft', createdAt: new Date().toISOString(), dispatchedAt: null,
-      };
-      return campaign;
-    }
+    const raw = await apiClient.post<Record<string, unknown>>('/api/campaigns', getAppToken, apiInput(input));
+    return adaptCampaign(raw);
   },
 
   async update(id: string, input: UpdateCampaignInput): Promise<Campaign> {
-    try {
-      const raw = await apiClient.patch<Record<string, unknown>>(
-        `/api/campaigns/${encodeURIComponent(id)}`, getAppToken, input,
-      );
-      return adaptCampaign(raw);
-    } catch {
-      const current = mockCampaigns.find((c) => c.id === id);
-      if (!current) throw new Error('Campaign not found.');
-      return { ...current, ...input, targeting: { ...current.targeting, ...input } } as Campaign;
-    }
+    const raw = await apiClient.patch<Record<string, unknown>>(
+      `/api/campaigns/${encodeURIComponent(id)}`, getAppToken, apiInput(input),
+    );
+    return adaptCampaign(raw);
   },
 
   async dispatch(id: string): Promise<Campaign> {
-    try {
-      const raw = await apiClient.post<Record<string, unknown>>(
-        `/api/campaigns/${encodeURIComponent(id)}/dispatch`, getAppToken,
-      );
-      return adaptCampaign(raw);
-    } catch {
-      return { ...mockCampaigns.find((c) => c.id === id)!, status: 'running', dispatchedAt: new Date().toISOString() };
-    }
+    const raw = await apiClient.post<Record<string, unknown>>(
+      `/api/campaigns/${encodeURIComponent(id)}/dispatch`, getAppToken,
+    );
+    return adaptCampaign(raw);
   },
 
   async cancel(id: string): Promise<Campaign> {
-    try {
-      const raw = await apiClient.post<Record<string, unknown>>(
-        `/api/campaigns/${encodeURIComponent(id)}/cancel`, getAppToken,
-      );
-      return adaptCampaign(raw);
-    } catch {
-      return { ...mockCampaigns.find((c) => c.id === id)!, status: 'cancelled' };
-    }
+    const raw = await apiClient.post<Record<string, unknown>>(
+      `/api/campaigns/${encodeURIComponent(id)}/cancel`, getAppToken,
+    );
+    return adaptCampaign(raw);
   },
 
   async listTemplates(): Promise<CampaignTemplate[]> {
-    try {
-      const raw = await apiClient.get<unknown[]>('/api/templates', getAppToken);
-      if (!Array.isArray(raw)) return mockCampaignTemplates;
-      return raw.map((r) => adaptTemplate(r as Record<string, unknown>));
-    } catch { return mockCampaignTemplates; }
+    const raw = await apiClient.get<unknown[]>('/api/templates', getAppToken);
+    if (!Array.isArray(raw)) throw new Error('The templates API returned an invalid response.');
+    return raw.map((r) => adaptTemplate(r as Record<string, unknown>));
   },
 };

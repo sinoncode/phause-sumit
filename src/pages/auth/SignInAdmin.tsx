@@ -13,6 +13,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthStandalone, OffappTools, BrandInline, EYE, EYE_OFF } from './authShared';
 import { useAuthStore } from '../../stores/auth.store';
 import { apiClient, ApiError } from '../../api/client';
+import { listAdminOrganizations } from '../../api/organisations/orgUsers.api';
 
 type Mode = 'admin' | 'org_user';
 
@@ -81,19 +82,40 @@ export function SignInAdmin() {
         const token = res.token ?? res.accessToken ?? res.access_token ?? '';
         if (!token) throw new Error('No token returned');
         setAdminToken(token);
+
+        // Auto-select the first org so the dashboard's API calls can include
+        // x-tenant-id (required by the backend for admin tokens).
+        try {
+          const orgs = await listAdminOrganizations();
+          if (orgs.length > 0) {
+            useAuthStore.getState().setOrgId(orgs[0].id);
+          }
+        } catch {
+          // Non-fatal — the admin can select an org manually later.
+        }
+
         navigate('/', { replace: true });
       } else {
         // ── Org-user login ──────────────────────────────────────────────
+        // Response shape: { accessToken, user: { id, orgId, email, role, permissions, hasConsent } }
         const res = await apiClient.post<{
           token?: string; accessToken?: string; access_token?: string;
+          user?: {
+            orgId?: string; organizationId?: string; org_id?: string;
+            permissions?: string[];
+          };
+          // flat fallbacks (older server versions)
           orgId?: string; organizationId?: string; org_id?: string;
           permissions?: string[];
         }>('/api/auth/login', null, { email: email.trim(), password });
 
         const token = res.token ?? res.accessToken ?? res.access_token ?? '';
         if (!token) throw new Error('No token returned');
-        const orgId       = res.orgId ?? res.organizationId ?? res.org_id;
-        const permissions = res.permissions ?? [];
+        // Prefer nested user object, fall back to flat fields
+        const userObj = res.user ?? {};
+        const orgId       = userObj.orgId ?? userObj.organizationId ?? userObj.org_id
+                         ?? res.orgId ?? res.organizationId ?? res.org_id;
+        const permissions = userObj.permissions ?? res.permissions ?? [];
         setAppToken(token, orgId, permissions);
         navigate('/', { replace: true });
       }

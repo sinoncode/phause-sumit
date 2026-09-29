@@ -6,6 +6,7 @@ import {
   updateTemplate as updateTemplateApi,
   deleteTemplate as deleteTemplateApi,
 } from "../../api/templates/templates.api";
+import { useApiErrorHandler } from "../../hooks/useApiErrorHandler";
 
 export type TemplateLureType = "urgency" | "authority" | "curiosity" | "reward";
 export type TemplateCategory =
@@ -48,35 +49,6 @@ const CATEGORIES: Array<{ value: TemplateCategory; label: string }> = [
   { value: "awareness", label: "Security awareness" },
 ];
 const DIFFICULTIES: TemplateDifficulty[] = ["easy", "medium", "hard"];
-
-const SAMPLE_HTML = `<p>Dear employee,</p><p>Your corporate password is about to expire. Please <a href="{{tracking_link}}">click here to reset it immediately</a>.</p><p>If you do not act within 24 hours your account will be locked.</p><img src="{{tracking_pixel}}" width="1" height="1" style="display:none"/>`;
-const SAMPLE_TEXT =
-  "Your password is about to expire. Reset it at: {{tracking_link}}";
-
-const SEED_TEMPLATES: PhishingTemplate[] = [
-  {
-    id: "TPL-1001",
-    name: "Urgent IT Password Reset",
-    subject: "[ACTION REQUIRED] Your password will expire in 24 hours",
-    htmlBody: SAMPLE_HTML,
-    textBody: SAMPLE_TEXT,
-    lureType: "urgency",
-    category: "credential-harvest",
-    difficulty: "medium",
-    disclaimerEnabled: false,
-  },
-  {
-    id: "TPL-1002",
-    name: "Finance Invoice Review",
-    subject: "Invoice approval needed before close of business",
-    htmlBody: "<p>Please review the attached invoice before today’s close.</p>",
-    textBody: "Please review the attached invoice before today’s close.",
-    lureType: "authority",
-    category: "attachment",
-    difficulty: "hard",
-    disclaimerEnabled: true,
-  },
-];
 
 const ICON_PLUS = (
   <svg
@@ -171,8 +143,8 @@ function TemplateForm({
     initial ?? {
       name: "",
       subject: "",
-      htmlBody: SAMPLE_HTML,
-      textBody: SAMPLE_TEXT,
+      htmlBody: "",
+      textBody: "",
       lureType: "urgency",
       category: "credential-harvest",
       difficulty: "medium",
@@ -588,37 +560,47 @@ function TemplateDetails({
 }
 
 export function Templates() {
-  const [templates, setTemplates] = useState(SEED_TEMPLATES);
+  const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
+  const [loadError, setLoadError] = useState('');
   const [modal, setModal] = useState<ModalState>(null);
+  const handleApiError = useApiErrorHandler();
 
   useEffect(() => {
-    listTemplates().then((data) => { if (data.length) setTemplates(data); });
+    listTemplates().then(setTemplates).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load templates.'));
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const createTemplate = async (values: TemplateFormValues) => {
     try {
       const created = await createTemplateApi(values);
       setTemplates((current) => [created, ...current]);
-    } catch {
-      setTemplates((current) => [{ ...values, id: `TPL-${Date.now()}` }, ...current]);
+      setModal(null);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to create template.');
     }
-    setModal(null);
   };
   const updateTemplate = async (values: TemplateFormValues) => {
     if (modal && typeof modal === "object" && "edit" in modal) {
       try {
         const updated = await updateTemplateApi(modal.edit.id, values);
         setTemplates((current) => current.map((t) => t.id === modal.edit.id ? updated : t));
-      } catch {
-        setTemplates((current) => current.map((t) => t.id === modal.edit.id ? { ...values, id: t.id } : t));
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : 'Unable to update template.');
+        return;
       }
     }
     setModal(null);
   };
   const deleteTemplate = async (template: PhishingTemplate) => {
     if (window.confirm(`Delete template "${template.name}"?`)) {
-      try { await deleteTemplateApi(template.id); } catch { /* ignore */ }
-      setTemplates((current) => current.filter((t) => t.id !== template.id));
+      try {
+        await deleteTemplateApi(template.id);
+        setTemplates((current) => current.filter((t) => t.id !== template.id));
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : 'Unable to delete template.');
+      }
     }
   };
 
@@ -628,6 +610,7 @@ export function Templates() {
         title="Templates"
         subtitle="Create, inspect, and preview authorised phishing simulation templates."
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
       <div
         className="ax-cluster"
         style={{

@@ -20,7 +20,7 @@ function adapt(raw: Record<string, unknown>): EmployeeRecord {
     id:             String(raw.id ?? ''),
     organisationId: String(raw.organisationId ?? raw.organizationId ?? raw.orgId ?? ''),
     email:          String(raw.email ?? ''),
-    name:           String(raw.name ?? ''),
+    name:           String(raw.name ?? [raw.firstName, raw.lastName].filter(Boolean).join(' ')),
     department:     String(raw.department ?? ''),
     seniority:      (raw.seniority ?? 'mid') as EmployeeRecord['seniority'],
     hasConsent:     Boolean(raw.hasConsent ?? raw.has_consent ?? true),
@@ -28,17 +28,17 @@ function adapt(raw: Record<string, unknown>): EmployeeRecord {
 }
 
 export async function listEmployees(): Promise<EmployeeRecord[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/employees', getAppToken);
-    if (!Array.isArray(raw)) return [];
-    return raw.map((r) => adapt(r as Record<string, unknown>));
-  } catch { return []; }
+  const raw = await apiClient.get<unknown[]>('/api/employees', getAppToken);
+  if (!Array.isArray(raw)) throw new Error('The employees API returned an invalid response.');
+  return raw.map((r) => adapt(r as Record<string, unknown>));
 }
 
 export async function createEmployee(values: EmployeeFormValues & { organisationId?: string }): Promise<EmployeeRecord> {
+  const [firstName, ...lastNameParts] = values.name.trim().split(/\s+/);
   const raw = await apiClient.post<Record<string, unknown>>('/api/employees', getAppToken, {
     email:          values.email,
-    name:           values.name,
+    firstName,
+    lastName:       lastNameParts.join(' '),
     department:     values.department,
     seniority:      values.seniority,
     hasConsent:     values.hasConsent,

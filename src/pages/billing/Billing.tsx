@@ -2,11 +2,11 @@
  * Phause — Billing (Extras — Plans & Subscriptions).
  *
  * Covers all 5 Billing endpoints:
- *   POST   /api/billing/plans                 — Create plan
- *   GET    /api/billing/plans                 — List plans (pricing cards)
- *   POST   /api/billing/checkout              — Create Stripe checkout session → redirect
- *   GET    /api/billing/subscription          — Current subscription status
- *   POST   /api/billing/subscription/cancel   — Cancel subscription
+ *   POST   /api/plans                         — Create plan
+ *   GET    /api/plans                         — List plans (pricing cards)
+ *   POST   /api/subscriptions/checkout        — Create Stripe checkout session → redirect
+ *   GET    /api/subscriptions/current         — Current subscription status
+ *   POST   /api/subscriptions/:id/cancel      — Cancel subscription
  */
 import { useEffect, useState } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
@@ -20,6 +20,8 @@ import {
   type Subscription,
   type BillingPlanFormValues,
 } from '../../api/billing/billing.api';
+import { ApiError } from '../../api/client';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 // ── icons ─────────────────────────────────────────────────────────────────────
 const IC_PLUS   = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
@@ -49,7 +51,7 @@ function SubStatusBadge({ status }: { status: string }) {
 function CreatePlanModal({ onClose, onSave }: { onClose: () => void; onSave: (p: BillingPlan) => void }) {
   const EMPTY: BillingPlanFormValues = {
     name:'', description:'', priceMonthly:0, priceCurrency:'USD',
-    features:[], maxEmployees:null, maxCampaigns:null, stripePriceId:'',
+    features:[], maxEmployees:null, maxCampaigns:null,
   };
   const [form, setForm] = useState<BillingPlanFormValues>(EMPTY);
   const [featInput, setFeatInput] = useState('');
@@ -121,11 +123,6 @@ function CreatePlanModal({ onClose, onSave }: { onClose: () => void; onSave: (p:
                 <input id="cp-camp" className="ax-input" type="number" min={1} placeholder="Unlimited"
                   value={form.maxCampaigns ?? ''} onChange={(e) => set('maxCampaigns', e.target.value ? Number(e.target.value) : null)} />
               </div>
-            </div>
-            <div className="ax-field">
-              <label className="ax-label" htmlFor="cp-price-id">Stripe price ID</label>
-              <input id="cp-price-id" className="ax-input" placeholder="price_..." value={form.stripePriceId}
-                onChange={(e) => set('stripePriceId', e.target.value)} />
             </div>
             {/* features list */}
             <div className="ax-field">
@@ -306,13 +303,28 @@ export function Billing() {
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
   const [cancelling, setCancelling]   = useState(false);
   const [toast, setToast]             = useState('');
+  const [loadError, setLoadError]     = useState('');
+  const handleApiError = useApiErrorHandler();
 
   useEffect(() => {
-    Promise.all([listBillingPlans(), getCurrentSubscription()]).then(([p, s]) => {
-      setPlans(p);
-      setSub(s);
-      setLoading(false);
-    });
+    Promise.allSettled([listBillingPlans(), getCurrentSubscription()]).then(([plansResult, subscriptionResult]) => {
+      if (plansResult.status === 'fulfilled') setPlans(plansResult.value);
+      if (subscriptionResult.status === 'fulfilled') setSub(subscriptionResult.value);
+
+      // Redirect on 401
+      for (const result of [plansResult, subscriptionResult]) {
+        if (result.status === 'rejected' && result.reason instanceof ApiError && result.reason.status === 401) {
+          handleApiError(result.reason);
+          return;
+        }
+      }
+
+      const errors = [plansResult, subscriptionResult].flatMap((result) => result.status === 'rejected'
+        ? [result.reason instanceof Error ? result.reason.message : 'Unable to load billing data.']
+        : []);
+      setLoadError(errors.join(' '));
+    }).finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function showToast(msg: string) {
@@ -346,7 +358,8 @@ export function Billing() {
     if (!window.confirm('Are you sure you want to cancel your subscription? It will remain active until the end of the billing period.')) return;
     setCancelling(true);
     try {
-      const updated = await cancelSubscription();
+      if (!sub) return;
+      const updated = await cancelSubscription(sub.id);
       setSub(updated);
       showToast('Subscription cancellation scheduled at period end.');
     } catch {
@@ -378,6 +391,7 @@ export function Billing() {
           </button>
         }
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
 
       {/* ── Subscription status ────────────────────────────────────────── */}
       {loading ? (

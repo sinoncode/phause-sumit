@@ -2,8 +2,7 @@
  * Phause — Reports & Risk Scores API (Step 10).
  *
  * All 10 endpoints wired to the confirmed backend paths from the Postman collection.
- * Every function falls back to seed data when the API call fails (network error or
- * non-2xx), so the UI stays functional while developing against a local/offline backend.
+ * API failures are propagated so screens can report them instead of showing demo records.
  *
  * Real endpoints (from Postman):
  *   10.1  POST   /api/reports/campaign/:campaignId/generate
@@ -20,22 +19,17 @@
  * Auth: all routes use appToken (Bearer header).
  */
 
-import { apiClient } from '../client';
-import { getAppToken } from '../../stores/auth.store';
-import {
-  SEED_DEPARTMENT_RISKS,
-  SEED_REPORTS,
-  SEED_RISK_SCORES,
-  SEED_RISK_TREND,
-  SEED_TEMPLATE_EFFECTIVENESS,
-  SEED_TRAINING_CORRELATION,
-  type DepartmentRisk,
-  type EmployeeRiskScore,
-  type ReportSummary,
-  type RiskTrendPoint,
-  type TemplateEffectiveness,
-  type TrainingCorrelationRow,
+import { API_BASE_URL, ApiError, apiClient } from '../client';
+import { getAppToken, useAuthStore } from '../../stores/auth.store';
+import type {
+  DepartmentRisk,
+  EmployeeRiskScore,
+  ReportSummary,
+  RiskTrendPoint,
+  TemplateEffectiveness,
+  TrainingCorrelationRow,
 } from '../../pages/reports/reportsData';
+import { listEmployees } from '../employees/employees.api';
 
 // ---------------------------------------------------------------------------
 // Shape adapters — normalise the backend response to our frontend types.
@@ -43,32 +37,35 @@ import {
 // ---------------------------------------------------------------------------
 
 function adaptReport(raw: Record<string, unknown>): ReportSummary {
+  const metrics = (raw.metrics && typeof raw.metrics === 'object' ? raw.metrics : {}) as Record<string, unknown>;
+  const sent = Number(metrics.sent ?? raw.totalParticipants ?? 0);
+  const submitted = Number(metrics.submitted ?? 0);
   return {
     id:               String(raw.id ?? ''),
     campaignId:       String(raw.campaignId ?? raw.campaign_id ?? ''),
-    campaignName:     String(raw.campaignName ?? raw.campaign_name ?? raw.name ?? ''),
-    generatedAt:      String(raw.generatedAt ?? raw.created_at ?? new Date().toISOString()),
-    status:           (raw.status as ReportSummary['status']) ?? 'ready',
-    totalTargeted:    Number(raw.totalTargeted ?? raw.total_targeted ?? 0),
-    openRate:         Number(raw.openRate ?? raw.open_rate ?? 0),
+    campaignName:     String(raw.campaignName ?? raw.campaign_name ?? raw.name ?? raw.campaignId ?? ''),
+    generatedAt:      String(raw.reportDate ?? raw.report_date ?? raw.createdAt ?? raw.created_at ?? ''),
+    status:           'ready',
+    totalTargeted:    Number(raw.totalParticipants ?? raw.total_participants ?? raw.totalTargeted ?? 0),
+    openRate:         metrics.openRate == null ? null : Number(metrics.openRate),
     clickRate:        Number(raw.clickRate ?? raw.click_rate ?? 0),
-    landingRate:      Number(raw.landingRate ?? raw.landing_rate ?? 0),
-    aiInsightSnippet: String(raw.aiInsight ?? raw.ai_insight ?? raw.summary ?? ''),
+    landingRate:      sent ? Number(((submitted / sent) * 100).toFixed(2)) : null,
+    aiInsightSnippet: String(raw.summaryText ?? raw.summary_text ?? raw.aiInsight ?? raw.ai_insight ?? raw.summary ?? ''),
   };
 }
 
-function adaptRiskScore(raw: Record<string, unknown>): EmployeeRiskScore {
+function adaptRiskScore(raw: Record<string, unknown>, employee?: Awaited<ReturnType<typeof listEmployees>>[number]): EmployeeRiskScore {
   const score = Number(raw.riskScore ?? raw.risk_score ?? raw.score ?? 0);
   const level = score >= 75 ? 'critical' : score >= 50 ? 'high' : score >= 25 ? 'medium' : 'low';
   return {
     employeeId:            String(raw.employeeId ?? raw.employee_id ?? raw.userId ?? raw.id ?? ''),
-    name:                  String(raw.name ?? raw.employeeName ?? ''),
-    email:                 String(raw.email ?? ''),
-    department:            String(raw.department ?? ''),
+    name:                  String(raw.name ?? raw.employeeName ?? employee?.name ?? ''),
+    email:                 String(raw.email ?? employee?.email ?? ''),
+    department:            String(raw.department ?? employee?.department ?? ''),
     riskScore:             score,
     riskLevel:             (raw.riskLevel ?? raw.risk_level ?? level) as EmployeeRiskScore['riskLevel'],
-    lastEventAt:           String(raw.lastEventAt ?? raw.last_event_at ?? new Date().toISOString()),
-    campaignsParticipated: Number(raw.campaignsParticipated ?? raw.campaigns_participated ?? 0),
+    lastEventAt:           String(raw.lastEventAt ?? raw.last_event_at ?? raw.computedAt ?? raw.computed_at ?? ''),
+    campaignsParticipated: Number(raw.campaignsParticipated ?? raw.campaigns_participated ?? (raw.campaignId ? 1 : 0)),
   };
 }
 
@@ -76,156 +73,139 @@ function adaptRiskScore(raw: Record<string, unknown>): EmployeeRiskScore {
 // API functions
 // ---------------------------------------------------------------------------
 
-/** 10.1 — Generate report for a campaign. Returns the new report record. */
+/** 10.1 — Generate report for a campaign. Returns the saved report record. */
 export async function generateReport(campaignId: string): Promise<ReportSummary> {
-  try {
-    const raw = await apiClient.post<Record<string, unknown>>(
-      `/api/reports/campaign/${encodeURIComponent(campaignId)}/generate`,
-      getAppToken,
-    );
-    return adaptReport(raw);
-  } catch {
-    // Fallback: return a mock "generating" record so the UI still shows activity
-    return {
-      id: `RPT-${Date.now()}`,
-      campaignId,
-      campaignName: campaignId,
-      generatedAt: new Date().toISOString(),
-      status: 'generating',
-      totalTargeted: 0,
-      openRate: 0, clickRate: 0, landingRate: 0,
-      aiInsightSnippet: 'Report generation queued (offline fallback).',
-    };
-  }
+  const raw = await apiClient.post<Record<string, unknown>>(
+    `/api/reports/campaign/${encodeURIComponent(campaignId)}/generate`, getAppToken,
+  );
+  return adaptReport(raw);
 }
 
 /** 10.3 — List all reports for the org. */
 export async function listReports(): Promise<ReportSummary[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/reports', getAppToken);
-    if (!Array.isArray(raw)) return SEED_REPORTS;
-    return raw.map((r) => adaptReport(r as Record<string, unknown>));
-  } catch {
-    return SEED_REPORTS;
-  }
+  const raw = await apiClient.get<unknown[]>('/api/reports', getAppToken);
+  if (!Array.isArray(raw)) throw new Error('The reports API returned an invalid response.');
+  return raw.map((r) => adaptReport(r as Record<string, unknown>));
 }
 
 /** 10.2 — Get a single report by ID. */
 export async function getReport(reportId: string): Promise<ReportSummary | null> {
-  try {
-    const raw = await apiClient.get<Record<string, unknown>>(
-      `/api/reports/${encodeURIComponent(reportId)}`,
-      getAppToken,
-    );
-    return adaptReport(raw);
-  } catch {
-    return SEED_REPORTS.find((r) => r.id === reportId) ?? null;
+  const raw = await apiClient.get<Record<string, unknown>>(
+    `/api/reports/${encodeURIComponent(reportId)}`, getAppToken,
+  );
+  return adaptReport(raw);
+}
+
+/** 10.4 and 10.5 — Download a report with its Bearer token. */
+export async function downloadReport(reportId: string, format: 'csv' | 'pdf'): Promise<void> {
+  const token = getAppToken();
+  if (!token) throw new ApiError(401, null, 'Sign in is required to export reports.');
+  const response = await fetch(`${API_BASE_URL}/api/reports/${encodeURIComponent(reportId)}/export.${format}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    if (response.status === 401) useAuthStore.getState().clearAll();
+    let body: unknown;
+    try { body = await response.json(); } catch { body = await response.text(); }
+    throw new ApiError(response.status, body, `GET report export → ${response.status}`);
   }
-}
-
-/** 10.4 — CSV export URL (authenticated download via anchor). */
-export function exportCsvUrl(reportId: string): string {
-  const base = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
-  return `${base}/api/reports/${encodeURIComponent(reportId)}/export.csv`;
-}
-
-/** 10.5 — PDF export URL (authenticated download via anchor). */
-export function exportPdfUrl(reportId: string): string {
-  const base = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
-  return `${base}/api/reports/${encodeURIComponent(reportId)}/export.pdf`;
+  const objectUrl = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = `report-${reportId}.${format}`;
+  link.click();
+  URL.revokeObjectURL(objectUrl);
 }
 
 /** 10.6 — List all employee risk scores. */
 export async function listRiskScores(): Promise<EmployeeRiskScore[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/risk-scores', getAppToken);
-    if (!Array.isArray(raw)) return SEED_RISK_SCORES;
-    return raw.map((r) => adaptRiskScore(r as Record<string, unknown>));
-  } catch {
-    return SEED_RISK_SCORES;
+  const [raw, employees] = await Promise.all([
+    apiClient.get<unknown[]>('/api/risk-scores', getAppToken),
+    listEmployees(),
+  ]);
+  if (!Array.isArray(raw)) throw new Error('The risk-scores API returned an invalid response.');
+  const employeesById = new Map(employees.map((employee) => [employee.id, employee]));
+  const campaignIdsByUser = new Map<string, Set<string>>();
+  for (const value of raw) {
+    const item = value as Record<string, unknown>;
+    const userId = String(item.userId ?? item.user_id ?? '');
+    const campaignId = String(item.campaignId ?? item.campaign_id ?? '');
+    if (!userId || !campaignId) continue;
+    const campaignIds = campaignIdsByUser.get(userId) ?? new Set<string>();
+    campaignIds.add(campaignId);
+    campaignIdsByUser.set(userId, campaignIds);
   }
+  const latestByUser = new Map<string, Record<string, unknown>>();
+  for (const value of raw) {
+    const item = value as Record<string, unknown>;
+    const userId = String(item.userId ?? item.user_id ?? '');
+    if (userId && !latestByUser.has(userId)) latestByUser.set(userId, item);
+  }
+  return [...latestByUser.entries()].map(([userId, item]) => adaptRiskScore({
+    ...item,
+    campaignsParticipated: campaignIdsByUser.get(userId)?.size ?? 0,
+  }, employeesById.get(userId)));
 }
 
 /** 10.7 — Risk score trend over time. */
 export async function getRiskTrend(): Promise<RiskTrendPoint[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/risk-scores/trend', getAppToken);
-    if (!Array.isArray(raw)) return SEED_RISK_TREND;
-    return raw.map((r) => {
-      const item = r as Record<string, unknown>;
-      return {
-        month: String(item.month ?? item.period ?? item.date ?? ''),
-        avgRiskScore: Number(item.avgRiskScore ?? item.avg_risk_score ?? item.score ?? 0),
-      };
-    });
-  } catch {
-    return SEED_RISK_TREND;
-  }
+  const raw = await apiClient.get<unknown[]>('/api/risk-scores/trend', getAppToken);
+  if (!Array.isArray(raw)) throw new Error('The risk trend API returned an invalid response.');
+  return raw.map((value) => {
+    const item = value as Record<string, unknown>;
+    return {
+      month: String(item.campaignName ?? item.date ?? ''),
+      avgRiskScore: Number(item.avgScore ?? 0),
+    };
+  });
 }
 
-/** 10.8 — Risk scores by department (vulnerability heatmap). */
 export async function getRiskByDepartment(): Promise<DepartmentRisk[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/risk-scores/by-department', getAppToken);
-    if (!Array.isArray(raw)) return SEED_DEPARTMENT_RISKS;
-    return raw.map((r) => {
-      const item = r as Record<string, unknown>;
-      const score = Number(item.avgRiskScore ?? item.avg_risk_score ?? 0);
-      return {
-        department:    String(item.department ?? ''),
-        avgRiskScore:  score,
-        employeeCount: Number(item.employeeCount ?? item.employee_count ?? item.count ?? 0),
-        riskLevel:     (item.riskLevel ?? (score >= 75 ? 'critical' : score >= 50 ? 'high' : score >= 25 ? 'medium' : 'low')) as DepartmentRisk['riskLevel'],
-        openRate:      Number(item.openRate ?? item.open_rate ?? 0),
-        clickRate:     Number(item.clickRate ?? item.click_rate ?? 0),
-        landingRate:   Number(item.landingRate ?? item.landing_rate ?? 0),
-      };
-    });
-  } catch {
-    return SEED_DEPARTMENT_RISKS;
-  }
+  const raw = await apiClient.get<unknown[]>('/api/risk-scores/by-department', getAppToken);
+  if (!Array.isArray(raw)) throw new Error('The department risk API returned an invalid response.');
+  return raw.map((value) => {
+    const item = value as Record<string, unknown>;
+    const score = Number(item.avgScore ?? 0);
+    return {
+      department: String(item.department ?? ''),
+      avgRiskScore: score,
+      employeeCount: Number(item.employeeCount ?? 0),
+      riskLevel: (score >= 75 ? 'critical' : score >= 50 ? 'high' : score >= 25 ? 'medium' : 'low') as DepartmentRisk['riskLevel'],
+      openRate: null,
+      clickRate: Number(item.clickRate ?? 0),
+      landingRate: null,
+    };
+  });
 }
 
 /** 10.9 — Template effectiveness. */
 export async function getTemplateEffectiveness(): Promise<TemplateEffectiveness[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/reports/template-effectiveness', getAppToken);
-    if (!Array.isArray(raw)) return SEED_TEMPLATE_EFFECTIVENESS;
-    return raw.map((r) => {
-      const item = r as Record<string, unknown>;
-      return {
-        templateId:     String(item.templateId ?? item.template_id ?? item.id ?? ''),
-        templateName:   String(item.templateName ?? item.name ?? ''),
-        lureType:       String(item.lureType ?? item.lure_type ?? ''),
-        category:       String(item.category ?? ''),
-        timesUsed:      Number(item.timesUsed ?? item.times_used ?? item.usageCount ?? 0),
-        avgOpenRate:    Number(item.avgOpenRate ?? item.avg_open_rate ?? 0),
-        avgClickRate:   Number(item.avgClickRate ?? item.avg_click_rate ?? 0),
-        avgLandingRate: Number(item.avgLandingRate ?? item.avg_landing_rate ?? 0),
-      };
-    });
-  } catch {
-    return SEED_TEMPLATE_EFFECTIVENESS;
-  }
+  const raw = await apiClient.get<unknown[]>('/api/reports/template-effectiveness', getAppToken);
+  if (!Array.isArray(raw)) throw new Error('The template effectiveness API returned an invalid response.');
+  return raw.map((value) => {
+    const item = value as Record<string, unknown>;
+    return {
+      templateId:     String(item.templateId ?? ''),
+      templateName:   String(item.templateName ?? ''),
+      lureType:       String(item.lureType ?? ''),
+      category:       String(item.category ?? ''),
+      timesUsed:      Number(item.campaignCount ?? 0),
+      avgOpenRate:    null,
+      avgClickRate:   Number(item.clickRate ?? 0),
+      avgLandingRate: Number(item.submitRate ?? 0),
+    };
+  });
 }
 
 /** 10.10 — Training correlation. */
 export async function getTrainingCorrelation(): Promise<TrainingCorrelationRow[]> {
-  try {
-    const raw = await apiClient.get<unknown[]>('/api/reports/training-correlation', getAppToken);
-    if (!Array.isArray(raw)) return SEED_TRAINING_CORRELATION;
-    return raw.map((r) => {
-      const item = r as Record<string, unknown>;
-      const pre  = Number(item.preTrainingClickRate  ?? item.pre_training_click_rate  ?? item.before ?? 0);
-      const post = Number(item.postTrainingClickRate ?? item.post_training_click_rate ?? item.after  ?? 0);
-      return {
-        department:            String(item.department ?? ''),
-        preTrainingClickRate:  pre,
-        postTrainingClickRate: post,
-        improvement:           Number(item.improvement ?? (pre - post)),
-      };
-    });
-  } catch {
-    return SEED_TRAINING_CORRELATION;
-  }
+  const item = await apiClient.get<Record<string, unknown>>('/api/reports/training-correlation', getAppToken);
+  const before = Number(item.beforeTrainingClickRate ?? 0);
+  const after = Number(item.afterTrainingClickRate ?? 0);
+  return [{
+    department: 'Organization',
+    preTrainingClickRate: before,
+    postTrainingClickRate: after,
+    improvement: Number(item.improvement ?? before - after),
+  }];
 }

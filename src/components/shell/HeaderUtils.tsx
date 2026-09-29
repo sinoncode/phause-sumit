@@ -26,6 +26,7 @@ import { Link } from 'react-router-dom';
 import { Dropdown } from '../ui/Dropdown';
 import { useCustomizer } from '../../context/CustomizerContext';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useAuthStore } from '../../stores/auth.store';
 
 const ICON = {
   apps: (
@@ -86,6 +87,22 @@ const LANGS: Array<[string, string]> = [
 export function HeaderUtils({ onCustomizer: _onCustomizer }: { onCustomizer: () => void }) {
   const c = useCustomizer();
   const shed = useShed();
+
+  const appToken = useAuthStore((s) => s.appToken);
+  const adminToken = useAuthStore((s) => s.adminToken);
+  const userRole = useAuthStore((s) => s.userRole);
+
+  // Decode JWT to get email
+  function decodeJwtEmail(token: string | null): string {
+    if (!token) return '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return payload.email ?? '';
+    } catch { return ''; }
+  }
+  const email = decodeJwtEmail(appToken ?? adminToken);
+  const displayName = email ? email.split('@')[0] : 'User';
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   useEffect(() => {
     const onFs = () => {};
@@ -243,15 +260,19 @@ export function HeaderUtils({ onCustomizer: _onCustomizer }: { onCustomizer: () 
         panelClassName="ax-dropdown ax-profile__menu"
         trigger={({ open, triggerProps }) => (
           <button type="button" className="ax-profile__trigger" aria-label="Account menu" {...triggerProps} aria-expanded={open}>
-            <img className="ax-avatar ax-profile__avatar" src="https://i.pravatar.cc/64?img=12" alt="Jacob Gerrald" width={32} height={32} />
+            <span style={{ width:32, height:32, borderRadius:'50%', background:'var(--ax-accent)', color:'var(--ax-on-accent)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'var(--ax-text-sm)', flexShrink:0 }}>
+              {initials || 'U'}
+            </span>
           </button>
         )}
       >
         <div className="ax-profile__card">
-          <img className="ax-avatar" src="https://i.pravatar.cc/80?img=12" alt="" width={40} height={40} />
-          <span className="ax-profile__card-meta"><b>Jacob Gerrald</b><small>jacob@phause.io</small></span>
+          <span style={{ width:40, height:40, borderRadius:'50%', background:'var(--ax-accent)', color:'var(--ax-on-accent)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'var(--ax-text-sm)', flexShrink:0 }}>
+            {initials || 'U'}
+          </span>
+          <span className="ax-profile__card-meta"><b>{displayName}</b><small>{email}</small></span>
         </div>
-        <Link className="ax-dropdown__item" role="menuitem" to="/pages/profile">View Profile</Link>
+        <Link className="ax-dropdown__item" role="menuitem" to="/profile">View Profile</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/profile-settings">Account Settings</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/support">Support</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/activity-log">Activity Log</Link>

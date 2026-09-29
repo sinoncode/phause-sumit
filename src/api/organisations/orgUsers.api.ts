@@ -9,11 +9,17 @@
  *   DELETE /api/admin/users/:id          — soft-deactivate (204)
  */
 
-import { ApiError } from '../client';
+import { API_BASE_URL, ApiError } from '../client';
 import { getAdminToken, useAuthStore } from '../../stores/auth.store';
 import type { OrgUserRecord } from '../../pages/organisations/OrgUser';
 
-const BASE = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+const BASE = API_BASE_URL;
+
+export interface AdminOrganizationOption {
+  id: string;
+  name: string;
+  region: string;
+}
 
 /** Org users need both adminToken AND x-tenant-id header — custom fetch. */
 async function adminFetch<T>(
@@ -21,13 +27,15 @@ async function adminFetch<T>(
   path: string,
   body?: unknown,
 ): Promise<T> {
-  const orgId = useAuthStore.getState().orgId ?? 'org-1';
+  const orgId = useAuthStore.getState().orgId;
   const token = getAdminToken();
+  if (!token) throw new ApiError(401, null, 'Admin sign in is required.');
+  if (path.includes('/users') && !orgId) throw new Error('Select an organization before managing users.');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'x-tenant-id':  orgId,
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  headers['Authorization'] = `Bearer ${token}`;
+  if (orgId) headers['x-tenant-id'] = orgId;
 
   const res = await fetch(`${BASE}${path}`, {
     method,
@@ -35,6 +43,7 @@ async function adminFetch<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
+    if (res.status === 401) useAuthStore.getState().clearAll();
     let errBody: unknown;
     try { errBody = await res.json(); } catch { errBody = await res.text(); }
     throw new ApiError(res.status, errBody, `${method} ${path} → ${res.status}`);
@@ -45,7 +54,8 @@ async function adminFetch<T>(
 
 function adapt(raw: Record<string, unknown>): OrgUserRecord {
   return {
-    orgId:      String(raw.orgId ?? raw.org_id ?? ''),
+    id:         String(raw.id ?? raw.userId ?? raw.user_id ?? ''),
+    orgId:      String(raw.orgId ?? raw.organizationId ?? raw.org_id ?? ''),
     email:      String(raw.email ?? ''),
     role:       String(raw.role ?? 'org_admin'),
     active:     Boolean(raw.active ?? true),
@@ -53,18 +63,26 @@ function adapt(raw: Record<string, unknown>): OrgUserRecord {
   };
 }
 
+export async function listAdminOrganizations(): Promise<AdminOrganizationOption[]> {
+  const raw = await adminFetch<unknown[]>('GET', '/api/admin/organizations');
+  if (!Array.isArray(raw)) throw new Error('The admin organizations API returned an invalid response.');
+  return raw.map((value) => {
+    const item = value as Record<string, unknown>;
+    return { id: String(item.id ?? ''), name: String(item.name ?? ''), region: String(item.region ?? '') };
+  });
+}
+
 export async function listOrgUsers(): Promise<OrgUserRecord[]> {
-  try {
-    const raw = await adminFetch<unknown[]>('GET', '/api/admin/users');
-    if (!Array.isArray(raw)) return [];
-    return raw.map((r) => adapt(r as Record<string, unknown>));
-  } catch { return []; }
+  const raw = await adminFetch<unknown[]>('GET', '/api/admin/users');
+  if (!Array.isArray(raw)) throw new Error('The organization users API returned an invalid response.');
+  return raw.map((r) => adapt(r as Record<string, unknown>));
 }
 
 export async function createOrgUser(values: {
   email: string; password: string; role: string; hasConsent: boolean;
 }): Promise<OrgUserRecord> {
-  const orgId = useAuthStore.getState().orgId ?? 'org-1';
+  const orgId = useAuthStore.getState().orgId;
+  if (!orgId) throw new Error('Select an organization before creating a user.');
   const raw = await adminFetch<Record<string, unknown>>('POST', '/api/admin/users', {
     orgId, ...values,
   });

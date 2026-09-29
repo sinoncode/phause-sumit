@@ -6,6 +6,7 @@ interface CampaignState {
   campaigns: Campaign[];
   templates: CampaignTemplate[];
   isLoading: boolean;
+  error: string;
   load: () => Promise<void>;
   createCampaign: (input: CreateCampaignInput) => Promise<Campaign>;
   updateCampaign: (id: string, input: UpdateCampaignInput) => Promise<Campaign>;
@@ -18,10 +19,22 @@ export const useCampaignStore = create<CampaignState>((set, get) => ({
   campaigns: [],
   templates: [],
   isLoading: false,
+  error: '',
   load: async () => {
-    set({ isLoading: true });
-    const [campaigns, templates] = await Promise.all([campaignsApi.list(), campaignsApi.listTemplates()]);
-    set({ campaigns, templates, isLoading: false });
+    set({ isLoading: true, error: '' });
+    const [campaignResult, templateResult] = await Promise.allSettled([
+      campaignsApi.list(),
+      campaignsApi.listTemplates(),
+    ]);
+    set({
+      campaigns: campaignResult.status === 'fulfilled' ? campaignResult.value : [],
+      templates: templateResult.status === 'fulfilled' ? templateResult.value : [],
+      isLoading: false,
+      error: [campaignResult, templateResult]
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map((result) => result.reason instanceof Error ? result.reason.message : 'Unable to load campaign data.')
+        .join(' '),
+    });
   },
   createCampaign: async (input) => {
     const campaign = await campaignsApi.create(input);

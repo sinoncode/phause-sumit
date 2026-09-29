@@ -9,7 +9,9 @@
 import { useEffect, useMemo, useState } from 'react';
 // import type { ReactElement } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
-import { listOrgUsers, createOrgUser, updateOrgUser, deleteOrgUser } from '../../api/organisations/orgUsers.api';
+import { listAdminOrganizations, listOrgUsers, createOrgUser, updateOrgUser, deleteOrgUser } from '../../api/organisations/orgUsers.api';
+import { useAuthStore } from '../../stores/auth.store';
+import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 /* ------------------------------------------------------------------ icons */
 const ICON_PLUS = (
@@ -41,6 +43,7 @@ const ROLES = [
 const roleLabel = (value: string) => ROLES.find((r) => r.value === value)?.label ?? value;
 
 export interface OrgUserRecord {
+  id: string;
   orgId: string;
   email: string;
   role: string;
@@ -49,24 +52,6 @@ export interface OrgUserRecord {
 }
 
 const PAGE_SIZE = 10;
-
-/* Seed data so the table has something to page through; swap for a real fetch. */
-function seedUsers(count: number): OrgUserRecord[] {
-  const domains = ['yourcompany.com', 'acme.io', 'globex.co', 'initech.dev'];
-  const out: OrgUserRecord[] = [];
-  for (let i = 1; i <= count; i++) {
-    out.push({
-      orgId: `ORG-${String(1000 + i)}`,
-      email: `user${i}@${domains[i % domains.length]}`,
-      role: ROLES[i % ROLES.length].value,
-      active: i % 5 !== 0,
-      hasConsent: i % 3 !== 0,
-    });
-  }
-  return out;
-}
-
-// Endpoint now handled by orgUsers.api.ts
 
 /* ------------------------------------------------------------------ modal */
 interface CreateFormState {
@@ -247,20 +232,45 @@ function UserModal(props: UserModalProps) {
 
 /* ------------------------------------------------------------------- page */
 export function OrgUser() {
-  const [users, setUsers] = useState<OrgUserRecord[]>(() => seedUsers(37));
+  const orgId = useAuthStore((state) => state.orgId);
+  const setOrgId = useAuthStore((state) => state.setOrgId);
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; region: string }>>([]);
+  const [users, setUsers] = useState<OrgUserRecord[]>([]);
+  const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState<{ mode: 'create' } | { mode: 'edit'; orgId: string } | null>(null);
+  const [modal, setModal] = useState<{ mode: 'create' } | { mode: 'edit'; userId: string } | null>(null);
+  const handleApiError = useApiErrorHandler();
 
   useEffect(() => {
-    listOrgUsers().then((data) => { if (data.length) setUsers(data); });
-  }, []);
+    listAdminOrganizations().then((items) => {
+      setOrganizations(items);
+      const currentOrgId = useAuthStore.getState().orgId;
+      if (items.length && !items.some((organization) => organization.id === currentOrgId)) {
+        setOrgId(items[0].id);
+      }
+    }).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load organizations.'));
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setOrgId]);
+
+  useEffect(() => {
+    if (!orgId) {
+      setUsers([]);
+      return;
+    }
+    listOrgUsers().then(setUsers).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load organization users.'));
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgId]);
 
   const total = users.length;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const start = (page - 1) * PAGE_SIZE;
   const rows = useMemo(() => users.slice(start, start + PAGE_SIZE), [users, start]);
 
-  const editingUser = modal?.mode === 'edit' ? users.find((u) => u.orgId === modal.orgId) : undefined;
+  const editingUser = modal?.mode === 'edit' ? users.find((u) => u.id === modal.userId) : undefined;
 
   const goToPage = (p: number) => setPage(Math.min(Math.max(1, p), pageCount));
 
@@ -268,28 +278,33 @@ export function OrgUser() {
     try {
       const created = await createOrgUser(values);
       setUsers((prev) => [created, ...prev]);
-    } catch {
-      const orgId = `ORG-${String(1000 + users.length + 1)}`;
-      setUsers((prev) => [{ orgId, email: values.email, role: values.role, active: true, hasConsent: values.hasConsent }, ...prev]);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to create organization user.');
+      return;
     }
     setPage(1);
     setModal(null);
   };
 
-  const saveEdit = async (orgId: string, values: EditFormState) => {
+  const saveEdit = async (userId: string, values: EditFormState) => {
     try {
-      const updated = await updateOrgUser(orgId, values);
-      setUsers((prev) => prev.map((u) => u.orgId === orgId ? { ...u, ...updated } : u));
-    } catch {
-      setUsers((prev) => prev.map((u) => u.orgId === orgId ? { ...u, ...values } : u));
+      const updated = await updateOrgUser(userId, values);
+      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, ...updated } : u));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to update organization user.');
+      return;
     }
     setModal(null);
   };
 
   /* Delete calls the soft-deactivate endpoint (sets active: false, returns 204). */
   const handleDelete = async (user: OrgUserRecord) => {
-    try { await deleteOrgUser(user.orgId); } catch { /* ignore — 204 or network */ }
-    setUsers((prev) => prev.filter((u) => u.orgId !== user.orgId));
+    try {
+      await deleteOrgUser(user.id);
+      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to deactivate organization user.');
+    }
   };
 
   return (
@@ -303,6 +318,14 @@ export function OrgUser() {
           </button>
         }
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
+      <div className="ax-field" style={{ maxWidth: 420, marginBlockEnd: 'var(--ax-space-5)' }}>
+        <label className="ax-label" htmlFor="org-user-tenant">Organization</label>
+        <select id="org-user-tenant" className="ax-select" value={orgId ?? ''} onChange={(event) => setOrgId(event.target.value)}>
+          <option value="" disabled>Select organization</option>
+          {organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}
+        </select>
+      </div>
 
       <div className="ax-dash-grid">
         <section className="ax-card ax-col--12" role="region" aria-label="Organisation Users">
@@ -317,7 +340,7 @@ export function OrgUser() {
             <table className="ax-table ax-table--hover">
               <thead className="ax-table__head">
                 <tr>
-                  <th className="ax-table__th" scope="col">OrgId</th>
+                  <th className="ax-table__th" scope="col">User ID</th>
                   <th className="ax-table__th" scope="col">Email</th>
                   <th className="ax-table__th" scope="col">Role</th>
                   <th className="ax-table__th" scope="col">Consent</th>
@@ -326,8 +349,8 @@ export function OrgUser() {
               </thead>
               <tbody>
                 {rows.map((u) => (
-                  <tr key={u.orgId} className="ax-table__row">
-                    <td className="ax-table__td ax-num">{u.orgId}</td>
+                  <tr key={u.id} className="ax-table__row">
+                    <td className="ax-table__td ax-num">{u.id}</td>
                     <td className="ax-table__td" style={{ color: 'var(--ax-text-strong)' }}>{u.email}</td>
                     <td className="ax-table__td">{roleLabel(u.role)}</td>
                     <td className="ax-table__td">
@@ -341,7 +364,7 @@ export function OrgUser() {
                           type="button"
                           className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
                           aria-label={`Edit ${u.email}`}
-                          onClick={() => setModal({ mode: 'edit', orgId: u.orgId })}
+                          onClick={() => setModal({ mode: 'edit', userId: u.id })}
                         >
                           {ICON_EDIT}
                         </button>
