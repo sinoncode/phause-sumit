@@ -2,15 +2,17 @@
  * Phause — Organisations API (Steps 4.1–4.3 + Step 5.1 from Postman).
  *
  * Org routes use appToken (Bearer).
+ * Admin-only routes (delete) use adminToken via direct fetch.
  * Endpoints:
  *   GET    /api/organizations          — list all
  *   GET    /api/organizations/:id      — get one
  *   POST   /api/organizations          — create
  *   POST   /api/organizations/:id/authorization — record RoE auth
+ *   DELETE /api/admin/organizations/:id — delete (admin only)
  */
 
-import { apiClient } from '../client';
-import { getAppToken } from '../../stores/auth.store';
+import { apiClient, API_BASE_URL, ApiError } from '../client';
+import { getAppToken, getAdminToken, useAuthStore } from '../../stores/auth.store';
 import type { OrganisationRecord } from '../../pages/organisations/Org';
 
 function adapt(raw: Record<string, unknown>): OrganisationRecord {
@@ -73,4 +75,45 @@ export async function recordAuthorization(
       ...(docFile ? { authorizationDocFile: docFile } : {}),
     },
   );
+}
+
+/**
+ * Delete an organisation permanently (platform admin only).
+ * Calls DELETE /api/admin/organizations/:id with the admin JWT.
+ */
+export async function deleteOrganisation(orgId: string): Promise<void> {
+  const token = getAdminToken();
+  if (!token) throw new ApiError(401, null, 'Admin sign in is required.');
+
+  // Build headers — the backend AuthGuard requires x-tenant-id for admin
+  // tokens, so we must send the orgId being deleted as the tenant header.
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'x-tenant-id': orgId,
+  };
+  // Also check if the store has a different orgId already (e.g. from OrgUser
+  // page), but for a delete we always use the target org's id as the tenant.
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/organizations/${encodeURIComponent(orgId)}`,
+    { method: 'DELETE', headers },
+  );
+
+  if (res.status === 204) {
+    // If the store's current orgId matches the deleted org, clear it so the
+    // admin doesn't keep sending a dead tenant id on subsequent requests.
+    const { orgId: storedOrgId, setOrgId } = useAuthStore.getState();
+    if (storedOrgId === orgId) setOrgId('');
+    return;
+  }
+
+  if (!res.ok) {
+    // Never call clearAll() here — this is an admin-token request. A 401 means
+    // the admin token expired or the AuthGuard rejected the request; it should
+    // NOT wipe the whole session. Just throw so the caller can show the error.
+    let errBody: unknown;
+    try { errBody = await res.json(); } catch { errBody = await res.text(); }
+    throw new ApiError(res.status, errBody, `DELETE /api/admin/organizations/${orgId} → ${res.status}`);
+  }
 }
