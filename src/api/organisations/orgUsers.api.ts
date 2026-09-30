@@ -77,13 +77,18 @@ export async function listAdminOrganizations(): Promise<AdminOrganizationOption[
 export async function listAllOrgUsers(): Promise<OrgUserRecord[]> {
   const raw = await adminFetch<unknown[]>('GET', '/api/admin/users/all', undefined, false);
   if (!Array.isArray(raw)) throw new Error('The organization users API returned an invalid response.');
-  return raw.map((r) => adapt(r as Record<string, unknown>));
+  // Filter out inactive users — the backend soft-deletes by setting active:false.
+  return raw
+    .map((r) => adapt(r as Record<string, unknown>))
+    .filter((u) => u.active);
 }
 
 export async function listOrgUsers(): Promise<OrgUserRecord[]> {
   const raw = await adminFetch<unknown[]>('GET', '/api/admin/users');
   if (!Array.isArray(raw)) throw new Error('The organization users API returned an invalid response.');
-  return raw.map((r) => adapt(r as Record<string, unknown>));
+  return raw
+    .map((r) => adapt(r as Record<string, unknown>))
+    .filter((u) => u.active);
 }
 
 export async function createOrgUser(values: {
