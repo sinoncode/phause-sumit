@@ -26,11 +26,12 @@ async function adminFetch<T>(
   method: string,
   path: string,
   body?: unknown,
+  requireOrgId = true,
 ): Promise<T> {
   const orgId = useAuthStore.getState().orgId;
   const token = getAdminToken();
   if (!token) throw new ApiError(401, null, 'Admin sign in is required.');
-  if (path.includes('/users') && !orgId) throw new Error('Select an organization before managing users.');
+  if (requireOrgId && path.includes('/users') && !orgId) throw new Error('Select an organization before managing users.');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
@@ -64,12 +65,19 @@ function adapt(raw: Record<string, unknown>): OrgUserRecord {
 }
 
 export async function listAdminOrganizations(): Promise<AdminOrganizationOption[]> {
-  const raw = await adminFetch<unknown[]>('GET', '/api/admin/organizations');
+  const raw = await adminFetch<unknown[]>('GET', '/api/admin/organizations', undefined, false);
   if (!Array.isArray(raw)) throw new Error('The admin organizations API returned an invalid response.');
   return raw.map((value) => {
     const item = value as Record<string, unknown>;
     return { id: String(item.id ?? ''), name: String(item.name ?? ''), region: String(item.region ?? '') };
   });
+}
+
+/** Fetch ALL users across every organisation (no org filter). */
+export async function listAllOrgUsers(): Promise<OrgUserRecord[]> {
+  const raw = await adminFetch<unknown[]>('GET', '/api/admin/users/all', undefined, false);
+  if (!Array.isArray(raw)) throw new Error('The organization users API returned an invalid response.');
+  return raw.map((r) => adapt(r as Record<string, unknown>));
 }
 
 export async function listOrgUsers(): Promise<OrgUserRecord[]> {
