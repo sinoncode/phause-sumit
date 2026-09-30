@@ -9,7 +9,7 @@
 import { useEffect, useMemo, useState } from 'react';
 // import type { ReactElement } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
-import { listAdminOrganizations, listOrgUsers, createOrgUser, updateOrgUser, deleteOrgUser } from '../../api/organisations/orgUsers.api';
+import { listAdminOrganizations, listAllOrgUsers, createOrgUser, updateOrgUser, deleteOrgUser } from '../../api/organisations/orgUsers.api';
 import { useAuthStore } from '../../stores/auth.store';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
@@ -235,49 +235,60 @@ export function OrgUser() {
   const orgId = useAuthStore((state) => state.orgId);
   const setOrgId = useAuthStore((state) => state.setOrgId);
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; region: string }>>([]);
-  const [users, setUsers] = useState<OrgUserRecord[]>([]);
+  // allUsers holds the full unfiltered list fetched once on mount
+  const [allUsers, setAllUsers] = useState<OrgUserRecord[]>([]);
+  // filterOrgId = '' means "All organizations"
+  const [filterOrgId, setFilterOrgId] = useState<string>('');
   const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState<{ mode: 'create' } | { mode: 'edit'; userId: string } | null>(null);
   const handleApiError = useApiErrorHandler();
 
+  // Load all orgs and ALL users once on mount
   useEffect(() => {
     listAdminOrganizations().then((items) => {
       setOrganizations(items);
-      const currentOrgId = useAuthStore.getState().orgId;
-      if (items.length && !items.some((organization) => organization.id === currentOrgId)) {
-        setOrgId(items[0].id);
-      }
     }).catch((err: unknown) => {
       setLoadError(handleApiError(err, 'Unable to load organizations.'));
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setOrgId]);
 
-  useEffect(() => {
-    if (!orgId) {
-      setUsers([]);
-      return;
-    }
-    listOrgUsers().then(setUsers).catch((err: unknown) => {
+    listAllOrgUsers().then(setAllUsers).catch((err: unknown) => {
       setLoadError(handleApiError(err, 'Unable to load organization users.'));
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgId]);
+  }, []);
+
+  // Derive the displayed list: either all users or filtered by selected org
+  const users = filterOrgId
+    ? allUsers.filter((u) => u.orgId === filterOrgId)
+    : allUsers;
 
   const total = users.length;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const start = (page - 1) * PAGE_SIZE;
   const rows = useMemo(() => users.slice(start, start + PAGE_SIZE), [users, start]);
 
-  const editingUser = modal?.mode === 'edit' ? users.find((u) => u.id === modal.userId) : undefined;
+  const editingUser = modal?.mode === 'edit' ? allUsers.find((u) => u.id === modal.userId) : undefined;
 
   const goToPage = (p: number) => setPage(Math.min(Math.max(1, p), pageCount));
 
+  // When filter changes, reset to page 1
+  const handleFilterChange = (newOrgId: string) => {
+    setFilterOrgId(newOrgId);
+    // Keep auth store orgId in sync for create/edit/delete operations
+    if (newOrgId) setOrgId(newOrgId);
+    setPage(1);
+  };
+
   const createUser = async (values: CreateFormState) => {
+    const targetOrgId = filterOrgId || orgId;
+    if (!targetOrgId) {
+      setLoadError('Please select an organization before creating a user.');
+      return;
+    }
     try {
       const created = await createOrgUser(values);
-      setUsers((prev) => [created, ...prev]);
+      setAllUsers((prev) => [created, ...prev]);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to create organization user.');
       return;
@@ -289,7 +300,7 @@ export function OrgUser() {
   const saveEdit = async (userId: string, values: EditFormState) => {
     try {
       const updated = await updateOrgUser(userId, values);
-      setUsers((prev) => prev.map((u) => u.id === userId ? { ...u, ...updated } : u));
+      setAllUsers((prev) => prev.map((u) => u.id === userId ? { ...u, ...updated } : u));
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to update organization user.');
       return;
@@ -301,11 +312,14 @@ export function OrgUser() {
   const handleDelete = async (user: OrgUserRecord) => {
     try {
       await deleteOrgUser(user.id);
-      setUsers((prev) => prev.filter((u) => u.id !== user.id));
+      setAllUsers((prev) => prev.filter((u) => u.id !== user.id));
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to deactivate organization user.');
     }
   };
+
+  // Org name lookup helper for table display
+  const orgName = (id: string) => organizations.find((o) => o.id === id)?.name ?? id;
 
   return (
     <>
@@ -319,11 +333,22 @@ export function OrgUser() {
         }
       />
       {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
+
+      {/* Org filter dropdown — "All organizations" is the default */}
       <div className="ax-field" style={{ maxWidth: 420, marginBlockEnd: 'var(--ax-space-5)' }}>
-        <label className="ax-label" htmlFor="org-user-tenant">Organization</label>
-        <select id="org-user-tenant" className="ax-select" value={orgId ?? ''} onChange={(event) => setOrgId(event.target.value)}>
-          <option value="" disabled>Select organization</option>
-          {organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}
+        <label className="ax-label" htmlFor="org-user-tenant">Filter by Organization</label>
+        <select
+          id="org-user-tenant"
+          className="ax-select"
+          value={filterOrgId}
+          onChange={(e) => handleFilterChange(e.target.value)}
+        >
+          <option value="">All organizations ({allUsers.length})</option>
+          {organizations.map((organization) => (
+            <option key={organization.id} value={organization.id}>
+              {organization.name} ({allUsers.filter((u) => u.orgId === organization.id).length})
+            </option>
+          ))}
         </select>
       </div>
 
@@ -332,7 +357,11 @@ export function OrgUser() {
           <div className="ax-card__header">
             <div className="ax-card__titles">
               <h2 className="ax-card__title">Organisation Users</h2>
-              <p className="ax-card__subtitle">{total.toLocaleString()} total user{total === 1 ? '' : 's'}</p>
+              <p className="ax-card__subtitle">
+                {filterOrgId
+                  ? `${total.toLocaleString()} user${total === 1 ? '' : 's'} in ${orgName(filterOrgId)}`
+                  : `${total.toLocaleString()} total user${total === 1 ? '' : 's'} across all organizations`}
+              </p>
             </div>
           </div>
 
@@ -341,6 +370,7 @@ export function OrgUser() {
               <thead className="ax-table__head">
                 <tr>
                   <th className="ax-table__th" scope="col">User ID</th>
+                  <th className="ax-table__th" scope="col">Organization</th>
                   <th className="ax-table__th" scope="col">Email</th>
                   <th className="ax-table__th" scope="col">Role</th>
                   <th className="ax-table__th" scope="col">Consent</th>
@@ -350,7 +380,10 @@ export function OrgUser() {
               <tbody>
                 {rows.map((u) => (
                   <tr key={u.id} className="ax-table__row">
-                    <td className="ax-table__td ax-num">{u.id}</td>
+                    <td className="ax-table__td ax-num" style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>{u.id}</td>
+                    <td className="ax-table__td" style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>
+                      {orgName(u.orgId)}
+                    </td>
                     <td className="ax-table__td" style={{ color: 'var(--ax-text-strong)' }}>{u.email}</td>
                     <td className="ax-table__td">{roleLabel(u.role)}</td>
                     <td className="ax-table__td">
@@ -383,8 +416,8 @@ export function OrgUser() {
                 ))}
                 {rows.length === 0 && (
                   <tr>
-                    <td className="ax-table__td" colSpan={5} style={{ textAlign: 'center', color: 'var(--ax-text-subtle)', padding: 'var(--ax-space-6)' }}>
-                      No users yet.
+                    <td className="ax-table__td" colSpan={6} style={{ textAlign: 'center', color: 'var(--ax-text-subtle)', padding: 'var(--ax-space-6)' }}>
+                      {allUsers.length === 0 ? 'No users yet.' : 'No users match the selected organization.'}
                     </td>
                   </tr>
                 )}
@@ -425,7 +458,7 @@ export function OrgUser() {
           mode="edit"
           initial={{ role: editingUser.role, active: editingUser.active, hasConsent: editingUser.hasConsent }}
           onCancel={() => setModal(null)}
-          onSubmit={(values) => saveEdit(editingUser.orgId, values)}
+          onSubmit={(values) => saveEdit(editingUser.id, values)}
         />
       )}
     </>

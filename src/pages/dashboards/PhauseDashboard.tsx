@@ -19,6 +19,7 @@ import { listEmployees } from '../../api/employees/employees.api';
 import { campaignsApiReal } from '../../api/campaigns/campaigns.real';
 import { listRiskScores, getRiskTrend, listReports } from '../../api/reports/reports.api';
 import { ApiError } from '../../api/client';
+import { useAuthStore } from '../../stores/auth.store';
 import type { Campaign } from '../../features/campaigns/types';
 import type { ReportSummary, RiskTrendPoint, EmployeeRiskScore } from '../reports/reportsData';
 
@@ -108,6 +109,8 @@ const IC_RISK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 // ─── main component ───────────────────────────────────────────────────────────
 export function PhauseDashboard() {
   const navigate = useNavigate();
+  const userRole = useAuthStore((s) => s.userRole);
+  const isAdmin  = userRole === 'admin' || userRole === null;
   const [loading, setLoading] = useState(true);
   const [orgCount, setOrgCount]       = useState(0);
   const [empCount, setEmpCount]       = useState(0);
@@ -118,8 +121,13 @@ export function PhauseDashboard() {
 
   useEffect(() => {
     let cancelled = false;
+    // Only fetch organisations when the user is a platform admin — org users
+    // should not see cross-organisation counts and calling the endpoint as an
+    // org user would only return their own single org anyway.
+    const orgFetch = isAdmin ? listOrganisations() : Promise.resolve([]);
+
     Promise.allSettled([
-      listOrganisations(),
+      orgFetch,
       listEmployees(),
       campaignsApiReal.list(),
       listRiskScores(),
@@ -152,7 +160,7 @@ export function PhauseDashboard() {
       setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [navigate]);
+  }, [navigate, isAdmin]);
 
   // derived numbers
   const activeCampaigns  = campaigns.filter((c) => c.status === 'running').length;
@@ -193,7 +201,9 @@ export function PhauseDashboard() {
       <div className="ax-dash-grid">
 
         {/* ── KPI ROW ─────────────────────────────────────────────────────── */}
-        <KpiCard label="Organisations"   value={orgCount}        icon={IC_ORG}  loading={loading} />
+        {isAdmin && (
+          <KpiCard label="Organisations" value={orgCount} icon={IC_ORG} loading={loading} />
+        )}
         <KpiCard label="Employees"       value={empCount}        icon={IC_EMP}  loading={loading} />
         <KpiCard label="Active Campaigns" value={activeCampaigns} icon={IC_CAMP} loading={loading}
           sub={campaigns.length ? `${campaigns.length} total` : undefined} />
