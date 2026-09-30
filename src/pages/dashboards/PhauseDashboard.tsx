@@ -41,8 +41,9 @@ function Spark({ data, color = 'var(--ax-accent)' }: { data: number[]; color?: s
 }
 
 // ─── risk badge ──────────────────────────────────────────────────────────────
-function RiskBadge({ score }: { score: number }) {
-  const level = score >= 75 ? 'critical' : score >= 50 ? 'high' : score >= 25 ? 'medium' : 'low';
+function RiskBadge({ score }: { score: number | null | undefined }) {
+  const safe = typeof score === 'number' && isFinite(score) ? score : 0;
+  const level = safe >= 75 ? 'critical' : safe >= 50 ? 'high' : safe >= 25 ? 'medium' : 'low';
   const colors: Record<string, string> = {
     critical: 'var(--ax-danger-500)',
     high:     'var(--ax-warning-500)',
@@ -51,7 +52,7 @@ function RiskBadge({ score }: { score: number }) {
   };
   return (
     <span style={{ fontWeight: 600, color: colors[level], fontVariantNumeric: 'tabular-nums' }}>
-      {score.toFixed(0)}
+      {safe.toFixed(0)}
     </span>
   );
 }
@@ -165,9 +166,9 @@ export function PhauseDashboard() {
   // derived numbers
   const activeCampaigns  = campaigns.filter((c) => c.status === 'running').length;
   const avgRisk = riskScores.length
-    ? Math.round(riskScores.reduce((s, r) => s + r.riskScore, 0) / riskScores.length)
+    ? Math.round(riskScores.reduce((s, r) => s + (r.riskScore ?? 0), 0) / riskScores.length)
     : 0;
-  const trendSpark = riskTrend.map((p) => p.avgRiskScore);
+  const trendSpark = riskTrend.map((p) => p.avgRiskScore ?? 0).filter((v) => isFinite(v));
 
   // campaign status counts for mini bar
   const statusCounts = (['draft', 'scheduled', 'running', 'completed', 'cancelled'] as const).map((s) => ({
@@ -449,7 +450,7 @@ export function PhauseDashboard() {
                       { label: 'Landing', value: r.landingRate },
                     ].map(({ label, value }) => (
                       <span key={label} style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>
-                        {label}: <strong style={{ color: 'var(--ax-text-strong)', fontVariantNumeric: 'tabular-nums' }}>{value.toFixed(0)}%</strong>
+                        {label}: <strong style={{ color: 'var(--ax-text-strong)', fontVariantNumeric: 'tabular-nums' }}>{(value ?? 0).toFixed(0)}%</strong>
                       </span>
                     ))}
                   </div>

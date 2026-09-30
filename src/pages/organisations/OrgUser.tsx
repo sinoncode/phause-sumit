@@ -310,7 +310,7 @@ export function OrgUser() {
     setModal(null);
   };
 
-  /* Delete calls the soft-deactivate endpoint (sets active: false, returns 204). */
+  /* Delete permanently removes the user via DELETE /api/admin/users/:id. */
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -320,7 +320,7 @@ export function OrgUser() {
       setAllUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
       setDeleteTarget(null);
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : 'Unable to deactivate organization user.');
+      setLoadError(error instanceof Error ? error.message : 'Unable to delete organization user.');
     } finally {
       setDeleting(false);
     }
@@ -497,7 +497,7 @@ export function OrgUser() {
             <div className="ax-card__header">
               <div className="ax-card__titles">
                 <h2 className="ax-card__title" id="delete-user-title" style={{ color: 'var(--ax-danger)' }}>
-                  Deactivate user?
+                  Delete user?
                 </h2>
               </div>
               <button
@@ -512,11 +512,11 @@ export function OrgUser() {
             </div>
             <div className="ax-card__body">
               <p style={{ margin: 0, color: 'var(--ax-text)', lineHeight: 1.6 }}>
-                You are about to deactivate{' '}
+                You are about to permanently delete{' '}
                 <strong style={{ color: 'var(--ax-text-strong)' }}>{deleteTarget.email}</strong>.
               </p>
-              <p style={{ marginTop: 'var(--ax-space-2)', marginBottom: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
-                Their account will be disabled and they will no longer be able to sign in.
+              <p style={{ marginTop: 'var(--ax-space-2)', marginBottom: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-danger)' }}>
+                This action cannot be undone.
               </p>
             </div>
             <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end', gap: 'var(--ax-space-3)' }}>
@@ -535,7 +535,7 @@ export function OrgUser() {
                 disabled={deleting}
                 aria-busy={deleting}
               >
-                <span className="ax-btn__label">{deleting ? 'Deactivating…' : 'Deactivate user'}</span>
+                <span className="ax-btn__label">{deleting ? 'Deleting…' : 'Delete user'}</span>
               </button>
             </div>
           </div>

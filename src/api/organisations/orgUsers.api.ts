@@ -6,7 +6,7 @@
  *   GET    /api/admin/users              (x-tenant-id: orgId)
  *   POST   /api/admin/users              — create user
  *   PATCH  /api/admin/users/:id          — update role/active/consent
- *   DELETE /api/admin/users/:id          — soft-deactivate (204)
+ *   DELETE /api/admin/users/:id          — permanently delete user (204)
  */
 
 import { API_BASE_URL, ApiError } from '../client';
@@ -44,7 +44,7 @@ async function adminFetch<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
-    if (res.status === 401) useAuthStore.getState().clearAll();
+    // Never clearAll() on admin-token requests — a 401 should not wipe the session.
     let errBody: unknown;
     try { errBody = await res.json(); } catch { errBody = await res.text(); }
     throw new ApiError(res.status, errBody, `${method} ${path} → ${res.status}`);
@@ -77,13 +77,18 @@ export async function listAdminOrganizations(): Promise<AdminOrganizationOption[
 export async function listAllOrgUsers(): Promise<OrgUserRecord[]> {
   const raw = await adminFetch<unknown[]>('GET', '/api/admin/users/all', undefined, false);
   if (!Array.isArray(raw)) throw new Error('The organization users API returned an invalid response.');
-  return raw.map((r) => adapt(r as Record<string, unknown>));
+  // Filter out inactive users — the backend soft-deletes by setting active:false.
+  return raw
+    .map((r) => adapt(r as Record<string, unknown>))
+    .filter((u) => u.active);
 }
 
 export async function listOrgUsers(): Promise<OrgUserRecord[]> {
   const raw = await adminFetch<unknown[]>('GET', '/api/admin/users');
   if (!Array.isArray(raw)) throw new Error('The organization users API returned an invalid response.');
-  return raw.map((r) => adapt(r as Record<string, unknown>));
+  return raw
+    .map((r) => adapt(r as Record<string, unknown>))
+    .filter((u) => u.active);
 }
 
 export async function createOrgUser(values: {
