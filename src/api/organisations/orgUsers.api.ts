@@ -6,7 +6,7 @@
  *   GET    /api/admin/users              (x-tenant-id: orgId)
  *   POST   /api/admin/users              — create user
  *   PATCH  /api/admin/users/:id          — update role/active/consent
- *   DELETE /api/admin/users/:id          — soft-deactivate (204)
+ *   DELETE /api/admin/users/:id          — permanently delete user (204)
  */
 
 import { API_BASE_URL, ApiError } from '../client';
@@ -44,7 +44,7 @@ async function adminFetch<T>(
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) {
-    if (res.status === 401) useAuthStore.getState().clearAll();
+    // Never clearAll() on admin-token requests — a 401 should not wipe the session.
     let errBody: unknown;
     try { errBody = await res.json(); } catch { errBody = await res.text(); }
     throw new ApiError(res.status, errBody, `${method} ${path} → ${res.status}`);
