@@ -401,15 +401,17 @@ export function OrgUser() {
                         >
                           {ICON_EDIT}
                         </button>
-                        <button
-                          type="button"
-                          className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
-                          aria-label={`Delete ${u.email}`}
-                          onClick={() => handleDelete(u)}
-                          style={{ color: 'var(--ax-danger)' }}
-                        >
-                          {ICON_DELETE}
-                        </button>
+                        {u.role !== 'org_admin' && u.role !== 'super_admin' && (
+                          <button
+                            type="button"
+                            className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                            aria-label={`Delete ${u.email}`}
+                            onClick={() => handleDelete(u)}
+                            style={{ color: 'var(--ax-danger)' }}
+                          >
+                            {ICON_DELETE}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

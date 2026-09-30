@@ -2,15 +2,17 @@
  * Phause — Organisations API (Steps 4.1–4.3 + Step 5.1 from Postman).
  *
  * Org routes use appToken (Bearer).
+ * Admin-only routes (delete) use adminToken via direct fetch.
  * Endpoints:
  *   GET    /api/organizations          — list all
  *   GET    /api/organizations/:id      — get one
  *   POST   /api/organizations          — create
  *   POST   /api/organizations/:id/authorization — record RoE auth
+ *   DELETE /api/admin/organizations/:id — delete (admin only)
  */
 
-import { apiClient } from '../client';
-import { getAppToken } from '../../stores/auth.store';
+import { apiClient, API_BASE_URL, ApiError } from '../client';
+import { getAppToken, getAdminToken, useAuthStore } from '../../stores/auth.store';
 import type { OrganisationRecord } from '../../pages/organisations/Org';
 
 function adapt(raw: Record<string, unknown>): OrganisationRecord {
@@ -73,4 +75,30 @@ export async function recordAuthorization(
       ...(docFile ? { authorizationDocFile: docFile } : {}),
     },
   );
+}
+
+/**
+ * Delete an organisation permanently (platform admin only).
+ * Calls DELETE /api/admin/organizations/:id with the admin JWT.
+ */
+export async function deleteOrganisation(orgId: string): Promise<void> {
+  const token = getAdminToken();
+  if (!token) throw new ApiError(401, null, 'Admin sign in is required.');
+
+  const res = await fetch(
+    `${API_BASE_URL}/api/admin/organizations/${encodeURIComponent(orgId)}`,
+    {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    },
+  );
+
+  if (res.status === 204) return;
+
+  if (!res.ok) {
+    if (res.status === 401) useAuthStore.getState().clearAll();
+    let errBody: unknown;
+    try { errBody = await res.json(); } catch { errBody = await res.text(); }
+    throw new ApiError(res.status, errBody, `DELETE /api/admin/organizations/${orgId} → ${res.status}`);
+  }
 }

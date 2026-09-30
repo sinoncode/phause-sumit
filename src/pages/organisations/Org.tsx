@@ -11,7 +11,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
-import { listOrganisations, createOrganisation as createOrganisationApi, recordAuthorization } from '../../api/organisations/organisations.api';
+import { listOrganisations, createOrganisation as createOrganisationApi, recordAuthorization, deleteOrganisation } from '../../api/organisations/organisations.api';
+import { useAuthStore } from '../../stores/auth.store';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 
 /* ------------------------------------------------------------------ icons */
@@ -41,6 +42,9 @@ const ICON_ROE = (
 );
 const ICON_CHECK = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l5 5l9 -9" /></svg>
+);
+const ICON_DELETE = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 7h16" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
 );
 
 /* ------------------------------------------------------------------- data */
@@ -530,11 +534,15 @@ interface Props {
 
 export function Org({ onViewOrganisation }: Props) {
   const navigate = useNavigate();
+  const userRole = useAuthStore((s) => s.userRole);
+  const isAdmin  = userRole === 'admin' || userRole === null;
   const [orgs, setOrgs] = useState<OrganisationRecord[]>([]);
   const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const [roeOrg, setRoeOrg] = useState<OrganisationRecord | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<OrganisationRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const handleApiError = useApiErrorHandler();
 
   useEffect(() => {
@@ -572,6 +580,21 @@ export function Org({ onViewOrganisation }: Props) {
     navigate(`/organisations/org/${encodeURIComponent(org.id)}`, {
       state: { organisation: org },
     });
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setLoadError('');
+    try {
+      await deleteOrganisation(deleteTarget.id);
+      setOrgs((prev) => prev.filter((o) => o.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'Unable to delete organization.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -673,6 +696,18 @@ export function Org({ onViewOrganisation }: Props) {
                         >
                           {ICON_ROE}
                         </button>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                            aria-label={`Delete ${o.name}`}
+                            title="Delete organisation"
+                            onClick={() => setDeleteTarget(o)}
+                            style={{ color: 'var(--ax-danger)' }}
+                          >
+                            {ICON_DELETE}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -720,6 +755,79 @@ export function Org({ onViewOrganisation }: Props) {
             setRoeOrg(null);
           }}
         />
+      )}
+
+      {deleteTarget && (
+        <div
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !deleting) setDeleteTarget(null); }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 'var(--ax-space-4)',
+            background: 'rgba(15, 18, 25, 0.55)',
+            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-org-title"
+            style={{
+              width: '100%', maxWidth: 420,
+              background: 'var(--ax-surface, #fff)',
+              borderRadius: 'var(--ax-radius-lg, 12px)',
+              border: '1px solid var(--ax-border)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+            }}
+          >
+            <div className="ax-card__header">
+              <div className="ax-card__titles">
+                <h2 className="ax-card__title" id="delete-org-title" style={{ color: 'var(--ax-danger)' }}>
+                  Delete organisation?
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                aria-label="Close"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
+                {ICON_CLOSE}
+              </button>
+            </div>
+            <div className="ax-card__body">
+              <p style={{ margin: 0, color: 'var(--ax-text)', lineHeight: 1.6 }}>
+                You are about to permanently delete{' '}
+                <strong style={{ color: 'var(--ax-text-strong)' }}>{deleteTarget.name}</strong>.
+                All users, campaigns, employees, and data belonging to this organisation will be lost.
+              </p>
+              <p style={{ marginTop: 'var(--ax-space-3)', marginBottom: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-danger)' }}>
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end', gap: 'var(--ax-space-3)' }}>
+              <button
+                type="button"
+                className="ax-btn ax-btn--secondary"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="ax-btn ax-btn--danger"
+                onClick={() => void handleDelete()}
+                disabled={deleting}
+                aria-busy={deleting}
+              >
+                <span className="ax-btn__label">{deleting ? 'Deleting…' : 'Delete organisation'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
