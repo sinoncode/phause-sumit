@@ -242,6 +242,8 @@ export function OrgUser() {
   const [loadError, setLoadError] = useState('');
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState<{ mode: 'create' } | { mode: 'edit'; userId: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<OrgUserRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const handleApiError = useApiErrorHandler();
 
   // Load all orgs and ALL users once on mount
@@ -309,12 +311,18 @@ export function OrgUser() {
   };
 
   /* Delete calls the soft-deactivate endpoint (sets active: false, returns 204). */
-  const handleDelete = async (user: OrgUserRecord) => {
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    setLoadError('');
     try {
-      await deleteOrgUser(user.id);
-      setAllUsers((prev) => prev.filter((u) => u.id !== user.id));
+      await deleteOrgUser(deleteTarget.id);
+      setAllUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id));
+      setDeleteTarget(null);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to deactivate organization user.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -401,17 +409,15 @@ export function OrgUser() {
                         >
                           {ICON_EDIT}
                         </button>
-                        {u.role !== 'org_admin' && u.role !== 'super_admin' && (
-                          <button
-                            type="button"
-                            className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
-                            aria-label={`Delete ${u.email}`}
-                            onClick={() => handleDelete(u)}
-                            style={{ color: 'var(--ax-danger)' }}
-                          >
-                            {ICON_DELETE}
-                          </button>
-                        )}
+                        <button
+                          type="button"
+                          className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                          aria-label={`Delete ${u.email}`}
+                          onClick={() => setDeleteTarget(u)}
+                          style={{ color: 'var(--ax-danger)' }}
+                        >
+                          {ICON_DELETE}
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -462,6 +468,78 @@ export function OrgUser() {
           onCancel={() => setModal(null)}
           onSubmit={(values) => saveEdit(editingUser.id, values)}
         />
+      )}
+
+      {deleteTarget && (
+        <div
+          role="presentation"
+          onMouseDown={(e) => { if (e.target === e.currentTarget && !deleting) setDeleteTarget(null); }}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 'var(--ax-space-4)',
+            background: 'rgba(15, 18, 25, 0.55)',
+            backdropFilter: 'blur(4px)', WebkitBackdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-user-title"
+            style={{
+              width: '100%', maxWidth: 420,
+              background: 'var(--ax-surface, #fff)',
+              borderRadius: 'var(--ax-radius-lg, 12px)',
+              border: '1px solid var(--ax-border)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+            }}
+          >
+            <div className="ax-card__header">
+              <div className="ax-card__titles">
+                <h2 className="ax-card__title" id="delete-user-title" style={{ color: 'var(--ax-danger)' }}>
+                  Deactivate user?
+                </h2>
+              </div>
+              <button
+                type="button"
+                className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                aria-label="Close"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="ax-card__body">
+              <p style={{ margin: 0, color: 'var(--ax-text)', lineHeight: 1.6 }}>
+                You are about to deactivate{' '}
+                <strong style={{ color: 'var(--ax-text-strong)' }}>{deleteTarget.email}</strong>.
+              </p>
+              <p style={{ marginTop: 'var(--ax-space-2)', marginBottom: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
+                Their account will be disabled and they will no longer be able to sign in.
+              </p>
+            </div>
+            <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end', gap: 'var(--ax-space-3)' }}>
+              <button
+                type="button"
+                className="ax-btn ax-btn--secondary"
+                onClick={() => setDeleteTarget(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="ax-btn ax-btn--danger"
+                onClick={() => void handleDelete()}
+                disabled={deleting}
+                aria-busy={deleting}
+              >
+                <span className="ax-btn__label">{deleting ? 'Deactivating…' : 'Deactivate user'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

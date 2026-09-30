@@ -52,7 +52,9 @@ async function request<T>(
   if (token) headers['Authorization'] = `Bearer ${token}`;
 
   const authState = useAuthStore.getState();
-  if (authState.userRole === 'admin' && authState.orgId) {
+  // Always send x-tenant-id when an orgId is stored — the backend AuthGuard
+  // requires it for admin tokens and ignores it for org-user tokens.
+  if (authState.orgId) {
     headers['x-tenant-id'] = authState.orgId;
   }
 
@@ -98,7 +100,7 @@ async function _doFetch<T>(
     const freshToken = getToken?.();
     if (freshToken) freshHeaders['Authorization'] = `Bearer ${freshToken}`;
     const authState = useAuthStore.getState();
-    if (authState.userRole === 'admin' && authState.orgId) {
+    if (authState.orgId) {
       freshHeaders['x-tenant-id'] = authState.orgId;
     }
     const retry = await fetch(url, {

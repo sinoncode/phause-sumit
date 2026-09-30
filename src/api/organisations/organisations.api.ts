@@ -85,18 +85,33 @@ export async function deleteOrganisation(orgId: string): Promise<void> {
   const token = getAdminToken();
   if (!token) throw new ApiError(401, null, 'Admin sign in is required.');
 
+  // Build headers — the backend AuthGuard requires x-tenant-id for admin
+  // tokens, so we must send the orgId being deleted as the tenant header.
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+    'x-tenant-id': orgId,
+  };
+  // Also check if the store has a different orgId already (e.g. from OrgUser
+  // page), but for a delete we always use the target org's id as the tenant.
+
   const res = await fetch(
     `${API_BASE_URL}/api/admin/organizations/${encodeURIComponent(orgId)}`,
-    {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-    },
+    { method: 'DELETE', headers },
   );
 
-  if (res.status === 204) return;
+  if (res.status === 204) {
+    // If the store's current orgId matches the deleted org, clear it so the
+    // admin doesn't keep sending a dead tenant id on subsequent requests.
+    const { orgId: storedOrgId, setOrgId } = useAuthStore.getState();
+    if (storedOrgId === orgId) setOrgId('');
+    return;
+  }
 
   if (!res.ok) {
-    if (res.status === 401) useAuthStore.getState().clearAll();
+    // Never call clearAll() here — this is an admin-token request. A 401 means
+    // the admin token expired or the AuthGuard rejected the request; it should
+    // NOT wipe the whole session. Just throw so the caller can show the error.
     let errBody: unknown;
     try { errBody = await res.json(); } catch { errBody = await res.text(); }
     throw new ApiError(res.status, errBody, `DELETE /api/admin/organizations/${orgId} → ${res.status}`);
