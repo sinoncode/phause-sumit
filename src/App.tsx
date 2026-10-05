@@ -39,6 +39,7 @@ const AuthSignInOrg = lazy(() => import('./pages/auth/SignInOrg'));
 const AuthSignInAdmin = lazy(() => import('./pages/auth/SignInAdmin'));
 const AuthSignUpBasic = lazy(() => import('./pages/auth/SignUpBasic'));
 const AuthSignUpAdmin = lazy(() => import('./pages/auth/SignUpAdmin'));
+const AuthSignUpOrg = lazy(() => import('./pages/auth/SignUpOrg'));
 const AuthTwoStepBasic = lazy(() => import('./pages/auth/TwoStepBasic'));
 const AuthTwoStepCover = lazy(() => import('./pages/auth/TwoStepCover'));
 const Error401 = lazy(() => import('./pages/error/Error401'));
@@ -243,6 +244,7 @@ const standalone: Record<string, PageComponent> = {
   'auth/sign-in-admin': AuthSignInAdmin,
   'auth/sign-up-basic': AuthSignUpBasic,
   'auth/sign-up-admin': AuthSignUpAdmin,
+  'auth/sign-up-org': AuthSignUpOrg,
   'auth/two-step-basic': AuthTwoStepBasic,
   'auth/two-step-cover': AuthTwoStepCover,
   'error/401': Error401,
