@@ -650,18 +650,67 @@ export function Org({ onViewOrganisation }: Props) {
                     </td>
                     <td className="ax-table__td">{o.plan} months</td>
                     <td className="ax-table__td">
-                      <a
-                        href={o.authRef.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="ax-cluster"
-                        style={{ gap: 6, color: 'var(--ax-accent)', textDecoration: 'none', fontWeight: 'var(--ax-weight-medium)', whiteSpace: 'nowrap' }}
-                      >
-                        <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                          <path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
-                        </svg>
-                        {o.authRef.label}
-                      </a>
+                      {(() => {
+                        const { label, url } = o.authRef;
+                        if (!label) return <span style={{ color: 'var(--ax-text-subtle)' }}>—</span>;
+
+                        // Base64 data URL — open in a new blob window so the browser
+                        // doesn't treat it as a same-page navigation.
+                        if (url.startsWith('data:')) {
+                          const handleDataUrl = () => {
+                            const parts = url.match(/^data:([^;]+);base64,(.+)$/);
+                            if (!parts) return;
+                            const [, mimeType, b64] = parts;
+                            const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+                            const blob  = new Blob([bytes], { type: mimeType });
+                            const blobUrl = URL.createObjectURL(blob);
+                            window.open(blobUrl, '_blank', 'noopener,noreferrer');
+                            // revoke after a short delay so the tab has time to open
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 10_000);
+                          };
+                          return (
+                            <button
+                              type="button"
+                              onClick={handleDataUrl}
+                              className="ax-cluster"
+                              style={{ gap: 6, color: 'var(--ax-accent)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'var(--ax-weight-medium)', whiteSpace: 'nowrap', padding: 0, font: 'inherit' }}
+                            >
+                              <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+                              </svg>
+                              {label}
+                            </button>
+                          );
+                        }
+
+                        // Real URL — open in new tab
+                        if (url) {
+                          return (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="ax-cluster"
+                              style={{ gap: 6, color: 'var(--ax-accent)', textDecoration: 'none', fontWeight: 'var(--ax-weight-medium)', whiteSpace: 'nowrap' }}
+                            >
+                              <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                                <path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+                              </svg>
+                              {label}
+                            </a>
+                          );
+                        }
+
+                        // Label only — no URL available yet
+                        return (
+                          <span className="ax-cluster" style={{ gap: 6, color: 'var(--ax-text-muted)', whiteSpace: 'nowrap' }}>
+                            <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                              <path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+                            </svg>
+                            {label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="ax-table__td">
                       <span className={`ax-badge ax-badge--soft ax-badge--pill ${o.authAccept ? 'ax-badge--success' : 'ax-badge--warning'}`}>

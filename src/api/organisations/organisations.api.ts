@@ -27,7 +27,7 @@ function adapt(raw: Record<string, unknown>): OrganisationRecord {
     plan:              String(raw.planName ?? raw.plan ?? ''),
     authRef: {
       label: String(raw.authorizationDocRef ?? raw.authRef ?? ''),
-      url:   '',
+      url:   String(raw.authorizationDocUrl ?? raw.authorizationDocFile ?? raw.authRefUrl ?? ''),
     },
     authAccept:       Boolean(raw.authorizationAccepted ?? raw.authAccept ?? false),
     authSignature:    String(raw.authorizationSignature ?? raw.signatory ?? raw.authSignature ?? ''),

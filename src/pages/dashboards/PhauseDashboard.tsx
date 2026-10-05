@@ -142,7 +142,10 @@ export function PhauseDashboard() {
         if (result.status === 'rejected') {
           const err = result.reason;
           if (err instanceof ApiError && err.status === 401) {
-            navigate('/admin/login', { replace: true });
+            const destination = userRole === 'org_user'
+              ? '/auth/sign-in-org'
+              : '/admin/login';
+            navigate(destination, { replace: true });
             return;
           }
         }
