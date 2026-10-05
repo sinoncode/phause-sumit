@@ -1,4 +1,5 @@
 import { useAuthStore } from '../../stores/auth.store';
+import { refreshToken } from '../auth/auth.api';
 
 /*
  * Phause — HTTP client.
@@ -8,6 +9,9 @@ import { useAuthStore } from '../../stores/auth.store';
  * - Attaches Authorization header from the token getter passed in
  * - Deduplicates identical in-flight GET requests (same URL + token)
  * - Retries once on 429 after the Retry-After delay (or 5 s fallback)
+ * - On 401: attempts a silent token refresh once, then retries the original
+ *   request with the new token.  Only clears the session if the refresh also
+ *   fails (i.e. the token is truly expired/invalid).
  * - Throws a structured ApiError on non-2xx responses
  */
 
@@ -36,6 +40,44 @@ const inFlight = new Map<string, Promise<unknown>>();
 
 // ── Small delay helper ────────────────────────────────────────────────────────
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// ── Single in-progress refresh guard ─────────────────────────────────────────
+// Ensures that if multiple requests 401 at the same time, only one refresh
+// call is made.  All waiting requests reuse the same promise.
+let refreshPromise: Promise<string | null> | null = null;
+
+async function _attemptRefresh(): Promise<string | null> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const { appToken, adminToken, setAppToken, setAdminToken, clearAll } = useAuthStore.getState();
+    // Prefer appToken; fall back to adminToken
+    const token = appToken ?? adminToken;
+    if (!token) return null;
+
+    try {
+      const result = await refreshToken(token);
+      // Persist the new token back into the store
+      if (appToken) {
+        setAppToken(result.accessToken, result.user.orgId, result.user.permissions);
+      } else {
+        // admin token
+        setAdminToken(result.accessToken);
+      }
+      return result.accessToken;
+    } catch {
+      // Refresh failed — token is truly dead, clear the session
+      clearAll();
+      return null;
+    }
+  })();
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
+  }
+}
 
 async function request<T>(
   method: string,
@@ -108,29 +150,55 @@ async function _doFetch<T>(
       headers: freshHeaders,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-    return _handleResponse<T>(retry, method, path, getToken);
+    return _handleResponse<T>(retry, method, url, path, getToken, body, _retrying);
   }
 
-  return _handleResponse<T>(res, method, path, getToken);
+  return _handleResponse<T>(res, method, url, path, getToken, body, _retrying);
 }
 
 async function _handleResponse<T>(
   res: Response,
   method: string,
+  url: string,
   path: string,
   getToken: TokenGetter | null,
+  body: unknown,
+  _retrying: boolean,
 ): Promise<T> {
   if (!res.ok) {
-    // Only clear the session on 401 when:
-    // 1. The request used a token (getToken is set), AND
-    // 2. The path is NOT an admin-only endpoint (those use adminToken which
-    //    should never clear the org user's appToken session).
-    if (res.status === 401 && getToken) {
+    // ── 401 handling: try refresh first, then retry once ─────────────────────
+    if (res.status === 401 && getToken && !_retrying) {
       const isAdminPath = path.startsWith('/api/admin/');
-      if (!isAdminPath) {
+
+      // Admin paths use a separate token flow; don't attempt an org-user
+      // refresh for them — just clear and bail.
+      if (isAdminPath) {
         useAuthStore.getState().clearAll();
+      } else {
+        // Attempt a silent token refresh
+        const newToken = await _attemptRefresh();
+        if (newToken) {
+          // Refresh succeeded — retry the original request with the new token
+          const freshHeaders: Record<string, string> = {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${newToken}`,
+          };
+          const authState = useAuthStore.getState();
+          if (authState.orgId) freshHeaders['x-tenant-id'] = authState.orgId;
+
+          const retryRes = await fetch(url, {
+            method,
+            headers: freshHeaders,
+            body: body !== undefined ? JSON.stringify(body) : undefined,
+          });
+          // Pass _retrying=true so a second 401 on the retry goes straight to
+          // error — prevents any possibility of an infinite loop.
+          return _handleResponse<T>(retryRes, method, url, path, getToken, body, true);
+        }
+        // _attemptRefresh already called clearAll() on failure
       }
     }
+
     let errBody: unknown;
     try { errBody = await res.json(); } catch { errBody = await res.text(); }
     throw new ApiError(res.status, errBody, `${method} ${path} → ${res.status}`);
