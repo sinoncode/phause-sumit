@@ -275,9 +275,9 @@ export function PhauseDashboard() {
                       </td>
                       <td className="ax-table__td"><StatusPill status={c.status} /></td>
                       <td className="ax-table__td" style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)', textTransform: 'capitalize' }}>
-                        {c.targeting.targetMode === 'segment' && c.targeting.targetSegment
+                        {c.targeting?.targetMode === 'segment' && c.targeting?.targetSegment
                           ? c.targeting.targetSegment
-                          : c.targeting.targetMode === 'percentage' && c.targeting.targetSamplePercent != null
+                          : c.targeting?.targetMode === 'percentage' && c.targeting?.targetSamplePercent != null
                             ? `${c.targeting.targetSamplePercent}% sample`
                             : 'All employees'}
                       </td>

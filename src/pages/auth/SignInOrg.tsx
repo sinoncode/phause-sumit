@@ -213,9 +213,12 @@ export function SignInOrg() {
                 </button>
               </form>
 
-              {/* <p style={{ textAlign: 'center', margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
-                New to Phause? <Link className="ax-link" to="/auth/sign-up-basic" style={{ fontWeight: 'var(--ax-weight-medium)' }}>Create an account</Link>
-              </p> */}
+              <p style={{ textAlign: 'center', margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
+                New to Phause?{' '}
+                <Link className="ax-link" to="/auth/sign-up-org" style={{ fontWeight: 'var(--ax-weight-medium)' }}>
+                  Create an account
+                </Link>
+              </p>
             </div>
           </section>
 

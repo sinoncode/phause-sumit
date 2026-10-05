@@ -15,6 +15,9 @@ interface RawTrackingEvent {
   id?: unknown;
   campaignId?: unknown;
   userId?: unknown;
+  // Backend now returns enriched employee data
+  employeeName?: unknown;
+  employeeEmail?: unknown;
   type?: unknown;
   token?: unknown;
   ipAddress?: unknown;
@@ -38,13 +41,17 @@ function adaptEvent(raw: RawTrackingEvent): TrackingEvent | null {
   const ipAddress = raw.ipAddress ? String(raw.ipAddress) : undefined;
   const userAgent = raw.userAgent ? String(raw.userAgent) : undefined;
 
+  // Use enriched employee data returned by the backend
+  const employeeName = raw.employeeName ? String(raw.employeeName) : '';
+  const employeeEmail = raw.employeeEmail ? String(raw.employeeEmail) : '';
+
   return {
     id: String(raw.id ?? `${userId}-${campaignId}-${raw.createdAt}`),
     campaignId,
     employee: {
       id: userId,
-      name: '',   // userId only — no employee name in events table
-      email: '',
+      name: employeeName,
+      email: employeeEmail,
     },
     trackingToken: String(raw.token ?? ''),
     eventType: deriveEventType(raw),

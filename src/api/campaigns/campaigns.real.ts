@@ -36,14 +36,22 @@ function apiInput(input: CreateCampaignInput | UpdateCampaignInput): Record<stri
 }
 
 function adaptCampaign(raw: Record<string, unknown>): Campaign {
+  const rawTargeting = (raw.targeting && typeof raw.targeting === 'object'
+    ? raw.targeting
+    : {}) as Record<string, unknown>;
+
+  const rawTargetMode = raw.targetMode ?? raw.target_mode ?? rawTargeting.targetMode ?? rawTargeting.target_mode;
+  const rawTargetSegment = raw.targetSegment ?? raw.target_segment ?? rawTargeting.targetSegment ?? rawTargeting.target_segment;
+  const rawTargetSamplePercent = raw.targetSamplePercent ?? raw.target_sample_percent ?? rawTargeting.targetSamplePercent ?? rawTargeting.target_sample_percent;
+
   return {
     id:                   String(raw.id ?? ''),
     name:                 String(raw.name ?? ''),
     templateId:           String(raw.templateId ?? raw.template_id ?? ''),
     targeting: {
-      targetMode:         ((raw.targetMode ?? raw.target_mode) === 'random' ? 'percentage' : (raw.targetMode ?? raw.target_mode) === 'department' ? 'segment' : raw.targetMode ?? raw.target_mode ?? 'all') as Campaign['targeting']['targetMode'],
-      targetSegment:      String(raw.targetSegment ?? raw.target_segment ?? '').replace(/^department:/, ''),
-      targetSamplePercent: raw.targetSamplePercent != null ? Number(raw.targetSamplePercent) : null,
+      targetMode:         ((rawTargetMode) === 'random' ? 'percentage' : (rawTargetMode) === 'department' ? 'segment' : rawTargetMode ?? 'all') as Campaign['targeting']['targetMode'],
+      targetSegment:      String(rawTargetSegment ?? '').replace(/^department:/, ''),
+      targetSamplePercent: rawTargetSamplePercent != null ? Number(rawTargetSamplePercent) : null,
     },
     staggerWindowMinutes: Number(raw.staggerWindowMinutes ?? raw.stagger_window_minutes ?? 0),
     scheduledAt:          raw.scheduledAt ? String(raw.scheduledAt) : null,
