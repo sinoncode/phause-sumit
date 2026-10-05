@@ -438,15 +438,18 @@ const wrap = (C: PageComponent): ReactElement => (
 );
 
 /**
- * ProtectedRoute — redirects to /admin/login when no token is present.
- * Wraps all shell routes so unauthenticated visitors can never see data pages.
+ * ProtectedRoute — redirects to the appropriate sign-in page when no token is present.
+ * - Org users (appToken only) → /auth/sign-in-org
+ * - Admin or unknown → /admin/login
  */
 function ProtectedRoute({ children }: { children: ReactElement }): ReactElement {
   const adminToken = useAuthStore((s) => s.adminToken);
   const appToken   = useAuthStore((s) => s.appToken);
+  const userRole   = useAuthStore((s) => s.userRole);
 
   if (!adminToken && !appToken) {
-    return <Navigate to="/admin/login" replace />;
+    const destination = userRole === 'org_user' ? '/auth/sign-in-org' : '/admin/login';
+    return <Navigate to={destination} replace />;
   }
   return children;
 }
