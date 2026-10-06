@@ -69,8 +69,8 @@ export function CampaignList() {
     )}
     {deleteTarget && (
       <ConfirmDialog
-        title={`Delete draft campaign "${deleteTarget.name}"?`}
-        body="This permanently removes the draft and its event records. Sent and active campaigns cannot be deleted, to preserve their audit history."
+        title={`Delete campaign "${deleteTarget.name}"?`}
+        body="This permanently removes the campaign and its events, reports, risk scores, assessments, and training enrolments. Training completion records are retained."
         confirmLabel={deleting ? 'Deleting…' : 'Delete campaign'}
         onCancel={() => !deleting && setDeleteTarget(null)}
         onConfirm={() => void handleDelete()}
