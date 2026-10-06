@@ -1,5 +1,5 @@
 /*
- * Vireo React — shared header utility cluster.
+ * Phause React — shared header utility cluster.
  *
  * Faithful re-expression of partials/header-utils.html: items 4–11 of the
  * reference chrome — language menu, fullscreen, light/dark quick-toggle, app
@@ -21,11 +21,12 @@
  * decided here is whether the More TRIGGER exists at all — exactly the split the
  * reference makes between shell.css §18 and `_bindBands()` in js/alpine/index.js.
  */
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Dropdown } from '../ui/Dropdown';
 import { useCustomizer } from '../../context/CustomizerContext';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
+import { useAuthStore } from '../../stores/auth.store';
 
 const ICON = {
   apps: (
@@ -58,24 +59,6 @@ const ICON = {
 };
 
 /*
- * The quick-apps tiles — ONE list, rendered twice: in the wide .ax-apps menu and
- * in the overflow's `[data-ax-shed="apps"]` group. Two copies of this list is how
- * the two rendering sites drift apart, which is exactly what the reference
- * avoids by keeping both inside partials/header-utils.html.
- */
-const APP_TILES: Array<[string, string]> = [
-  ['/apps/email', 'Email'],
-  ['/apps/chat', 'Chat'],
-  ['/apps/calendar', 'Calendar'],
-  ['/apps/kanban', 'Kanban'],
-  ['/apps/file-manager', 'Files'],
-  ['/apps/contacts', 'Contacts'],
-  ['/ecommerce/invoices', 'Invoices'],
-  ['/apps/notes', 'Notes'],
-  ['/pages/pricing', 'Pricing'],
-];
-
-/*
  * Which controls each band sheds into the overflow menu. Keep in lockstep with
  * shell.css §18, which is what actually hides the bar copy and reveals the
  * matching `[data-ax-shed]` row — this table only decides whether the "More"
@@ -101,26 +84,36 @@ const LANGS: Array<[string, string]> = [
   ['RU', 'Русский'],
 ];
 
-export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
+export function HeaderUtils({ onCustomizer: _onCustomizer }: { onCustomizer: () => void }) {
   const c = useCustomizer();
-  const [full, setFull] = useState(false);
   const shed = useShed();
 
+  const appToken = useAuthStore((s) => s.appToken);
+  const adminToken = useAuthStore((s) => s.adminToken);
+  const userRole = useAuthStore((s) => s.userRole);
+
+  // Decode JWT to get email
+  function decodeJwtEmail(token: string | null): string {
+    if (!token) return '';
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+      return payload.email ?? '';
+    } catch { return ''; }
+  }
+  const email = decodeJwtEmail(appToken ?? adminToken);
+  const displayName = email ? email.split('@')[0] : 'User';
+  const initials = displayName.slice(0, 2).toUpperCase();
+
   useEffect(() => {
-    const onFs = () => setFull(!!document.fullscreenElement);
+    const onFs = () => {};
     document.addEventListener('fullscreenchange', onFs);
     return () => document.removeEventListener('fullscreenchange', onFs);
   }, []);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
-    else document.exitFullscreen?.();
-  };
-
   return (
     <>
       {/* 4 · LANGUAGE */}
-      <Dropdown
+      {/* <Dropdown
         className="ax-lang"
         panelClassName="ax-dropdown ax-lang__menu"
         trigger={({ open, triggerProps }) => (
@@ -149,10 +142,10 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
             {c.lang === code && ICON.check}
           </button>
         ))}
-      </Dropdown>
+      </Dropdown> */}
 
       {/* 5 · FULLSCREEN */}
-      <button
+      {/* <button
         type="button"
         className="ax-fullscreen ax-icon-btn"
         onClick={toggleFullscreen}
@@ -164,7 +157,7 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
         ) : (
           <svg className="ax-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" width={24} height={24} aria-hidden="true"><path d="M15 19v-2a2 2 0 0 1 2 -2h2" /><path d="M15 5v2a2 2 0 0 0 2 2h2" /><path d="M5 15h2a2 2 0 0 1 2 2v2" /><path d="M5 9h2a2 2 0 0 0 2 -2v-2" /></svg>
         )}
-      </button>
+      </button> */}
 
       {/* 6 · LIGHT/DARK QUICK-TOGGLE */}
       <button
@@ -183,7 +176,7 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
       </button>
 
       {/* 7 · APP-GRID */}
-      <Dropdown
+      {/* <Dropdown
         className="ax-apps"
         panelClassName="ax-dropdown ax-apps__menu"
         trigger={({ open, triggerProps }) => (
@@ -199,10 +192,10 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
           ))}
         </div>
         <Link className="ax-dropdown__foot" to="/widgets">View all apps</Link>
-      </Dropdown>
+      </Dropdown> */}
 
       {/* 8 · CART */}
-      <Dropdown
+      {/* <Dropdown
         className="ax-cart"
         panelClassName="ax-dropdown ax-cart__menu"
         trigger={({ open, triggerProps }) => (
@@ -223,7 +216,7 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
           <Link className="ax-btn ax-btn--ghost ax-btn--sm" to="/ecommerce/cart">View cart</Link>
           <Link className="ax-btn ax-btn--accent ax-btn--sm" to="/ecommerce/checkout">Checkout</Link>
         </div>
-      </Dropdown>
+      </Dropdown> */}
 
       {/* 9 · NOTIFICATIONS */}
       <Dropdown
@@ -267,15 +260,19 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
         panelClassName="ax-dropdown ax-profile__menu"
         trigger={({ open, triggerProps }) => (
           <button type="button" className="ax-profile__trigger" aria-label="Account menu" {...triggerProps} aria-expanded={open}>
-            <img className="ax-avatar ax-profile__avatar" src="https://i.pravatar.cc/64?img=12" alt="Jacob Gerrald" width={32} height={32} />
+            <span style={{ width:32, height:32, borderRadius:'50%', background:'var(--ax-accent)', color:'var(--ax-on-accent)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'var(--ax-text-sm)', flexShrink:0 }}>
+              {initials || 'U'}
+            </span>
           </button>
         )}
       >
         <div className="ax-profile__card">
-          <img className="ax-avatar" src="https://i.pravatar.cc/80?img=12" alt="" width={40} height={40} />
-          <span className="ax-profile__card-meta"><b>Jacob Gerrald</b><small>jacob@vireo.io</small></span>
+          <span style={{ width:40, height:40, borderRadius:'50%', background:'var(--ax-accent)', color:'var(--ax-on-accent)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, fontSize:'var(--ax-text-sm)', flexShrink:0 }}>
+            {initials || 'U'}
+          </span>
+          <span className="ax-profile__card-meta"><b>{displayName}</b><small>{email}</small></span>
         </div>
-        <Link className="ax-dropdown__item" role="menuitem" to="/pages/profile">View Profile</Link>
+        <Link className="ax-dropdown__item" role="menuitem" to="/profile">View Profile</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/profile-settings">Account Settings</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/support">Support</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/activity-log">Activity Log</Link>
@@ -284,7 +281,7 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
       </Dropdown>
 
       {/* 11 · CUSTOMIZER TRIGGER */}
-      <button
+      {/* <button
         type="button"
         className="ax-cog ax-icon-btn"
         data-ax-toggle="customizer"
@@ -294,7 +291,7 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
         aria-label="Open theme customizer"
       >
         {ICON.cog}
-      </button>
+      </button> */}
 
       {/* OVERFLOW (mobile / tablet shed) — always LAST in the utility run.
           Rendered only when a band is actually shedding something, so the wide
@@ -338,7 +335,7 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
               </div>
 
               {/* FULLSCREEN (shed < lg) */}
-              <button
+              {/* <button
                 type="button"
                 className="ax-dropdown__item"
                 role="menuitem"
@@ -350,21 +347,21 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
               >
                 {ICON.expandLead}
                 <span>{full ? 'Exit fullscreen' : 'Fullscreen'}</span>
-              </button>
+              </button> */}
 
               {/* APP-GRID (shed < lg) — the same tiles as the wide app-grid menu */}
-              <div className="ax-overflow__group" data-ax-shed="apps" role="presentation">
+              {/* <div className="ax-overflow__group" data-ax-shed="apps" role="presentation">
                 <p className="ax-dropdown__head">Quick apps</p>
                 <div className="ax-apps__grid">
                   {APP_TILES.map(([to, label]) => (
                     <AppTile key={to} to={to} label={label} onClick={close} />
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* CART (shed < md) — the full basket panel needs width it does not
                   have on a phone, so the row links straight to the cart page. */}
-              <Link
+              {/* <Link
                 className="ax-dropdown__item"
                 role="menuitem"
                 data-ax-shed="cart"
@@ -374,10 +371,10 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
                 {ICON.cartLead}
                 <span>Cart</span>
                 <span className="ax-overflow__count ax-mono" aria-hidden="true">3</span>
-              </Link>
+              </Link> */}
 
               {/* CUSTOMIZER (shed < md) */}
-              <button
+              {/* <button
                 type="button"
                 className="ax-dropdown__item"
                 role="menuitem"
@@ -389,7 +386,7 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
               >
                 {ICON.cogLead}
                 <span>Customize theme</span>
-              </button>
+              </button> */}
             </>
           )}
         </Dropdown>
@@ -398,27 +395,27 @@ export function HeaderUtils({ onCustomizer }: { onCustomizer: () => void }) {
   );
 }
 
-function AppTile({ to, label, onClick }: { to: string; label: string; onClick?: () => void }) {
-  return (
-    <Link className="ax-apps__tile" role="menuitem" to={to} onClick={onClick}>
-      <span className="ax-apps__tile-icon">
-        <svg className="ax-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" width={24} height={24} aria-hidden="true"><path d="M4 4h6v6h-6z" /><path d="M14 4h6v6h-6z" /><path d="M4 14h6v6h-6z" /><path d="M14 14h6v6h-6z" /></svg>
-      </span>
-      <span className="ax-apps__tile-label">{label}</span>
-    </Link>
-  );
-}
+// function AppTile({ to, label, onClick }: { to: string; label: string; onClick?: () => void }) {
+//   return (
+//     <Link className="ax-apps__tile" role="menuitem" to={to} onClick={onClick}>
+//       <span className="ax-apps__tile-icon">
+//         <svg className="ax-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" width={24} height={24} aria-hidden="true"><path d="M4 4h6v6h-6z" /><path d="M14 4h6v6h-6z" /><path d="M4 14h6v6h-6z" /><path d="M14 14h6v6h-6z" /></svg>
+//       </span>
+//       <span className="ax-apps__tile-label">{label}</span>
+//     </Link>
+//   );
+// }
 
-function CartRow({ seed, name, qty }: { seed: string; name: string; qty: string }) {
-  return (
-    <li className="ax-cart__row">
-      <img className="ax-cart__thumb" src={`https://picsum.photos/seed/${seed}/80`} alt="" width={40} height={40} />
-      <span className="ax-cart__meta"><b className="ax-cart__name">{name}</b><span className="ax-cart__qty ax-mono">{qty}</span></span>
-      <button type="button" className="ax-cart__remove" aria-label="Remove item">
-        <svg className="ax-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" width={24} height={24} aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
-      </button>
-    </li>
-  );
-}
+// function CartRow({ seed, name, qty }: { seed: string; name: string; qty: string }) {
+//   return (
+//     <li className="ax-cart__row">
+//       <img className="ax-cart__thumb" src={`https://picsum.photos/seed/${seed}/80`} alt="" width={40} height={40} />
+//       <span className="ax-cart__meta"><b className="ax-cart__name">{name}</b><span className="ax-cart__qty ax-mono">{qty}</span></span>
+//       <button type="button" className="ax-cart__remove" aria-label="Remove item">
+//         <svg className="ax-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" width={24} height={24} aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
+//       </button>
+//     </li>
+//   );
+// }
 
 export default HeaderUtils;

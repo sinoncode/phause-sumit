@@ -1,5 +1,5 @@
 /*
- * Vireo React — Sweet Alerts (route "pages/sweet-alerts").
+ * Phause React — Sweet Alerts (route "pages/sweet-alerts").
  *
  * Faithful re-expression of src/html/pages/sweet-alerts.html: a gallery of status
  * dialogs (success/error/warning/info), confirmations (destructive + async

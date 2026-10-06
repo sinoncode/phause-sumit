@@ -1,5 +1,5 @@
 /*
- * Vireo React — Utilities · Flex & grid.
+ * Phause React — Utilities · Flex & grid.
  * 1:1 re-expression of src/html/utilities/flex-grid.html: the 12-column span
  * reference, the .ax-cluster inline helper (+ --between / .ax-spacer), the .ax-stack
  * column helper, a justify-content distribution matrix and an auto-fit card grid.

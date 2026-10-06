@@ -358,11 +358,21 @@ hr {
   padding: 20px 0px;
 }
 
+[data-ax-shell-style="detached"] .ax-sidebar {
+  inset-block: var(--ax-detached-inset);
+  border: 1px solid var(--ax-border);
+  border-radius: var(--ax-radius-lg);
+  block-size: auto;
+  box-shadow: var(--ax-shadow-sm);
+  inset-inline-start: var(--ax-detached-inset);
+}
+
 /* ── SHELL column — offset by the sidebar via logical margin ── */
 .ax-shell {
   display: flex;
   flex-direction: column;
   min-block-size: 100vh;
+  min-inline-size: 0;
   margin-inline-start: var(--ax-sidebar-w);
   transition: margin-inline-start var(--ax-motion-base) var(--ax-ease-standard);
 }
@@ -388,10 +398,21 @@ hr {
     inset-inline-start var(--ax-motion-base) var(--ax-ease-standard),
     box-shadow var(--ax-motion-fast) var(--ax-ease-standard);
     top: 16px;
-  width: 90%;
+  /* width: 90%;  */
   justify-content: center;
   margin: 0px 25px;
   border-radius: 30px;
+}
+
+@media (min-width: 768px) {
+  [data-ax-shell-style="detached"] .ax-header {
+    border: 1px solid var(--ax-header-border,var(--ax-border));
+    border-radius: var(--ax-radius-lg);
+    box-shadow: var(--ax-shadow-sm);
+    inset-block-start: var(--ax-detached-inset);
+    inset-inline-start: calc(var(--ax-sidebar-w) + var(--ax-detached-inset) * 2);
+    inset-inline-end: var(--ax-detached-inset);
+  }
 }
 /* sticky-shadow when content is scrolled (Alpine toggles .is-scrolled) */
 .ax-header.is-scrolled {
@@ -405,6 +426,7 @@ hr {
   flex-direction: column;
   padding-block-start: var(--ax-header-h); /* clear the fixed header */
   min-block-size: 0;
+  min-inline-size: 0;
 }
 /* page padding (Fluid default); width modes override below.
    `--ax-page-pad` mirrors the inline padding and inherits down the page, so
@@ -1354,4 +1376,55 @@ body.is-locked {
 }
 [data-ax-loader='off'] .ax-loader {
   display: none;
+}
+/* Additional CSS */
+.ax-typing-wrapper {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ax-search__placeholder {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  color: var(--ax-accent);
+  font-weight: 800;
+  font-size: var(--ax-text-xl);
+}
+
+.ax-typing-word {
+  display: inline-block;
+  animation: wordAppear 0.25s ease-out both;
+}
+
+.ax-search__cursor {
+  display: inline-block;
+  margin-left: 3px;
+  animation: typingCursor 0.8s ease-in-out infinite;
+}
+
+@keyframes wordAppear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes typingCursor {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
 }

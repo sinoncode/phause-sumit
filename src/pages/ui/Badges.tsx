@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Badges.
+ * Phause React — UI · Badges.
  * Faithful re-expression of src/html/ui/badges.html: tone×style matrix, sizes &
  * shapes, dot badges, icon badges, trend deltas, counters, the interactive
  * removable-chips card (Alpine x-data → React state) and an in-context status

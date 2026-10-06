@@ -1,5 +1,5 @@
 /*
- * Vireo React — Pie & Donut Charts (charts/apex-pie).
+ * Phause React — Pie & Donut Charts (charts/apex-pie).
  *
  * Faithful re-expression of src/html/charts/apex-pie.html via <ApexChart>.
  * The hero donut has a native chart/table tab toggle with a side legend list.

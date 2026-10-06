@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Ribbons.
+ * Phause React — UI · Ribbons.
  * Faithful re-expression of src/html/ui/ribbons.html: corner banners, edge/flag
  * tabs, floating pill tags and ribbons over media tiles. Static markup — no
  * Alpine state. DOM/classes/ARIA 1:1.

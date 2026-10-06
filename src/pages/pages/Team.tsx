@@ -1,5 +1,5 @@
 /*
- * Vireo React — Team (route "pages/team").
+ * Phause React — Team (route "pages/team").
  *
  * Faithful re-expression of src/html/pages/team.html: a member directory with a
  * search + department filter toolbar, switchable grid/list views, and an invite

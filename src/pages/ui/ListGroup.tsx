@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · List Groups.
+ * Phause React — UI · List Groups.
  * Faithful re-expression of src/html/ui/list-group.html: bordered list with
  * badges, count-badge inbox folders (linked), flush grouped team directory, an
  * actionable task list (Alpine x-data → React state: checkbox toggle + remove),

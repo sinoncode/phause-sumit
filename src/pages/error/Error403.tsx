@@ -1,5 +1,5 @@
 /*
- * Vireo React — 403 Access denied.
+ * Phause React — 403 Access denied.
  * 1:1 re-expression of src/html/error/403.html: standalone status screen with a
  * shield + lock illustration (accent highlight on the lock dot), dashboard /
  * request-access actions and a switch-user helper link.
@@ -31,7 +31,7 @@ export function Error403() {
       </div>
 
       <p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-subtle)' }}>
-        Signed in as the wrong account? <Link className="ax-link" to="/auth/sign-in-basic">Switch user</Link>
+        Signed in as the wrong account? <Link className="ax-link" to="/auth/sign-in-org">Switch user</Link>
       </p>
     </StatusStandalone>
   );

@@ -1,5 +1,5 @@
 /*
- * Vireo React — NFT Wallet (route "nft/wallet").
+ * Phause React — NFT Wallet (route "nft/wallet").
  *
  * Faithful re-expression of src/html/nft/wallet.html: a connect-wallet flow
  * (disconnected empty state + provider-picker modal with connecting/error

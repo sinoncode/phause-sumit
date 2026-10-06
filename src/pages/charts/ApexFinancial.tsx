@@ -1,5 +1,5 @@
 /*
- * Vireo React — Financial Charts (charts/apex-financial).
+ * Phause React — Financial Charts (charts/apex-financial).
  *
  * Faithful re-expression of src/html/charts/apex-financial.html via <ApexChart>:
  * 4 KPI tickers (with sparklines), a candlestick + volume brush, OHLC bars, a

@@ -1,5 +1,5 @@
 /*
- * Vireo React — Profile Settings (route "pages/profile-settings").
+ * Phause React — Profile Settings (route "pages/profile-settings").
  *
  * Faithful re-expression of src/html/pages/profile-settings.html: a vertical tab
  * rail (Account / Security / Notifications / Billing), each panel of fields, a

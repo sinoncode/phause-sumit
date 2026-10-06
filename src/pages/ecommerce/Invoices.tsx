@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Invoices (route "ecommerce/invoices").
+ * Phause React — Ecommerce / Invoices (route "ecommerce/invoices").
  *
  * Faithful re-expression of src/html/ecommerce/invoices.html: a KPI strip,
  * status sub-tabs, a search/client/sort toolbar, bulk-select bar, and a

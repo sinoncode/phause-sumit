@@ -1,5 +1,5 @@
 /*
- * Vireo React — Job Details (route "jobs/job-details").
+ * Phause React — Job Details (route "jobs/job-details").
  *
  * Faithful re-expression of src/html/jobs/job-details.html: a job summary card,
  * description / requirements / skills / benefits, similar roles, a sticky apply

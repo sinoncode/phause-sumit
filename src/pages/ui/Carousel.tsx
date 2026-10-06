@@ -1,5 +1,5 @@
 /*
- * Vireo React — UI · Carousel.
+ * Phause React — UI · Carousel.
  * Faithful re-expression of src/html/ui/carousel.html: hero slider (arrows, dots,
  * autoplay w/ reduced-motion guard + hover pause + arrow keys), fade/thumbnail
  * gallery, and a multi-slide scroll-snap testimonial track w/ page dots. The
@@ -18,7 +18,7 @@ const STAR_EMPTY = (
 );
 
 const HERO_SLIDES = [
-  { badge: 'New release', badgeTone: 'accent', c1: 'var(--ax-viz-violet)', c2: 'var(--ax-viz-cyan)', cm1: 34, cm2: 26, title: 'Vireo 3.0 is here', body: 'Twelve Aurora accents, a live customizer and 200+ pages — shipped.' },
+  { badge: 'New release', badgeTone: 'accent', c1: 'var(--ax-viz-violet)', c2: 'var(--ax-viz-cyan)', cm1: 34, cm2: 26, title: 'Phause 3.0 is here', body: 'Twelve Aurora accents, a live customizer and 200+ pages — shipped.' },
   { badge: 'Workshop', badgeTone: 'warning', c1: 'var(--ax-viz-amber)', c2: 'var(--ax-viz-pink)', cm1: 32, cm2: 28, title: 'Data-viz that retheme live', body: 'Switch accent or mode and every chart re-colours in 200ms — no reload.' },
   { badge: 'Performance', badgeTone: 'success', c1: 'var(--ax-viz-emerald)', c2: 'var(--ax-viz-cyan)', cm1: 32, cm2: 24, title: '98 Lighthouse, zero jank', body: 'Lazy-loaded plugins and token-only styling keep the bundle lean.' },
 ];

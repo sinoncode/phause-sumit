@@ -1,5 +1,5 @@
 /*
- * Vireo React — Two-step verification (basic).
+ * Phause React — Two-step verification (basic).
  * 1:1 re-expression of src/html/auth/two-step-basic.html: a 6-cell OTP group
  * with auto-advance / backspace / arrow-key nav / paste, a trust-device check
  * and a 30s resend cooldown. Demo code "111111" passes → redirects to "/".
@@ -154,7 +154,7 @@ export function TwoStepBasic() {
                     <span>{cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}</span>
                   </button>
                 </p>
-                <Link className="ax-link" to="/auth/sign-in-basic" style={{ fontSize: 'var(--ax-text-sm)' }}>Use a different method</Link>
+                <Link className="ax-link" to="/auth/sign-in-org" style={{ fontSize: 'var(--ax-text-sm)' }}>Use a different method</Link>
               </div>
             </div>
           </section>

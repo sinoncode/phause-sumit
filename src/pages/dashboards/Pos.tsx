@@ -1,5 +1,5 @@
 /*
- * Vireo React — Point of Sale dashboard (route "dashboards/pos").
+ * Phause React — Point of Sale dashboard (route "dashboards/pos").
  *
  * Faithful re-expression of src/html/dashboards/pos.html: a full-width "Key
  * figures" .ax-statgroup band on an .ax-card--filled, an hourly sales column

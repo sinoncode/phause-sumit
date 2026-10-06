@@ -1,5 +1,5 @@
 /*
- * Vireo React — Terms & Conditions (route "pages/terms").
+ * Phause React — Terms & Conditions (route "pages/terms").
  *
  * Faithful re-expression of src/html/pages/terms.html: long-form legal document
  * with a sticky TOC rail whose active link tracks the visible section via an
@@ -112,13 +112,13 @@ export function Terms() {
             <div className="ax-alert ax-alert--accent ax-alert--accent-edge" role="note">
               <svg className="ax-alert__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9h.01" /><path d="M11 12h1v4h1" /></svg>
               <div className="ax-alert__content">
-                <p className="ax-alert__message" style={{ color: 'var(--ax-text)' }}>These terms are a demonstration of the Vireo long-form document template. Please replace this copy with your own legal text before going to production.</p>
+                <p className="ax-alert__message" style={{ color: 'var(--ax-text)' }}>These terms are a demonstration of the Phause long-form document template. Please replace this copy with your own legal text before going to production.</p>
               </div>
             </div>
 
             <section id="introduction" style={SEC}>
               <h2 style={H2}>1. Introduction</h2>
-              <p style={P}>Welcome to Vireo. These Terms &amp; Conditions ("Terms") govern your access to and use of the Vireo platform, websites and related services (collectively, the "Service") operated by Vireo, Inc. ("Vireo", "we", "us").</p>
+              <p style={P}>Welcome to Phause. These Terms &amp; Conditions ("Terms") govern your access to and use of the Phause platform, websites and related services (collectively, the "Service") operated by Phause, Inc. ("Phause", "we", "us").</p>
               <p style={P_LAST}>By creating an account or otherwise using the Service, you agree to be bound by these Terms. If you are entering into these Terms on behalf of a company or other legal entity, you represent that you have the authority to bind that entity.</p>
             </section>
 
@@ -126,7 +126,7 @@ export function Terms() {
               <h2 style={H2}>2. Your account</h2>
               <p style={P}>To use most features of the Service you must register for an account. You agree to provide accurate, current and complete information and to keep it up to date.</p>
               <h3 style={H3}>2.1 Account security</h3>
-              <p style={P}>You are responsible for safeguarding your credentials and for all activity that occurs under your account. Notify us immediately at security@vireo.io if you suspect unauthorized access.</p>
+              <p style={P}>You are responsible for safeguarding your credentials and for all activity that occurs under your account. Notify us immediately at security@phause.io if you suspect unauthorized access.</p>
               <h3 style={H3}>2.2 Eligibility</h3>
               <p style={P_LAST}>You must be at least 16 years old to use the Service. By using it you represent that you meet this requirement.</p>
             </section>
@@ -151,7 +151,7 @@ export function Terms() {
 
             <section id="intellectual-property" style={SEC}>
               <h2 style={H2}>5. Intellectual property</h2>
-              <p style={P}>The Service and all related software, design and content are the property of Vireo and its licensors and are protected by intellectual property laws. We grant you a limited, non-exclusive, non-transferable license to use the Service in accordance with these Terms.</p>
+              <p style={P}>The Service and all related software, design and content are the property of Phause and its licensors and are protected by intellectual property laws. We grant you a limited, non-exclusive, non-transferable license to use the Service in accordance with these Terms.</p>
               <p style={P_LAST}>You retain all rights to the content you upload. By uploading content you grant us a license to host, process and display it solely to provide the Service to you.</p>
             </section>
 
@@ -167,7 +167,7 @@ export function Terms() {
 
             <section id="liability" style={SEC}>
               <h2 style={H2}>8. Limitation of liability</h2>
-              <p style={P_LAST}>To the maximum extent permitted by law, Vireo will not be liable for any indirect, incidental, special, consequential or punitive damages, or any loss of profits or revenues. Our total liability for any claim arising out of these Terms is limited to the amount you paid us in the twelve months preceding the claim.</p>
+              <p style={P_LAST}>To the maximum extent permitted by law, Phause will not be liable for any indirect, incidental, special, consequential or punitive damages, or any loss of profits or revenues. Our total liability for any claim arising out of these Terms is limited to the amount you paid us in the twelve months preceding the claim.</p>
             </section>
 
             <section id="changes" style={SEC}>
@@ -181,8 +181,8 @@ export function Terms() {
               <div className="ax-cluster" style={{ gap: 'var(--ax-space-3)', flexWrap: 'nowrap', alignItems: 'center' }}>
                 <span className="ax-avatar ax-avatar--sm ax-avatar--squircle" style={{ background: 'var(--ax-accent-wash)', color: 'var(--ax-accent)' }}><svg className="ax-avatar__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg></span>
                 <div>
-                  <p style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>legal@vireo.io</p>
-                  <p style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>Vireo, Inc. · 2261 Market Street, San Francisco, CA</p>
+                  <p style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>legal@phause.io</p>
+                  <p style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>Phause, Inc. · 2261 Market Street, San Francisco, CA</p>
                 </div>
               </div>
             </section>

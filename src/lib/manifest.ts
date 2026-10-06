@@ -1,5 +1,5 @@
 /*
- * Vireo React — nav manifest loader + index (TS port of src/js/core/manifest.js).
+ * Phause React — nav manifest loader + index (TS port of src/js/core/manifest.js).
  *
  * The manifest is imported directly (bundled JSON) rather than fetched, so the
  * sidebar, breadcrumb, sidebar filter and command palette all share ONE indexed
@@ -100,11 +100,12 @@ export function groupsInSection(section: string): NavNode[] {
 
 /**
  * Normalise a router path to a manifest slug. The React edition routes by slug
- * (e.g. "/dashboards/sales"), and "/" maps to the Sales dashboard default.
+ * (e.g. "/dashboards/sales"), and "/" maps to the Stocks dashboard default.
  */
 export function slugFromPath(pathname: string): string {
   let p = (pathname || '/').replace(/\/+$/, '').replace(/^\/+/, '');
-  if (!p || p === 'index') return 'dashboards/sales';
+  // if (!p || p === 'index') return 'dashboards/sales';
+  if (!p || p === 'index') return 'dashboard';
   return p;
 }
 

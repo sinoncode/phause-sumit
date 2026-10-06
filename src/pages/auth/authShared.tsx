@@ -1,5 +1,5 @@
 /*
- * Vireo React — shared auth helpers (non-route).
+ * Phause React — shared auth helpers (non-route).
  *
  * The auth section is a set of STANDALONE pages (no app shell). Each page is a
  * full-viewport screen with: the page loader, ambient glow, the fixed top-right
@@ -16,6 +16,8 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Loader } from '../../components/shell/Loader';
+
+import PhauseLogo from '../../image/phause-logo.png';
 
 const GLOBE = (
   <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M3.6 9h16.8" /><path d="M3.6 15h16.8" /><path d="M11.5 3a17 17 0 0 0 0 18" /><path d="M12.5 3a17 17 0 0 1 0 18" /></svg>
@@ -107,23 +109,24 @@ const HEX_LOGO = (_size: number) => (
 /** Centered brand lockup (sign-in/up/reset/two-step basic). */
 export function BrandCentered({ logoSize = 42, glyph = 24, textSize = 'var(--ax-text-xl)' }: { logoSize?: number; glyph?: number; textSize?: string }) {
   return (
-    <Link to="/" className="ax-center" aria-label="Vireo home" style={{ gap: 'var(--ax-space-3)', textDecoration: 'none', flexDirection: 'row', justifyContent: 'center' }}>
+    <Link to="/" className="ax-center" aria-label="Phause home" style={{ gap: 'var(--ax-space-3)', textDecoration: 'none', flexDirection: 'row', justifyContent: 'center' }}>
       <span className="ax-center" aria-hidden="true" style={{ inlineSize: logoSize, blockSize: logoSize, borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)', boxShadow: '0 8px 22px -8px rgba(var(--ax-accent-rgb),.7)' }}>
         {HEX_LOGO(glyph)}
       </span>
-      <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 'var(--ax-weight-semibold)', fontSize: textSize, color: 'var(--ax-text-strong)', letterSpacing: '-.01em' }}>Vireo</span>
+      <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 'var(--ax-weight-semibold)', fontSize: textSize, color: 'var(--ax-text-strong)', letterSpacing: '-.01em' }}>Phause</span>
     </Link>
   );
 }
 
 /** Inline brand lockup (cover form pane). */
-export function BrandInline({ logoSize = 38, glyph = 22, textSize = 'var(--ax-text-lg)' }: { logoSize?: number; glyph?: number; textSize?: string }) {
+export function BrandInline({ logoSize: _logoSize = 38, glyph: _glyph = 22, textSize: _textSize = 'var(--ax-text-lg)' }: { logoSize?: number; glyph?: number; textSize?: string }) {
   return (
-    <Link to="/" className="ax-cluster" aria-label="Vireo home" style={{ gap: 'var(--ax-space-3)', textDecoration: 'none' }}>
-      <span className="ax-center" aria-hidden="true" style={{ inlineSize: logoSize, blockSize: logoSize, borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)', boxShadow: '0 8px 22px -8px rgba(var(--ax-accent-rgb),.7)' }}>
-        {HEX_LOGO(glyph)}
-      </span>
-      <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 'var(--ax-weight-semibold)', fontSize: textSize, color: 'var(--ax-text-strong)' }}>Vireo</span>
+    <Link to="/" className="ax-cluster justify-center" aria-label="Phause home" style={{ gap: 'var(--ax-space-3)', textDecoration: 'none' }}>
+      {/* <span className="ax-center" aria-hidden="true" style={{ inlineSize: logoSize, blockSize: logoSize, borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)', boxShadow: '0 8px 22px -8px rgba(var(--ax-accent-rgb),.7)' }}> */}
+        {/* {HEX_LOGO(glyph)} */}
+        <img className="ax-icon w-1/2" src={PhauseLogo} alt="" />
+      {/* </span> */}
+      {/* <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 'var(--ax-weight-semibold)', fontSize: textSize, color: 'var(--ax-text-strong)' }}>Phause</span> */}
     </Link>
   );
 }

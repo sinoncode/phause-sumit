@@ -1,5 +1,5 @@
 /*
- * Vireo React — Crypto Wallet (route "crypto/wallet").
+ * Phause React — Crypto Wallet (route "crypto/wallet").
  *
  * Faithful re-expression of src/html/crypto/wallet.html: crypto pill sub-nav,
  * a balance plate with send/receive switcher (token-built QR + copy), an
@@ -108,7 +108,7 @@ export function Wallet() {
               <span aria-hidden="true" style={{ position: 'absolute', top: -40, right: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(255,255,255,.18)', filter: 'blur(6px)' }} />
               <span aria-hidden="true" style={{ position: 'absolute', bottom: -50, left: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(255,255,255,.12)' }} />
               <div className="ax-cluster" style={{ justifyContent: 'space-between', position: 'relative' }}>
-                <b style={{ fontFamily: 'var(--ax-font-display)', letterSpacing: '.02em', color: 'inherit' }}>Vireo Wallet</b>
+                <b style={{ fontFamily: 'var(--ax-font-display)', letterSpacing: '.02em', color: 'inherit' }}>Phause Wallet</b>
                 <span className="ax-badge ax-badge--pill" style={{ background: 'rgba(255,255,255,.18)', color: '#fff', border: 0 }}><span className="ax-badge__dot" style={{ background: '#fff' }} />Secured</span>
               </div>
               <div style={{ marginTop: 'auto', position: 'relative' }}>

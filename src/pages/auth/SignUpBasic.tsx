@@ -1,5 +1,5 @@
 /*
- * Vireo React — Create your account (basic).
+ * Phause React — Create your account (basic).
  * 1:1 re-expression of src/html/auth/sign-up-basic.html: standalone centered
  * card, social row, name/email/password/confirm with a live strength meter and
  * a terms checkbox gating submit. Demo submit flashes "email already in use".
@@ -107,7 +107,7 @@ export function SignUpBasic() {
 
                 <div className="ax-field">
                   <label className="ax-label" htmlFor="su-email">Email</label>
-                  <input id="su-email" type="email" className={`ax-input${emailErr ? ' is-invalid' : ''}`} autoComplete="email" placeholder="you@vireo.io"
+                  <input id="su-email" type="email" className={`ax-input${emailErr ? ' is-invalid' : ''}`} autoComplete="email" placeholder="you@phause.io"
                     value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={emailErr ? 'true' : 'false'} aria-describedby="su-email-msg" required />
                   {emailErr && <p id="su-email-msg" className="ax-field__message ax-field__message--error">{emailErr}</p>}
                 </div>
@@ -159,7 +159,7 @@ export function SignUpBasic() {
               </form>
 
               <p style={{ textAlign: 'center', margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
-                Already have an account? <Link className="ax-link" to="/auth/sign-in-basic" style={{ fontWeight: 'var(--ax-weight-medium)' }}>Sign in</Link>
+                Already have an account? <Link className="ax-link" to="/auth/sign-in-org" style={{ fontWeight: 'var(--ax-weight-medium)' }}>Sign in</Link>
               </p>
             </div>
           </section>

@@ -1,5 +1,5 @@
 /*
- * Vireo React — shared icon-gallery component (non-route helper for the four
+ * Phause React — shared icon-gallery component (non-route helper for the four
  * icons/* pages: tabler, line, solid, brands).
  *
  * Re-implements the reference Alpine `iconGallery()` natively: search by name/

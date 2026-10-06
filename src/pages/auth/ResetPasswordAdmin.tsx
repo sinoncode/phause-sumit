@@ -1,6 +1,6 @@
 /*
- * Vireo React — Reset password (cover split).
- * 1:1 re-expression of src/html/auth/reset-password-cover.html: a reassurance
+ * Phause — Super Admin reset password.
+ * 1:1 re-expression of the admin reset-password screen: a reassurance
  * panel with a lock card (lg+) beside the request→success reset flow. Demo always
  * succeeds (anti-enumeration); 30s resend cooldown on the success state.
  */
@@ -15,7 +15,7 @@ const COVER_STYLE = `
 }
 `;
 
-export function ResetPasswordCover() {
+export function ResetPasswordAdmin() {
   const [email, setEmail] = useState('');
   const [emailErr, setEmailErr] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ export function ResetPasswordCover() {
       <style>{COVER_STYLE}</style>
       <div className="ax-auth-cover" style={{ position: 'relative', zIndex: 1, minBlockSize: '100dvh', display: 'grid', gridTemplateColumns: '1fr' }}>
 
-        <aside className="ax-auth-cover__panel" aria-hidden="true"
+        {/* <aside className="ax-auth-cover__panel" aria-hidden="true"
           style={{ position: 'relative', overflow: 'hidden', display: 'none', flexDirection: 'column', justifyContent: 'space-between', padding: 'var(--ax-space-12)', background: 'linear-gradient(150deg, var(--ax-accent-wash) 0%, var(--ax-surface-subtle) 65%, var(--ax-canvas) 100%)', borderInlineEnd: '1px solid var(--ax-border)' }}>
           <span aria-hidden="true" style={{ position: 'absolute', insetBlockStart: -120, insetInlineEnd: -100, inlineSize: 380, blockSize: 380, borderRadius: '50%', background: 'radial-gradient(circle, rgba(var(--ax-accent-rgb),.28), transparent 64%)', filter: 'blur(8px)' }} />
           <span aria-hidden="true" style={{ position: 'absolute', insetBlockEnd: -160, insetInlineStart: -120, inlineSize: 420, blockSize: 420, borderRadius: '50%', background: 'radial-gradient(circle, rgba(var(--ax-accent-rgb),.16), transparent 66%)', filter: 'blur(10px)' }} />
@@ -66,7 +66,7 @@ export function ResetPasswordCover() {
             <span className="ax-center" style={{ inlineSize: 40, blockSize: 40, borderRadius: 'var(--ax-radius-md)', background: 'var(--ax-gradient-accent)', color: 'var(--ax-on-accent)', boxShadow: '0 8px 22px -8px rgba(var(--ax-accent-rgb),.7)' }}>
               <svg viewBox="0 0 32 32" width={23} height={23} fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="axmk0" x1={4} y1={4} x2={28} y2={28} gradientUnits="userSpaceOnUse"><stop stopColor="#2BC4B0" /><stop offset="0.55" stopColor="#1E9E96" /><stop offset="1" stopColor="#6D5CF0" /></linearGradient></defs><path d="M4 4 H16 A12 12 0 0 1 28 16 V28 A0 0 0 0 1 28 28 H16 A12 12 0 0 1 4 16 V4 Z" fill="url(#axmk0)" stroke="none" /><circle cx="20.5" cy="11.5" r="2.6" fill="#0A0C11" fillOpacity="0.92" stroke="none" /></svg>
             </span>
-            <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 'var(--ax-weight-semibold)', fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)' }}>Vireo</span>
+            <span style={{ fontFamily: 'var(--ax-font-display)', fontWeight: 'var(--ax-weight-semibold)', fontSize: 'var(--ax-text-lg)', color: 'var(--ax-text-strong)' }}>Phause</span>
           </div>
 
           <div style={{ position: 'relative', maxInlineSize: '32ch' }}>
@@ -78,7 +78,7 @@ export function ResetPasswordCover() {
           </div>
 
           <p style={{ margin: 0, position: 'relative', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>Need a hand? <Link className="ax-link" to="/pages/support">Contact support</Link></p>
-        </aside>
+        </aside> */}
 
         <main className="ax-center" id="ax-main" style={{ position: 'relative', padding: 'var(--ax-space-8) var(--ax-space-6)' }}>
           <OffappTools style={{ position: 'absolute', insetBlockStart: 'var(--ax-space-5)', insetInlineEnd: 'var(--ax-space-5)' }} />
@@ -97,7 +97,7 @@ export function ResetPasswordCover() {
                     <label className="ax-label" htmlFor="rp-email">Email</label>
                     <div className="ax-field__control">
                       <span className="ax-field__affix ax-field__affix--leading" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10" /><path d="M3 7l9 6l9 -6" /></svg></span>
-                      <input id="rp-email" type="email" className={`ax-input ax-input--with-leading-icon${emailErr ? ' is-invalid' : ''}`} autoComplete="email" placeholder="you@vireo.io"
+                      <input id="rp-email" type="email" className={`ax-input ax-input--with-leading-icon${emailErr ? ' is-invalid' : ''}`} autoComplete="email" placeholder="you@phause.io"
                         value={email} onChange={(e) => setEmail(e.target.value)} aria-invalid={emailErr ? 'true' : 'false'} aria-describedby="rp-email-msg" required />
                     </div>
                     {emailErr && <p id="rp-email-msg" className="ax-field__message ax-field__message--error">{emailErr}</p>}
@@ -107,7 +107,7 @@ export function ResetPasswordCover() {
                     <span className="ax-btn__label">Send reset link</span>
                   </button>
                 </form>
-                <p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>Remembered it? <Link className="ax-link" to="/auth/sign-in-cover" style={{ fontWeight: 'var(--ax-weight-medium)' }}>Sign in</Link></p>
+                <p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>Remembered it? <Link className="ax-link" to="/auth/sign-in-admin" style={{ fontWeight: 'var(--ax-weight-medium)' }}>Sign in</Link></p>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-5)' }}>
@@ -122,7 +122,7 @@ export function ResetPasswordCover() {
                   <button type="button" className="ax-btn ax-btn--secondary ax-btn--block" disabled={cooldown > 0} onClick={resend}>
                     <span className="ax-btn__label">{cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}</span>
                   </button>
-                  <Link className="ax-btn ax-btn--ghost ax-btn--block" to="/auth/sign-in-cover">
+                  <Link className="ax-btn ax-btn--ghost ax-btn--block" to="/auth/sign-in-admin">
                     <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
                     <span className="ax-btn__label">Back to sign in</span>
                   </Link>
@@ -136,4 +136,4 @@ export function ResetPasswordCover() {
   );
 }
 
-export default ResetPasswordCover;
+export default ResetPasswordAdmin;

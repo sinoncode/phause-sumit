@@ -1,5 +1,5 @@
 /*
- * Vireo React — Hospital Overview dashboard (route "dashboards/healthcare").
+ * Phause React — Hospital Overview dashboard (route "dashboards/healthcare").
  *
  * Faithful re-expression of src/html/dashboards/healthcare.html: a patient-visits
  * area chart with an "At a glance" .ax-statgroup rail (.ax-card--flat) beside it,

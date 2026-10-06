@@ -1,5 +1,5 @@
 /*
- * Vireo React — Notes (apps/notes).
+ * Phause React — Notes (apps/notes).
  * 1:1 re-expression of src/html/apps/notes.html: notebooks rail + note list +
  * editor. Alpine axNotes() → native React state.
  */

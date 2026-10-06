@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Checkout (route "ecommerce/checkout").
+ * Phause React — Ecommerce / Checkout (route "ecommerce/checkout").
  *
  * Faithful re-expression of src/html/ecommerce/checkout.html: a 4-step wizard
  * (contact & address, shipping method, payment, review) driven by a clickable

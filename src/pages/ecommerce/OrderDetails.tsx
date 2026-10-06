@@ -1,5 +1,5 @@
 /*
- * Vireo React — Ecommerce / Order details (route "ecommerce/order-details").
+ * Phause React — Ecommerce / Order details (route "ecommerce/order-details").
  *
  * Faithful re-expression of src/html/ecommerce/order-details.html: a status
  * timeline, an items table with per-item fulfillment selection, a fulfillment/
