@@ -12,6 +12,7 @@ interface CampaignState {
   updateCampaign: (id: string, input: UpdateCampaignInput) => Promise<Campaign>;
   dispatchCampaign: (id: string) => Promise<Campaign>;
   cancelCampaign: (id: string) => Promise<Campaign>;
+  deleteCampaign: (id: string) => Promise<void>;
   getCampaign: (id: string) => Campaign | undefined;
 }
 
@@ -55,6 +56,10 @@ export const useCampaignStore = create<CampaignState>((set, get) => ({
     const campaign = await campaignsApi.cancel(id);
     set((state) => ({ campaigns: state.campaigns.map((item) => item.id === id ? campaign : item) }));
     return campaign;
+  },
+  deleteCampaign: async (id) => {
+    await campaignsApi.delete(id);
+    set((state) => ({ campaigns: state.campaigns.filter((campaign) => campaign.id !== id) }));
   },
   getCampaign: (id) => get().campaigns.find((campaign) => campaign.id === id),
 }));

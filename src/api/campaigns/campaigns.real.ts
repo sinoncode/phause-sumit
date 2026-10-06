@@ -117,6 +117,10 @@ export const campaignsApiReal = {
     return adaptCampaign(raw);
   },
 
+  async delete(id: string): Promise<void> {
+    await apiClient.delete<void>(`/api/campaigns/${encodeURIComponent(id)}`, getAppToken);
+  },
+
   async listTemplates(): Promise<CampaignTemplate[]> {
     const raw = await apiClient.get<unknown[]>('/api/templates', getAppToken);
     if (!Array.isArray(raw)) throw new Error('The templates API returned an invalid response.');
