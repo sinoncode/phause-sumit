@@ -25,18 +25,22 @@ interface RawTrackingEvent {
   createdAt?: unknown;
 }
 
-function deriveEventType(raw: RawTrackingEvent): TrackingEventType {
+function deriveEventType(raw: RawTrackingEvent): TrackingEventType | null {
   const t = String(raw.type ?? '').toLowerCase();
+  if (t === 'sent' || t === 'email_sent') return 'email_sent';
   if (t === 'opened' || t === 'pixel_open' || t === 'open') return 'pixel_open';
   if (t === 'landing_view' || t === 'landing' || t === 'submitted') return 'landing_view';
   if (t === 'clicked' || t === 'link_click' || t === 'click') return 'link_click';
-  return 'link_click';
+  if (t === 'reported' || t === 'reported_phishing') return 'reported';
+  if (t === 'training_completed') return 'training_completed';
+  return null;
 }
 
 function adaptEvent(raw: RawTrackingEvent): TrackingEvent | null {
   const userId = String(raw.userId ?? '');
   const campaignId = String(raw.campaignId ?? '');
-  if (!userId || !campaignId) return null;
+  const eventType = deriveEventType(raw);
+  if (!userId || !campaignId || !eventType) return null;
 
   const ipAddress = raw.ipAddress ? String(raw.ipAddress) : undefined;
   const userAgent = raw.userAgent ? String(raw.userAgent) : undefined;
@@ -54,7 +58,7 @@ function adaptEvent(raw: RawTrackingEvent): TrackingEvent | null {
       email: employeeEmail,
     },
     trackingToken: String(raw.token ?? ''),
-    eventType: deriveEventType(raw),
+    eventType,
     occurredAt: String(raw.createdAt ?? ''),
     meta: {
       ...(ipAddress ? { ipAddress } : {}),

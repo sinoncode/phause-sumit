@@ -1,16 +1,12 @@
 /*
  * Phause — Campaign Tracking Events: shared types and endpoint constants.
  *
- * Coverage: event types 9.1–9.3 only.
- *   9.1 pixel_open   → fired when the recipient's email client loads the 1×1
- *                       tracking pixel embedded in the phishing email.
- *   9.2 link_click   → fired when the recipient clicks the phishing link in the email.
- *   9.3 landing_view → fired when the recipient's browser loads the fake landing page.
+ * Campaign lifecycle events shown in the tracking events view.
  *
  * BEACON ENDPOINTS (write-triggering — never call from the dashboard):
  *   GET /api/tracking/pixel/:trackingToken   (records a pixel_open)
  *   GET /api/tracking/click/:trackingToken   (records a link_click)
- *   GET /api/tracking/landing/:trackingToken (records a landing_view)
+ *   GET /api/tracking/landing/:trackingToken (records an awareness page view)
  *
  * These are referenced here only as documentation constants so that event type
  * values can be mapped to their originating beacon path in tooltips/comments.
@@ -44,11 +40,15 @@ export const TRACKING_EVENTS_ENDPOINT = (campaignId: string) =>
 // ---------------------------------------------------------------------------
 
 /**
- * The three event types in scope for steps 9.1–9.3.
- * 9.4 (credentials_submitted) and 9.5 (reported_phishing) are intentionally
- * excluded from this build.
+ * Event kinds returned by the campaign tracking endpoint.
  */
-export type TrackingEventType = 'pixel_open' | 'link_click' | 'landing_view';
+export type TrackingEventType =
+  | 'email_sent'
+  | 'pixel_open'
+  | 'link_click'
+  | 'landing_view'
+  | 'reported'
+  | 'training_completed';
 
 /**
  * Minimal employee snapshot embedded in a tracking event.

@@ -35,9 +35,12 @@ type FilterOption = 'all' | TrackingEventType;
 
 const FILTER_OPTIONS: Array<{ value: FilterOption; label: string }> = [
   { value: 'all', label: 'All' },
+  { value: 'email_sent', label: 'Sent' },
   { value: 'pixel_open', label: 'Opened' },
   { value: 'link_click', label: 'Clicked' },
-  { value: 'landing_view', label: 'Landing viewed' },
+  { value: 'landing_view', label: 'Awareness page' },
+  { value: 'reported', label: 'Reported' },
+  { value: 'training_completed', label: 'Training complete' },
 ];
 
 // Funnel stage configuration — order matters (defines drop-off direction).
@@ -47,6 +50,12 @@ const FUNNEL_STAGES: Array<{
   color: string;
   bgColor: string;
 }> = [
+  {
+    type: 'email_sent',
+    label: 'Email sent',
+    color: 'var(--ax-accent)',
+    bgColor: 'color-mix(in oklab, var(--ax-accent) 12%, transparent)',
+  },
   {
     type: 'pixel_open',
     label: 'Email opened',
@@ -61,7 +70,7 @@ const FUNNEL_STAGES: Array<{
   },
   {
     type: 'landing_view',
-    label: 'Landing viewed',
+    label: 'Awareness page reached',
     color: 'var(--ax-viz-violet)',
     bgColor: 'color-mix(in oklab, var(--ax-viz-violet) 12%, transparent)',
   },
@@ -69,15 +78,21 @@ const FUNNEL_STAGES: Array<{
 
 // Badge tone per event type — mirrors how status/consent badges work elsewhere.
 const BADGE_MODIFIER: Record<TrackingEventType, string> = {
+  email_sent: 'ax-badge--success',
   pixel_open: 'ax-badge--accent',
   link_click: 'ax-badge--warning',
   landing_view: 'ax-badge--danger',
+  reported: 'ax-badge--accent',
+  training_completed: 'ax-badge--success',
 };
 
 const EVENT_LABEL: Record<TrackingEventType, string> = {
+  email_sent: 'Email sent',
   pixel_open: 'Opened',
   link_click: 'Clicked',
-  landing_view: 'Landing viewed',
+  landing_view: 'Awareness page reached',
+  reported: 'Reported as phishing',
+  training_completed: 'Training completed',
 };
 
 // ---------------------------------------------------------------------------
@@ -222,7 +237,7 @@ interface FunnelCardProps {
 }
 
 function FunnelCard({ counts }: FunnelCardProps) {
-  const openCount = counts.pixel_open;
+  const openCount = counts.email_sent;
 
   return (
     <section
@@ -235,7 +250,7 @@ function FunnelCard({ counts }: FunnelCardProps) {
           <span className="ax-card__eyebrow">Engagement funnel</span>
           <h2 className="ax-card__title">Funnel overview</h2>
           <p className="ax-card__subtitle">
-            Drop-off from email open through to landing page view.
+            Email sent, opened, link clicked, and awareness page reached.
           </p>
         </div>
       </div>
@@ -372,9 +387,12 @@ export function TrackingEvents() {
   // Funnel counts (always computed over the full unfiltered dataset).
   const counts = useMemo<Record<TrackingEventType, number>>(
     () => ({
+      email_sent: events.filter((e) => e.eventType === 'email_sent').length,
       pixel_open: events.filter((e) => e.eventType === 'pixel_open').length,
       link_click: events.filter((e) => e.eventType === 'link_click').length,
       landing_view: events.filter((e) => e.eventType === 'landing_view').length,
+      reported: events.filter((e) => e.eventType === 'reported').length,
+      training_completed: events.filter((e) => e.eventType === 'training_completed').length,
     }),
     [events],
   );
