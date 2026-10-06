@@ -284,12 +284,12 @@ function RoEModal({
 }: {
   org: OrganisationRecord;
   onClose: () => void;
-  onSuccess: (orgId: string) => void;
+  onSuccess: (updatedOrg: OrganisationRecord) => void;
 }) {
-  const [signatory, setSignatory] = useState('');
-  const [docRef, setDocRef]       = useState('');
-  const [docFile, setDocFile]     = useState<string | null>(null);   // base64 data URL
-  const [docFileName, setDocFileName] = useState('');
+  const [signatory, setSignatory] = useState(org.authSignature);
+  const [docRef, setDocRef]       = useState(org.authRef.label);
+  const [docFile, setDocFile]     = useState<string | null>(() => org.authRef.url.startsWith('data:') ? org.authRef.url : null);
+  const [docFileName, setDocFileName] = useState(() => org.authRef.url ? 'Previously uploaded authorization document' : '');
   const [dragOver, setDragOver]   = useState(false);
   const [fileError, setFileError] = useState('');
   const [busy, setBusy]           = useState(false);
@@ -348,9 +348,9 @@ function RoEModal({
     setBusy(true);
     setError('');
     try {
-      await recordAuthorization(org.id, signatory.trim(), docRef.trim(), docFile ?? undefined);
+      const updatedOrg = await recordAuthorization(org.id, signatory.trim(), docRef.trim(), docFile ?? undefined);
       setSucceeded(true);
-      onSuccess(org.id);
+      onSuccess(updatedOrg);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
       setBusy(false);
@@ -797,10 +797,11 @@ export function Org({ onViewOrganisation }: Props) {
 
       {roeOrg && (
         <RoEModal
+          key={roeOrg.id}
           org={roeOrg}
           onClose={() => setRoeOrg(null)}
-          onSuccess={(orgId) => {
-            setOrgs((prev) => prev.map((o) => o.id === orgId ? { ...o, authAccept: true } : o));
+          onSuccess={(updatedOrg) => {
+            setOrgs((prev) => prev.map((o) => o.id === updatedOrg.id ? updatedOrg : o));
             setRoeOrg(null);
           }}
         />

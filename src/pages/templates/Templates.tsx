@@ -5,6 +5,8 @@ import {
   createTemplate as createTemplateApi,
   updateTemplate as updateTemplateApi,
   deleteTemplate as deleteTemplateApi,
+  listPredefinedTemplates,
+  type PredefinedTemplate,
 } from "../../api/templates/templates.api";
 import { useApiErrorHandler } from "../../hooks/useApiErrorHandler";
 
@@ -13,7 +15,8 @@ export type TemplateCategory =
   | "credential-harvest"
   | "attachment"
   | "link-click"
-  | "awareness";
+  | "awareness"
+  | "data-entry";
 export type TemplateDifficulty = "easy" | "medium" | "hard";
 
 export interface PhishingTemplate {
@@ -47,8 +50,37 @@ const CATEGORIES: Array<{ value: TemplateCategory; label: string }> = [
   { value: "attachment", label: "Malicious attachment" },
   { value: "link-click", label: "Link click" },
   { value: "awareness", label: "Security awareness" },
+  { value: "data-entry", label: "Data entry" },
 ];
 const DIFFICULTIES: TemplateDifficulty[] = ["easy", "medium", "hard"];
+
+const PREDEFINED_CONTENT_FALLBACK: Record<string, Pick<PredefinedTemplate, "subject" | "htmlBody" | "textBody">> = {
+  "urgent-password-reset": {
+    subject: "[ACTION REQUIRED] Your password expires in 24 hours",
+    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Dear Employee,</p><p>Your corporate password will expire in <strong>24 hours</strong>. Failure to update it may lock you out of company systems.</p><p><a href="{{tracking_link}}">Reset Password Now</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
+    textBody: "Your corporate password expires in 24 hours. Reset it here: {{tracking_link}}",
+  },
+  "bank-account-change-confirmation": {
+    subject: "Confirm your bank account change request",
+    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Dear Employee,</p><p>A request was made to change the bank account associated with your payroll. Verify your identity to review the pending change.</p><p><a href="{{tracking_link}}">Verify My Identity</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
+    textBody: "A bank account change is pending for your payroll. Review it here: {{tracking_link}}",
+  },
+  "shared-document-review": {
+    subject: 'Sarah shared "Q4 Budget Review" with you',
+    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Hi there,</p><p>Sarah Johnson shared a confidential document with you: <strong>Q4 Budget Review.xlsx</strong></p><p><a href="{{tracking_link}}">Open Document</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
+    textBody: 'Sarah Johnson shared "Q4 Budget Review.xlsx" with you. Open it here: {{tracking_link}}',
+  },
+  "it-security-alert": {
+    subject: "[Security Alert] Suspicious login detected on your account",
+    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Hello,</p><p>We detected a sign-in to your account from an unrecognised device. Review the activity and secure your account if it was not you.</p><p><a href="{{tracking_link}}">Secure My Account</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
+    textBody: "Suspicious login detected on your account. Review the activity here: {{tracking_link}}",
+  },
+  "hr-policy-acknowledgement": {
+    subject: "Action Required: Acknowledge updated HR policy by Friday",
+    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Dear Team Member,</p><p>Please review and acknowledge the updated Code of Conduct and Remote Work Policy by Friday.</p><p><a href="{{tracking_link}}">Review and Acknowledge Policy</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
+    textBody: "Please acknowledge the updated HR policy by Friday: {{tracking_link}}",
+  },
+};
 
 const ICON_PLUS = (
   <svg
@@ -131,14 +163,17 @@ const labelFor = <T extends string>(
 function TemplateForm({
   initial,
   mode,
+  predefinedTemplates = [],
   onCancel,
   onSubmit,
 }: {
   initial?: PhishingTemplate;
   mode: "create" | "edit";
+  predefinedTemplates?: PredefinedTemplate[];
   onCancel: () => void;
   onSubmit: (values: TemplateFormValues) => void;
 }) {
+  const [presetKey, setPresetKey] = useState("");
   const [form, setForm] = useState<TemplateFormValues>(
     initial ?? {
       name: "",
@@ -158,6 +193,23 @@ function TemplateForm({
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     onSubmit(form);
+  };
+  const selectPreset = (key: string) => {
+    setPresetKey(key);
+    const preset = predefinedTemplates.find((item) => item.key === key);
+    if (!preset) return;
+    const fallback = PREDEFINED_CONTENT_FALLBACK[preset.key];
+
+    setForm({
+      name: preset.name,
+      subject: preset.subject || fallback?.subject || "",
+      htmlBody: preset.htmlBody || fallback?.htmlBody || "",
+      textBody: preset.textBody || fallback?.textBody || "",
+      lureType: preset.lureType as TemplateLureType,
+      category: preset.category as TemplateCategory,
+      difficulty: preset.difficulty as TemplateDifficulty,
+      disclaimerEnabled: false,
+    });
   };
   const previewHtml = form.htmlBody
     .replaceAll("{{tracking_link}}", "#preview-link")
@@ -221,6 +273,25 @@ function TemplateForm({
             className="ax-card__body"
             style={{ display: "grid", gap: "var(--ax-space-4)" }}
           >
+            {mode === "create" && (
+              <div className="ax-field" style={{ paddingBottom: "var(--ax-space-4)", borderBottom: "1px solid var(--ax-border)" }}>
+                <label className="ax-label" htmlFor="template-preset">
+                  Start from a predefined template
+                </label>
+                <select
+                  id="template-preset"
+                  className="ax-select"
+                  value={presetKey}
+                  onChange={(event) => selectPreset(event.target.value)}
+                  disabled={predefinedTemplates.length === 0}
+                >
+                  <option value="">Choose a preset or create a custom template</option>
+                  {predefinedTemplates.map((preset) => (
+                    <option key={preset.key} value={preset.key}>{preset.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             <div className="ax-field">
               <label className="ax-label" htmlFor="template-name">
                 Name
@@ -561,6 +632,7 @@ function TemplateDetails({
 
 export function Templates() {
   const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
+  const [predefinedTemplates, setPredefinedTemplates] = useState<PredefinedTemplate[]>([]);
   const [loadError, setLoadError] = useState('');
   const [modal, setModal] = useState<ModalState>(null);
   const handleApiError = useApiErrorHandler();
@@ -568,6 +640,9 @@ export function Templates() {
   useEffect(() => {
     listTemplates().then(setTemplates).catch((err: unknown) => {
       setLoadError(handleApiError(err, 'Unable to load templates.'));
+    });
+    listPredefinedTemplates().then(setPredefinedTemplates).catch((err: unknown) => {
+      setLoadError(handleApiError(err, 'Unable to load predefined templates.'));
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -738,6 +813,7 @@ export function Templates() {
       {modal === "create" && (
         <TemplateForm
           mode="create"
+          predefinedTemplates={predefinedTemplates}
           onCancel={() => setModal(null)}
           onSubmit={createTemplate}
         />

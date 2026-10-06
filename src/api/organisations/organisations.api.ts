@@ -30,7 +30,7 @@ function adapt(raw: Record<string, unknown>): OrganisationRecord {
       url:   String(raw.authorizationDocUrl ?? raw.authorizationDocFile ?? raw.authRefUrl ?? ''),
     },
     authAccept:       Boolean(raw.authorizationAccepted ?? raw.authAccept ?? false),
-    authSignature:    String(raw.authorizationSignature ?? raw.signatory ?? raw.authSignature ?? ''),
+    authSignature:    String(raw.authorizationSignatory ?? raw.authorizationSignature ?? raw.signatory ?? raw.authSignature ?? ''),
     authAt:           String(raw.authorizedAt ?? raw.authAt ?? ''),
     region:           String(raw.region ?? ''),
     disclaimerEnabled: Boolean(raw.disclaimerEnabled ?? raw.disclaimer_enabled ?? false),
@@ -41,6 +41,14 @@ export async function listOrganisations(): Promise<OrganisationRecord[]> {
   const raw = await apiClient.get<unknown[]>('/api/organizations', getAppToken);
   if (!Array.isArray(raw)) throw new Error('The organizations API returned an invalid response.');
   return raw.map((r) => adapt(r as Record<string, unknown>));
+}
+
+export async function getOrganisation(orgId: string): Promise<OrganisationRecord> {
+  const raw = await apiClient.get<Record<string, unknown>>(
+    `/api/organizations/${encodeURIComponent(orgId)}`,
+    getAppToken,
+  );
+  return adapt(raw);
 }
 
 export async function createOrganisation(values: {
@@ -65,8 +73,8 @@ export async function recordAuthorization(
   signatory: string,
   docRef: string,
   docFile?: string,
-): Promise<void> {
-  await apiClient.post<unknown>(
+): Promise<OrganisationRecord> {
+  const raw = await apiClient.post<Record<string, unknown>>(
     `/api/organizations/${encodeURIComponent(orgId)}/authorization`,
     getAppToken,
     {
@@ -75,6 +83,7 @@ export async function recordAuthorization(
       ...(docFile ? { authorizationDocFile: docFile } : {}),
     },
   );
+  return adapt(raw);
 }
 
 /**

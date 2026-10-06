@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
+import { getOrganisation } from '../../api/organisations/organisations.api';
 import { PageHead } from '../../components/shell/PageHead';
 import type { OrganisationRecord } from './Org';
 
@@ -31,26 +33,52 @@ function DetailItem({ label, children }: { label: string; children: React.ReactN
 export function OrgDetail() {
   const { organisationId } = useParams();
   const location = useLocation();
-  const { organisation } = (location.state as OrganisationLocationState | null) ?? {};
+  const initialOrganisation = (location.state as OrganisationLocationState | null)?.organisation;
+  const [organisation, setOrganisation] = useState(initialOrganisation);
+  const [loading, setLoading] = useState(!initialOrganisation);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    if (!organisationId) {
+      setLoading(false);
+      setLoadError('Organization ID is missing.');
+      return;
+    }
+
+    let active = true;
+    setLoading(true);
+    setLoadError('');
+    getOrganisation(organisationId)
+      .then((record) => { if (active) setOrganisation(record); })
+      .catch((error: unknown) => {
+        if (active) setLoadError(error instanceof Error ? error.message : 'Unable to load organization details.');
+      })
+      .finally(() => { if (active) setLoading(false); });
+
+    return () => { active = false; };
+  }, [organisationId]);
 
   return (
     <>
       <PageHead
         title={organisation?.name ?? 'Organisation details'}
-        subtitle={organisation ? 'Complete organisation record and authorization details.' : 'The requested organisation could not be loaded.'}
+        subtitle={organisation ? 'Complete organisation record and authorization details.' : 'Organization details.'}
         actions={
           <Link className="ax-btn ax-btn--secondary" to="/organisations/org">
             <span className="ax-btn__label">Back to organisations</span>
           </Link>
         }
       />
+      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
 
-      {!organisation ? (
+      {loading && !organisation ? (
+        <section className="ax-card" aria-live="polite"><div className="ax-card__body">Loading organization details…</div></section>
+      ) : !organisation ? (
         <section className="ax-card" role="alert">
           <div className="ax-card__body">
             <h2 className="ax-card__title">Organisation not available</h2>
             <p className="ax-card__subtitle" style={{ marginBlockStart: 'var(--ax-space-2)' }}>
-              No organisation data was supplied for {organisationId ?? 'this record'}. Return to the organisation list and open it again.
+              No organisation data was found for {organisationId ?? 'this record'}. Return to the organisation list and try again.
             </p>
           </div>
         </section>
@@ -70,12 +98,12 @@ export function OrgDetail() {
               <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 'var(--ax-space-6)', margin: 0 }}>
                 <DetailItem label="Organisation ID"><span className="ax-num">{organisation.id}</span></DetailItem>
                 <DetailItem label="Name">{organisation.name}</DetailItem>
-                <DetailItem label="Plan">{organisation.plan} months</DetailItem>
-                <DetailItem label="Region">{organisation.region}</DetailItem>
+                <DetailItem label="Plan">{organisation.plan ? `${organisation.plan} months` : 'Not assigned'}</DetailItem>
+                <DetailItem label="Region">{organisation.region || 'Not provided'}</DetailItem>
                 <DetailItem label="Authorization accepted"><BooleanBadge value={organisation.authAccept} /></DetailItem>
                 <DetailItem label="Disclaimer enabled"><BooleanBadge value={organisation.disclaimerEnabled} /></DetailItem>
-                <DetailItem label="Authorization signature">{organisation.authSignature}</DetailItem>
-                <DetailItem label="Authorization date">{new Date(organisation.authAt).toLocaleString()}</DetailItem>
+                <DetailItem label="Authorization signature">{organisation.authSignature || 'Not recorded'}</DetailItem>
+                <DetailItem label="Authorization date">{organisation.authAt ? new Date(organisation.authAt).toLocaleString() : 'Not recorded'}</DetailItem>
               </dl>
             </div>
           </section>
@@ -89,9 +117,11 @@ export function OrgDetail() {
             </div>
             <div className="ax-card__body">
               <div className="ax-cluster" style={{ gap: 'var(--ax-space-2)', flexWrap: 'wrap' }}>
-                {organisation.verifyDomain.map((domain) => (
-                  <span key={domain} className="ax-badge ax-badge--soft ax-badge--pill">{domain}</span>
-                ))}
+                {organisation.verifyDomain.length > 0
+                  ? organisation.verifyDomain.map((domain) => (
+                    <span key={domain} className="ax-badge ax-badge--soft ax-badge--pill">{domain}</span>
+                  ))
+                  : <span>None recorded</span>}
               </div>
             </div>
           </section>
@@ -104,9 +134,15 @@ export function OrgDetail() {
               </div>
             </div>
             <div className="ax-card__body">
-              <a className="ax-link" href={organisation.authRef.url} target="_blank" rel="noreferrer">
-                {organisation.authRef.label}
-              </a>
+              {organisation.authRef.url ? (
+                <a className="ax-link" href={organisation.authRef.url} target="_blank" rel="noreferrer">
+                  {organisation.authRef.label || 'Open uploaded authorization document'}
+                </a>
+              ) : (
+                <p style={{ margin: 0, color: 'var(--ax-text-muted)' }}>
+                  {organisation.authRef.label || 'No authorization document uploaded.'}
+                </p>
+              )}
             </div>
           </section>
         </div>
