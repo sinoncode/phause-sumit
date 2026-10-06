@@ -81,6 +81,7 @@ export function SignUpOrg() {
 
   const navigate = useNavigate();
   const setAppToken = useAuthStore((s) => s.setAppToken);
+  const setRefreshToken = useAuthStore((s) => s.setRefreshToken);
 
   // ── Validation ──────────────────────────────────────────────────────────────
   function validate(): boolean {
@@ -129,6 +130,7 @@ export function SignUpOrg() {
 
       const res = await apiClient.post<{
         accessToken: string;
+        refreshToken?: string;
         user?: {
           orgId?: string;
           organizationId?: string;
@@ -141,6 +143,11 @@ export function SignUpOrg() {
 
       const token = res.accessToken ?? '';
       if (!token) throw new Error('No token returned from registration.');
+
+      // Save the refresh token if the backend returned one
+      if (res.refreshToken) {
+        setRefreshToken(res.refreshToken);
+      }
 
       const userObj   = res.user ?? {};
       const orgId     = userObj.orgId ?? userObj.organizationId ?? res.organization?.id;

@@ -25,6 +25,7 @@ export function SignInOrg() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const setAppToken = useAuthStore((s) => s.setAppToken);
+  const setRefreshToken = useAuthStore((s) => s.setRefreshToken);
 
   function validate() {
     const e = !email.trim()
@@ -44,9 +45,10 @@ export function SignInOrg() {
     if (!validate()) return;
     setLoading(true);
     try {
-      // Response shape: { accessToken, user: { id, orgId, email, role, permissions, hasConsent } }
+      // Response shape: { accessToken, refreshToken, user: { id, orgId, email, role, permissions, hasConsent } }
       const res = await apiClient.post<{
         token?: string; accessToken?: string; access_token?: string;
+        refreshToken?: string;
         user?: {
           orgId?: string; organizationId?: string; org_id?: string;
           permissions?: string[];
@@ -61,6 +63,11 @@ export function SignInOrg() {
       );
       const token = res.token ?? res.accessToken ?? res.access_token ?? '';
       if (!token) throw new Error('No token in response');
+
+      // Save the refresh token if the backend returned one
+      if (res.refreshToken) {
+        setRefreshToken(res.refreshToken);
+      }
 
       const userObj = res.user ?? {};
       const orgId = userObj.orgId ?? userObj.organizationId ?? userObj.org_id

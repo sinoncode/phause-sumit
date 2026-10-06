@@ -50,20 +50,17 @@ async function _attemptRefresh(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
-    const { appToken, adminToken, setAppToken, setAdminToken, clearAll } = useAuthStore.getState();
-    // Prefer appToken; fall back to adminToken
-    const token = appToken ?? adminToken;
-    if (!token) return null;
+    const { appToken, adminToken, setAppToken, setAdminToken, setRefreshToken, clearAll } = useAuthStore.getState();
+    // Only attempt refresh for org users (appToken). Admin tokens don't use refresh tokens.
+    const isOrgUser = Boolean(appToken) && !adminToken;
+    if (!isOrgUser) return null;
 
     try {
-      const result = await refreshToken(token);
-      // Persist the new token back into the store
-      if (appToken) {
-        setAppToken(result.accessToken, result.user.orgId, result.user.permissions);
-      } else {
-        // admin token
-        setAdminToken(result.accessToken);
-      }
+      const result = await refreshToken();
+      // Store the new (rotated) access token
+      setAppToken(result.accessToken, result.user.orgId, result.user.permissions);
+      // Store the rotated refresh token — old one is now invalid
+      setRefreshToken(result.refreshToken);
       return result.accessToken;
     } catch {
       // Refresh failed — token is truly dead, clear the session

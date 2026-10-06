@@ -2,8 +2,9 @@
  * Phause — Auth token store (Zustand).
  *
  * Holds both token types from the Postman collection:
- *   adminToken — from POST /admin/login  (super-admin routes)
- *   appToken   — from POST /api/auth/login  (org-user routes)
+ *   adminToken   — from POST /admin/login  (super-admin routes)
+ *   appToken     — from POST /api/auth/login  (org-user routes)
+ *   refreshToken — opaque 30-day token used to silently renew the appToken
  *
  * Tokens are persisted to sessionStorage so they survive page refreshes
  * within the same browser tab but are cleared when the tab closes.
@@ -21,6 +22,8 @@ export type UserRole = 'admin' | 'org_user' | null;
 interface AuthState {
   adminToken: string | null;
   appToken: string | null;
+  /** Opaque 30-day refresh token for silent access-token renewal */
+  refreshToken: string | null;
   orgId: string | null;
   /** Which type of user is currently signed in */
   userRole: UserRole;
@@ -28,27 +31,30 @@ interface AuthState {
   permissions: string[];
   setAdminToken: (token: string) => void;
   setAppToken: (token: string, orgId?: string, permissions?: string[]) => void;
+  setRefreshToken: (token: string) => void;
   setOrgId: (id: string) => void;
   setPermissions: (permissions: string[]) => void;
   clearAll: () => void;
 }
 
-const SS_ADMIN       = 'phause_adminToken';
-const SS_APP         = 'phause_appToken';
-const SS_ORG         = 'phause_orgId';
-const SS_ROLE        = 'phause_userRole';
-const SS_PERMISSIONS = 'phause_permissions';
+const SS_ADMIN        = 'phause_adminToken';
+const SS_APP          = 'phause_appToken';
+const SS_REFRESH      = 'phause_refreshToken';
+const SS_ORG          = 'phause_orgId';
+const SS_ROLE         = 'phause_userRole';
+const SS_PERMISSIONS  = 'phause_permissions';
 
 function loadPermissions(): string[] {
   try { return JSON.parse(sessionStorage.getItem(SS_PERMISSIONS) ?? '[]'); } catch { return []; }
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  adminToken:  sessionStorage.getItem(SS_ADMIN),
-  appToken:    sessionStorage.getItem(SS_APP),
-  orgId:       sessionStorage.getItem(SS_ORG),
-  userRole:    (sessionStorage.getItem(SS_ROLE) as UserRole) ?? null,
-  permissions: loadPermissions(),
+  adminToken:   sessionStorage.getItem(SS_ADMIN),
+  appToken:     sessionStorage.getItem(SS_APP),
+  refreshToken: sessionStorage.getItem(SS_REFRESH),
+  orgId:        sessionStorage.getItem(SS_ORG),
+  userRole:     (sessionStorage.getItem(SS_ROLE) as UserRole) ?? null,
+  permissions:  loadPermissions(),
 
   setAdminToken: (token) => {
     sessionStorage.setItem(SS_ADMIN, token);
@@ -65,6 +71,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ orgId });
     }
   },
+  setRefreshToken: (token) => {
+    sessionStorage.setItem(SS_REFRESH, token);
+    set({ refreshToken: token });
+  },
   setOrgId: (id) => {
     sessionStorage.setItem(SS_ORG, id);
     set({ orgId: id });
@@ -74,10 +84,10 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ permissions });
   },
   clearAll: () => {
-    [SS_ADMIN, SS_APP, SS_ORG, SS_ROLE, SS_PERMISSIONS].forEach((k) =>
+    [SS_ADMIN, SS_APP, SS_REFRESH, SS_ORG, SS_ROLE, SS_PERMISSIONS].forEach((k) =>
       sessionStorage.removeItem(k),
     );
-    set({ adminToken: null, appToken: null, orgId: null, userRole: null, permissions: [] });
+    set({ adminToken: null, appToken: null, refreshToken: null, orgId: null, userRole: null, permissions: [] });
   },
 }));
 
@@ -94,6 +104,10 @@ export const getAppToken = (): string | null => {
   const { appToken, adminToken } = useAuthStore.getState();
   return appToken ?? adminToken;
 };
+
+/** Returns the stored opaque refresh token (org users only). */
+export const getRefreshToken = (): string | null =>
+  useAuthStore.getState().refreshToken;
 
 /** Returns true if the current user has a given permission */
 export const hasPermission = (permission: string) =>
