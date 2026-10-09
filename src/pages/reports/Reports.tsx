@@ -336,6 +336,7 @@ export function Reports() {
     setReports((prev) => [newRpt, ...prev]);
     setRptPage(1);
     setShowGenerate(false);
+    setViewReport(newRpt);
   };
   const averageRisk = riskScores.length
     ? Math.round(riskScores.reduce((total, score) => total + score.riskScore, 0) / riskScores.length)

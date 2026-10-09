@@ -113,8 +113,10 @@ export async function downloadReport(reportId: string, format: 'csv' | 'pdf'): P
   const link = document.createElement('a');
   link.href = objectUrl;
   link.download = `report-${reportId}.${format}`;
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(objectUrl);
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
 
 /** 10.6 — List all employee risk scores. */
