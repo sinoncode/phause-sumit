@@ -56,34 +56,6 @@ const CATEGORIES: Array<{ value: TemplateCategory; label: string }> = [
 ];
 const DIFFICULTIES: TemplateDifficulty[] = ["easy", "medium", "hard"];
 
-const PREDEFINED_CONTENT_FALLBACK: Record<string, Pick<PredefinedTemplate, "subject" | "htmlBody" | "textBody">> = {
-  "urgent-password-reset": {
-    subject: "[ACTION REQUIRED] Your password expires in 24 hours",
-    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Dear Employee,</p><p>Your corporate password will expire in <strong>24 hours</strong>. Failure to update it may lock you out of company systems.</p><p><a href="{{tracking_link}}">Reset Password Now</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
-    textBody: "Your corporate password expires in 24 hours. Reset it here: {{tracking_link}}",
-  },
-  "bank-account-change-confirmation": {
-    subject: "Confirm your bank account change request",
-    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Dear Employee,</p><p>A request was made to change the bank account associated with your payroll. Verify your identity to review the pending change.</p><p><a href="{{tracking_link}}">Verify My Identity</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
-    textBody: "A bank account change is pending for your payroll. Review it here: {{tracking_link}}",
-  },
-  "shared-document-review": {
-    subject: 'Sarah shared "Q4 Budget Review" with you',
-    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Hi there,</p><p>Sarah Johnson shared a confidential document with you: <strong>Q4 Budget Review.xlsx</strong></p><p><a href="{{tracking_link}}">Open Document</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
-    textBody: 'Sarah Johnson shared "Q4 Budget Review.xlsx" with you. Open it here: {{tracking_link}}',
-  },
-  "it-security-alert": {
-    subject: "[Security Alert] Suspicious login detected on your account",
-    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Hello,</p><p>We detected a sign-in to your account from an unrecognised device. Review the activity and secure your account if it was not you.</p><p><a href="{{tracking_link}}">Secure My Account</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
-    textBody: "Suspicious login detected on your account. Review the activity here: {{tracking_link}}",
-  },
-  "hr-policy-acknowledgement": {
-    subject: "Action Required: Acknowledge updated HR policy by Friday",
-    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto"><p>Dear Team Member,</p><p>Please review and acknowledge the updated Code of Conduct and Remote Work Policy by Friday.</p><p><a href="{{tracking_link}}">Review and Acknowledge Policy</a></p><img src="{{tracking_pixel}}" width="1" height="1" alt=""></div>',
-    textBody: "Please acknowledge the updated HR policy by Friday: {{tracking_link}}",
-  },
-};
-
 const ICON_PLUS = (
   <svg
     className="ax-btn__icon"
@@ -165,17 +137,14 @@ const labelFor = <T extends string>(
 function TemplateForm({
   initial,
   mode,
-  predefinedTemplates = [],
   onCancel,
   onSubmit,
 }: {
   initial?: PhishingTemplate;
   mode: "create" | "edit";
-  predefinedTemplates?: PredefinedTemplate[];
   onCancel: () => void;
   onSubmit: (values: TemplateFormValues) => void;
 }) {
-  const [presetKey, setPresetKey] = useState("");
   const [form, setForm] = useState<TemplateFormValues>(
     initial ?? {
       name: "",
@@ -195,23 +164,6 @@ function TemplateForm({
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
     onSubmit(form);
-  };
-  const selectPreset = (key: string) => {
-    setPresetKey(key);
-    const preset = predefinedTemplates.find((item) => item.key === key);
-    if (!preset) return;
-    const fallback = PREDEFINED_CONTENT_FALLBACK[preset.key];
-
-    setForm({
-      name: preset.name,
-      subject: preset.subject || fallback?.subject || "",
-      htmlBody: preset.htmlBody || fallback?.htmlBody || "",
-      textBody: preset.textBody || fallback?.textBody || "",
-      lureType: preset.lureType as TemplateLureType,
-      category: preset.category as TemplateCategory,
-      difficulty: preset.difficulty as TemplateDifficulty,
-      disclaimerEnabled: false,
-    });
   };
   const previewHtml = form.htmlBody
     .replaceAll("{{tracking_link}}", "#preview-link")
@@ -275,25 +227,6 @@ function TemplateForm({
             className="ax-card__body"
             style={{ display: "grid", gap: "var(--ax-space-4)" }}
           >
-            {mode === "create" && (
-              <div className="ax-field" style={{ paddingBottom: "var(--ax-space-4)", borderBottom: "1px solid var(--ax-border)" }}>
-                <label className="ax-label" htmlFor="template-preset">
-                  Start from a predefined template
-                </label>
-                <select
-                  id="template-preset"
-                  className="ax-select"
-                  value={presetKey}
-                  onChange={(event) => selectPreset(event.target.value)}
-                  disabled={predefinedTemplates.length === 0}
-                >
-                  <option value="">Choose a preset or create a custom template</option>
-                  {predefinedTemplates.map((preset) => (
-                    <option key={preset.key} value={preset.key}>{preset.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
             <div className="ax-field">
               <label className="ax-label" htmlFor="template-name">
                 Name
@@ -637,7 +570,7 @@ export function Templates() {
   const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
   const [predefinedTemplates, setPredefinedTemplates] = useState<PredefinedTemplate[]>([]);
   const [loadError, setLoadError] = useState('');
-  const [addingPresetKey, setAddingPresetKey] = useState<string | null>(null);
+  const [usingPresetKey, setUsingPresetKey] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const handleApiError = useApiErrorHandler();
 
@@ -660,16 +593,21 @@ export function Templates() {
       setLoadError(error instanceof Error ? error.message : 'Unable to create template.');
     }
   };
-  const addPredefinedTemplate = async (preset: PredefinedTemplate) => {
-    setAddingPresetKey(preset.key);
+  const useTemplateInCampaign = async (
+    template: PhishingTemplate,
+    preset?: PredefinedTemplate,
+  ) => {
+    setUsingPresetKey(preset?.key ?? template.id);
     setLoadError('');
     try {
-      const created = await createTemplateFromPredefined(preset.key);
-      setTemplates((current) => [created, ...current]);
+      const campaignTemplate = preset
+        ? await createTemplateFromPredefined(preset.key)
+        : template;
+      navigate(`/api/campaigns/new?templateId=${encodeURIComponent(campaignTemplate.id)}`);
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : 'Unable to add predefined template.');
+      setLoadError(error instanceof Error ? error.message : 'Unable to use this template for a campaign.');
     } finally {
-      setAddingPresetKey(null);
+      setUsingPresetKey(null);
     }
   };
   const updateTemplate = async (values: TemplateFormValues) => {
@@ -694,6 +632,34 @@ export function Templates() {
       }
     }
   };
+  const templateRows: Array<{
+    template: PhishingTemplate;
+    predefined: PredefinedTemplate | null;
+    saved: boolean;
+  }> = [
+    ...templates.map((template) => ({
+      template,
+      predefined: predefinedTemplates.find((preset) => preset.name === template.name) ?? null,
+      saved: true,
+    })),
+    ...predefinedTemplates
+      .filter((preset) => !templates.some((template) => template.name === preset.name))
+      .map((preset) => ({
+        template: {
+          id: `predefined-${preset.key}`,
+          name: preset.name,
+          subject: preset.subject,
+          htmlBody: preset.htmlBody,
+          textBody: preset.textBody,
+          lureType: preset.lureType as TemplateLureType,
+          category: preset.category as TemplateCategory,
+          difficulty: preset.difficulty as TemplateDifficulty,
+          disclaimerEnabled: false,
+        },
+        predefined: preset,
+        saved: false,
+      })),
+  ];
 
   return (
     <>
@@ -722,73 +688,13 @@ export function Templates() {
         <section
           className="ax-card ax-col--12"
           role="region"
-          aria-label="Predefined phishing templates"
-        >
-          <div className="ax-card__header">
-            <div className="ax-card__titles">
-              <h2 className="ax-card__title">Predefined templates</h2>
-              <p className="ax-card__subtitle">
-                {predefinedTemplates.length} built-in template{predefinedTemplates.length === 1 ? "" : "s"} available to add to your organisation.
-              </p>
-            </div>
-          </div>
-          {predefinedTemplates.length === 0 ? (
-            <div className="ax-card__body">
-              <p style={{ color: "var(--ax-text-muted)", margin: 0 }}>
-                {loadError ? "The predefined templates could not be loaded." : "Loading predefined templates…"}
-              </p>
-            </div>
-          ) : (
-            <div className="ax-table-wrap" style={{ overflowX: "auto" }}>
-              <table className="ax-table ax-table--hover">
-                <thead className="ax-table__head">
-                  <tr>
-                    {["Name", "Description", "Subject", "Difficulty", "Actions"].map((heading) => (
-                      <th className="ax-table__th" scope="col" key={heading}>{heading}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {predefinedTemplates.map((preset) => {
-                    const alreadyAdded = templates.some((template) => template.name === preset.name);
-                    return (
-                      <tr className="ax-table__row" key={preset.key}>
-                        <td className="ax-table__td" style={{ color: "var(--ax-text-strong)", fontWeight: "var(--ax-weight-medium)", minWidth: 200 }}>
-                          {preset.name}
-                        </td>
-                        <td className="ax-table__td" style={{ minWidth: 260 }}>{preset.description}</td>
-                        <td className="ax-table__td" style={{ minWidth: 260 }}>{preset.subject}</td>
-                        <td className="ax-table__td">
-                          <span className="ax-badge ax-badge--soft ax-badge--pill">{preset.difficulty}</span>
-                        </td>
-                        <td className="ax-table__td">
-                          <button
-                            type="button"
-                            className="ax-btn ax-btn--secondary ax-btn--sm"
-                            disabled={alreadyAdded || addingPresetKey !== null}
-                            onClick={() => void addPredefinedTemplate(preset)}
-                          >
-                            {addingPresetKey === preset.key ? "Adding…" : alreadyAdded ? "Added" : "Add to my templates"}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-        <section
-          className="ax-card ax-col--12"
-          role="region"
           aria-label="Phishing templates"
         >
           <div className="ax-card__header">
             <div className="ax-card__titles">
               <h2 className="ax-card__title">Phishing templates</h2>
               <p className="ax-card__subtitle">
-                {templates.length} template{templates.length === 1 ? "" : "s"}{" "}
+                {templateRows.length} template{templateRows.length === 1 ? "" : "s"}{" "}
                 available for campaign creation.
               </p>
             </div>
@@ -799,6 +705,8 @@ export function Templates() {
                 <tr>
                   {[
                     "Name",
+                    "Type",
+                    "Description",
                     "Subject",
                     "Lure type",
                     "Category",
@@ -813,8 +721,8 @@ export function Templates() {
                 </tr>
               </thead>
               <tbody>
-                {templates.map((template) => (
-                  <tr className="ax-table__row" key={template.id}>
+                {templateRows.map(({ template, predefined, saved }) => (
+                  <tr className="ax-table__row" key={predefined?.key ?? template.id}>
                     <td
                       className="ax-table__td"
                       style={{
@@ -823,6 +731,14 @@ export function Templates() {
                       }}
                     >
                       {template.name}
+                    </td>
+                    <td className="ax-table__td">
+                      <span className="ax-badge ax-badge--soft ax-badge--pill">
+                        {predefined ? "Predefined" : "Custom"}
+                      </span>
+                    </td>
+                    <td className="ax-table__td" style={{ minWidth: 260 }}>
+                      {predefined?.description || "—"}
                     </td>
                     <td className="ax-table__td" style={{ minWidth: 280 }}>
                       {template.subject}
@@ -854,22 +770,26 @@ export function Templates() {
                         >
                           {ICON_EYE}
                         </button>
-                        <button
-                          type="button"
-                          className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
-                          aria-label={`Edit ${template.name}`}
-                          onClick={() => setModal({ edit: template })}
-                        >
-                          {ICON_EDIT}
-                        </button>
-                        <button
-                          type="button"
-                          className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
-                          aria-label={`Delete ${template.name}`}
-                          onClick={() => deleteTemplate(template)}
-                        >
-                          {ICON_DELETE}
-                        </button>
+                        {saved && (
+                          <button
+                            type="button"
+                            className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                            aria-label={`Edit ${template.name}`}
+                            onClick={() => setModal({ edit: template })}
+                          >
+                            {ICON_EDIT}
+                          </button>
+                        )}
+                        {saved && (
+                          <button
+                            type="button"
+                            className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
+                            aria-label={`Delete ${template.name}`}
+                            onClick={() => deleteTemplate(template)}
+                          >
+                            {ICON_DELETE}
+                          </button>
+                        )}
                         <button
                           type="button"
                           className="ax-btn ax-btn--ghost ax-btn--sm"
@@ -880,9 +800,10 @@ export function Templates() {
                         <button
                           type="button"
                           className="ax-btn ax-btn--primary ax-btn--sm"
-                          onClick={() => navigate(`/api/campaigns/new?templateId=${encodeURIComponent(template.id)}`)}
+                          disabled={usingPresetKey !== null}
+                          onClick={() => void useTemplateInCampaign(template, !saved ? predefined ?? undefined : undefined)}
                         >
-                          Use in campaign
+                          {usingPresetKey === (predefined?.key ?? template.id) ? "Preparing…" : "Use in campaign"}
                         </button>
                       </div>
                     </td>
@@ -896,7 +817,6 @@ export function Templates() {
       {modal === "create" && (
         <TemplateForm
           mode="create"
-          predefinedTemplates={predefinedTemplates}
           onCancel={() => setModal(null)}
           onSubmit={createTemplate}
         />

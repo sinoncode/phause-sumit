@@ -85,7 +85,6 @@ export function CampaignCreate() {
         </section>
       ) : (
         <CampaignForm
-          templates={templates}
           initial={{ templateId }}
           onSubmit={submit}
         />
