@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { CampaignForm } from '../../features/campaigns/CampaignForm';
 import { useCampaignStore } from '../../stores/campaign.store';
@@ -8,10 +8,13 @@ import type { CreateCampaignInput } from '../../features/campaigns/types';
 
 export function CampaignCreate() {
   const navigate = useNavigate();
-  const { templates, load, createCampaign } = useCampaignStore();
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get('templateId') ?? '';
+  const { templates, load, createCampaign, isLoading, error: loadError } = useCampaignStore();
   const [error, setError] = useState('');
 
-  useEffect(() => { if (!templates.length) void load(); }, [templates.length, load]);
+  useEffect(() => { void load(); }, [load]);
+  const selectedTemplate = templates.find((template) => template.id === templateId);
 
   const submit = async (input: CreateCampaignInput) => {
     setError('');
@@ -64,7 +67,29 @@ export function CampaignCreate() {
         </div>
       )}
 
-      <CampaignForm templates={templates} onSubmit={submit} />
+      {isLoading ? (
+        <p role="status" style={{ color: 'var(--ax-text-muted)' }}>Loading templates…</p>
+      ) : !templateId || !selectedTemplate ? (
+        <section className="ax-card" role="region" aria-label="Choose a campaign template">
+          <div className="ax-card__body">
+            <h2 className="ax-card__title">Choose a template first</h2>
+            <p className="ax-card__subtitle" style={{ marginBlockStart: 'var(--ax-space-2)' }}>
+              {loadError || (templateId
+                ? 'The selected template is no longer available.'
+                : 'Select a saved template on the Templates page before configuring a campaign.')}
+            </p>
+            <Link className="ax-btn ax-btn--primary" to="/templates" style={{ marginBlockStart: 'var(--ax-space-4)' }}>
+              Go to templates
+            </Link>
+          </div>
+        </section>
+      ) : (
+        <CampaignForm
+          templates={templates}
+          initial={{ templateId }}
+          onSubmit={submit}
+        />
+      )}
     </>
   );
 }

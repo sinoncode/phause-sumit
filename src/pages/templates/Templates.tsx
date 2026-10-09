@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHead } from "../../components/shell/PageHead";
 import {
   listTemplates,
@@ -6,6 +7,7 @@ import {
   updateTemplate as updateTemplateApi,
   deleteTemplate as deleteTemplateApi,
   listPredefinedTemplates,
+  createTemplateFromPredefined,
   type PredefinedTemplate,
 } from "../../api/templates/templates.api";
 import { useApiErrorHandler } from "../../hooks/useApiErrorHandler";
@@ -631,9 +633,11 @@ function TemplateDetails({
 }
 
 export function Templates() {
+  const navigate = useNavigate();
   const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
   const [predefinedTemplates, setPredefinedTemplates] = useState<PredefinedTemplate[]>([]);
   const [loadError, setLoadError] = useState('');
+  const [addingPresetKey, setAddingPresetKey] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalState>(null);
   const handleApiError = useApiErrorHandler();
 
@@ -654,6 +658,18 @@ export function Templates() {
       setModal(null);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Unable to create template.');
+    }
+  };
+  const addPredefinedTemplate = async (preset: PredefinedTemplate) => {
+    setAddingPresetKey(preset.key);
+    setLoadError('');
+    try {
+      const created = await createTemplateFromPredefined(preset.key);
+      setTemplates((current) => [created, ...current]);
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Unable to add predefined template.');
+    } finally {
+      setAddingPresetKey(null);
     }
   };
   const updateTemplate = async (values: TemplateFormValues) => {
@@ -703,6 +719,66 @@ export function Templates() {
         </button>
       </div>
       <div className="ax-dash-grid">
+        <section
+          className="ax-card ax-col--12"
+          role="region"
+          aria-label="Predefined phishing templates"
+        >
+          <div className="ax-card__header">
+            <div className="ax-card__titles">
+              <h2 className="ax-card__title">Predefined templates</h2>
+              <p className="ax-card__subtitle">
+                {predefinedTemplates.length} built-in template{predefinedTemplates.length === 1 ? "" : "s"} available to add to your organisation.
+              </p>
+            </div>
+          </div>
+          {predefinedTemplates.length === 0 ? (
+            <div className="ax-card__body">
+              <p style={{ color: "var(--ax-text-muted)", margin: 0 }}>
+                {loadError ? "The predefined templates could not be loaded." : "Loading predefined templates…"}
+              </p>
+            </div>
+          ) : (
+            <div className="ax-table-wrap" style={{ overflowX: "auto" }}>
+              <table className="ax-table ax-table--hover">
+                <thead className="ax-table__head">
+                  <tr>
+                    {["Name", "Description", "Subject", "Difficulty", "Actions"].map((heading) => (
+                      <th className="ax-table__th" scope="col" key={heading}>{heading}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {predefinedTemplates.map((preset) => {
+                    const alreadyAdded = templates.some((template) => template.name === preset.name);
+                    return (
+                      <tr className="ax-table__row" key={preset.key}>
+                        <td className="ax-table__td" style={{ color: "var(--ax-text-strong)", fontWeight: "var(--ax-weight-medium)", minWidth: 200 }}>
+                          {preset.name}
+                        </td>
+                        <td className="ax-table__td" style={{ minWidth: 260 }}>{preset.description}</td>
+                        <td className="ax-table__td" style={{ minWidth: 260 }}>{preset.subject}</td>
+                        <td className="ax-table__td">
+                          <span className="ax-badge ax-badge--soft ax-badge--pill">{preset.difficulty}</span>
+                        </td>
+                        <td className="ax-table__td">
+                          <button
+                            type="button"
+                            className="ax-btn ax-btn--secondary ax-btn--sm"
+                            disabled={alreadyAdded || addingPresetKey !== null}
+                            onClick={() => void addPredefinedTemplate(preset)}
+                          >
+                            {addingPresetKey === preset.key ? "Adding…" : alreadyAdded ? "Added" : "Add to my templates"}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
         <section
           className="ax-card ax-col--12"
           role="region"
@@ -800,6 +876,13 @@ export function Templates() {
                           onClick={() => setModal({ detail: template })}
                         >
                           Details
+                        </button>
+                        <button
+                          type="button"
+                          className="ax-btn ax-btn--primary ax-btn--sm"
+                          onClick={() => navigate(`/api/campaigns/new?templateId=${encodeURIComponent(template.id)}`)}
+                        >
+                          Use in campaign
                         </button>
                       </div>
                     </td>
