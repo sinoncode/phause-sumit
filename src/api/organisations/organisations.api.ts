@@ -56,14 +56,12 @@ export async function createOrganisation(values: {
   verifyDomain: string[];
   region: string;
   disclaimerEnabled: boolean;
-  eventRetentionMonths: number;
 }): Promise<OrganisationRecord> {
   const raw = await apiClient.post<Record<string, unknown>>('/api/organizations', getAppToken, {
     name:                 values.name,
     verifiedEmailDomains: values.verifyDomain,
     region:               values.region,
     disclaimerEnabled:    values.disclaimerEnabled,
-    eventRetentionMonths: values.eventRetentionMonths,
   });
   return adapt(raw);
 }
