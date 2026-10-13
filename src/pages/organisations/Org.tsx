@@ -74,7 +74,6 @@ interface CreateOrgFormState {
   verifyDomain: string[];
   region: string;
   disclaimerEnabled: boolean;
-  eventRetentionMonths: number;
 }
 
 function CreateOrganisationModal({
@@ -89,7 +88,6 @@ function CreateOrganisationModal({
   const [domainInput, setDomainInput] = useState('');
   const [region, setRegion] = useState(REGIONS[0]);
   const [disclaimerEnabled, setDisclaimerEnabled] = useState(true);
-  const [eventRetentionMonths, setEventRetentionMonths] = useState(12);
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -101,6 +99,11 @@ function CreateOrganisationModal({
     const value = domainInput.trim().toLowerCase();
     if (!value) return;
     if (!domainRe.test(value)) { setError('Enter a valid domain, like acme.com.'); return; }
+    if (domains.length > 0) { setError('Only one verified email domain is allowed.'); return; }
+    if (value !== name.trim().toLowerCase()) {
+      setError('The verified email domain must exactly match the organisation name.');
+      return;
+    }
     if (domains.includes(value)) { setDomainInput(''); return; }
     setDomains((d) => [...d, value]);
     setDomainInput('');
@@ -119,10 +122,15 @@ function CreateOrganisationModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (domains.length === 0) { setError('Add at least one verified email domain.'); return; }
+    if (domains.length > 1) { setError('Only one verified email domain is allowed.'); return; }
+    if (domains[0] !== name.trim().toLowerCase()) {
+      setError('The verified email domain must exactly match the organisation name.');
+      return;
+    }
     setBusy(true);
     setError('');
     try {
-      await onSubmit({ name: name.trim(), verifyDomain: domains, region, disclaimerEnabled, eventRetentionMonths });
+      await onSubmit({ name: name.trim(), verifyDomain: domains, region, disclaimerEnabled });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
       setBusy(false);
@@ -192,12 +200,13 @@ function CreateOrganisationModal({
                   id="co-domain"
                   className="ax-input"
                   type="text"
-                  placeholder="acme.com"
+                  placeholder={name.trim() || 'acme.com'}
                   value={domainInput}
                   onChange={(e) => setDomainInput(e.target.value)}
                   onKeyDown={handleDomainKeyDown}
+                  disabled={domains.length > 0}
                 />
-                <button type="button" className="ax-btn ax-btn--secondary ax-input-group__addon" onClick={addDomain}>
+                <button type="button" className="ax-btn ax-btn--secondary ax-input-group__addon" onClick={addDomain} disabled={domains.length > 0}>
                   Add
                 </button>
               </div>
@@ -222,7 +231,7 @@ function CreateOrganisationModal({
                   ))}
                 </div>
               )}
-              <p className="ax-field__hint">Press Enter or comma to add each domain.</p>
+              <p className="ax-field__hint">Add one domain matching the organisation name exactly.</p>
             </div>
 
             <div className="ax-field">
@@ -245,20 +254,6 @@ function CreateOrganisationModal({
                 <option value="true">True</option>
                 <option value="false">False</option>
               </select>
-            </div>
-
-            <div className="ax-field">
-              <label className="ax-field__label" htmlFor="co-retention">Event retention (months)</label>
-              <input
-                id="co-retention"
-                className="ax-input"
-                type="number"
-                min={1}
-                max={60}
-                value={eventRetentionMonths}
-                onChange={(e) => setEventRetentionMonths(Number(e.target.value))}
-                required
-              />
             </div>
 
             {error && <p className="ax-field__error">{error}</p>}
