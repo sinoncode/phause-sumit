@@ -21,6 +21,7 @@
 
 import { API_BASE_URL, ApiError, apiClient } from '../client';
 import { getAppToken, useAuthStore } from '../../stores/auth.store';
+import { listAdminOrganizations } from '../organisations/orgUsers.api';
 import type {
   DepartmentRisk,
   EmployeeRiskScore,
@@ -100,13 +101,36 @@ export async function getReport(reportId: string): Promise<ReportSummary | null>
 export async function downloadReport(reportId: string, format: 'csv' | 'pdf'): Promise<void> {
   const token = getAppToken();
   if (!token) throw new ApiError(401, null, 'Sign in is required to export reports.');
+  let { orgId, userRole } = useAuthStore.getState();
+  if (userRole === 'admin' && !orgId) {
+    const organizations = await listAdminOrganizations();
+    orgId = organizations[0]?.id || null;
+    if (!orgId) {
+      throw new ApiError(
+        400,
+        null,
+        'No organization is available. Create an organization before exporting reports.',
+      );
+    }
+    useAuthStore.getState().setOrgId(orgId);
+  }
+  const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+  if (orgId) headers['x-tenant-id'] = orgId;
   const response = await fetch(`${API_BASE_URL}/api/reports/${encodeURIComponent(reportId)}/export.${format}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers,
   });
   if (!response.ok) {
-    if (response.status === 401) useAuthStore.getState().clearAll();
     let body: unknown;
     try { body = await response.json(); } catch { body = await response.text(); }
+    if (response.status === 401) {
+      const message =
+        body && typeof body === 'object' && 'message' in body
+          ? body.message
+          : undefined;
+      if (message !== 'x-tenant-id is required for platform-admin module access') {
+        useAuthStore.getState().clearAll();
+      }
+    }
     throw new ApiError(response.status, body, `GET report export → ${response.status}`);
   }
   const objectUrl = URL.createObjectURL(await response.blob());
