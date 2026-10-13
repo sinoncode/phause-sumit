@@ -57,6 +57,8 @@ function adaptCampaign(raw: Record<string, unknown>): Campaign {
     scheduledAt:          raw.scheduledAt ? String(raw.scheduledAt) : null,
     status:               (raw.status === 'sent' || raw.status === 'completed'
       ? 'completed'
+      : raw.status === 'failed'
+        ? 'failed'
       : raw.status === 'sending' || raw.status === 'running'
         ? 'running'
         : raw.status === 'pending'

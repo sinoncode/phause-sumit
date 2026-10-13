@@ -1,4 +1,4 @@
-export type CampaignStatus = 'draft' | 'scheduled' | 'running' | 'completed' | 'cancelled';
+export type CampaignStatus = 'draft' | 'scheduled' | 'running' | 'completed' | 'cancelled' | 'failed';
 export type TargetMode = 'all' | 'segment' | 'percentage';
 
 export interface CampaignTemplate {

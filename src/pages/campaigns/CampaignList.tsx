@@ -4,6 +4,7 @@ import { PageHead } from '../../components/shell/PageHead';
 import { useCampaignStore } from '../../stores/campaign.store';
 import type { Campaign, CampaignStatus } from '../../features/campaigns/types';
 import { CampaignFilters, CampaignTable, ConfirmDialog } from '../../features/campaigns/components';
+import { ApiError } from '../../api/client';
 
 export function CampaignList() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export function CampaignList() {
   const [templateId, setTemplateId] = useState('all');
   const [dispatchTarget, setDispatchTarget] = useState<Campaign | null>(null);
   const [dispatching, setDispatching] = useState(false);
+  const [dispatchError, setDispatchError] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<Campaign | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
@@ -29,11 +31,25 @@ export function CampaignList() {
   const handleDispatch = async () => {
     if (!dispatchTarget) return;
     setDispatching(true);
+    setDispatchError('');
     try {
       await dispatchCampaign(dispatchTarget.id);
       setDispatchTarget(null);
     } catch (err) {
-      console.error('Dispatch failed:', err);
+      const responseMessage = err instanceof ApiError &&
+        err.body && typeof err.body === 'object' && 'message' in err.body
+        ? err.body.message
+        : undefined;
+      setDispatchError(
+        typeof responseMessage === 'string'
+          ? responseMessage
+          : Array.isArray(responseMessage)
+            ? responseMessage.join(' ')
+            : err instanceof Error
+              ? err.message
+              : 'Unable to dispatch campaign.',
+      );
+      await load();
     } finally {
       setDispatching(false);
     }
@@ -61,7 +77,9 @@ export function CampaignList() {
     {dispatchTarget && (
       <ConfirmDialog
         title={`Dispatch "${dispatchTarget.name}"?`}
-        body="This will send phishing simulation emails to all eligible employees in your organisation. This action cannot be undone."
+        body={dispatchError
+          ? <span role="alert">{dispatchError}</span>
+          : 'This will send phishing simulation emails to all eligible employees in your organisation. This action cannot be undone.'}
         confirmLabel={dispatching ? 'Dispatching…' : 'Dispatch campaign'}
         onCancel={() => setDispatchTarget(null)}
         onConfirm={() => void handleDispatch()}
