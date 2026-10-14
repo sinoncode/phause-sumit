@@ -99,11 +99,6 @@ function CreateOrganisationModal({
     const value = domainInput.trim().toLowerCase();
     if (!value) return;
     if (!domainRe.test(value)) { setError('Enter a valid domain, like acme.com.'); return; }
-    if (domains.length > 0) { setError('Only one verified email domain is allowed.'); return; }
-    if (value !== name.trim().toLowerCase()) {
-      setError('The verified email domain must exactly match the organisation name.');
-      return;
-    }
     if (domains.includes(value)) { setDomainInput(''); return; }
     setDomains((d) => [...d, value]);
     setDomainInput('');
@@ -122,15 +117,15 @@ function CreateOrganisationModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (domains.length === 0) { setError('Add at least one verified email domain.'); return; }
-    if (domains.length > 1) { setError('Only one verified email domain is allowed.'); return; }
-    if (domains[0] !== name.trim().toLowerCase()) {
-      setError('The verified email domain must exactly match the organisation name.');
-      return;
-    }
     setBusy(true);
     setError('');
     try {
-      await onSubmit({ name: name.trim(), verifyDomain: domains, region, disclaimerEnabled });
+      await onSubmit({
+        name: name.trim(),
+        verifyDomain: domains.map((domain) => domain.trim().toLowerCase()),
+        region,
+        disclaimerEnabled,
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
       setBusy(false);
@@ -200,13 +195,12 @@ function CreateOrganisationModal({
                   id="co-domain"
                   className="ax-input"
                   type="text"
-                  placeholder={name.trim() || 'acme.com'}
+                  placeholder="acme.com"
                   value={domainInput}
                   onChange={(e) => setDomainInput(e.target.value)}
                   onKeyDown={handleDomainKeyDown}
-                  disabled={domains.length > 0}
                 />
-                <button type="button" className="ax-btn ax-btn--secondary ax-input-group__addon" onClick={addDomain} disabled={domains.length > 0}>
+                <button type="button" className="ax-btn ax-btn--secondary ax-input-group__addon" onClick={addDomain}>
                   Add
                 </button>
               </div>
@@ -231,7 +225,7 @@ function CreateOrganisationModal({
                   ))}
                 </div>
               )}
-              <p className="ax-field__hint">Add one domain matching the organisation name exactly.</p>
+              <p className="ax-field__hint">Add one or more verified email domains.</p>
             </div>
 
             <div className="ax-field">
