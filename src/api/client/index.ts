@@ -5,7 +5,8 @@ import { refreshToken } from '../auth/auth.api';
  * Phause — HTTP client.
  *
  * Thin fetch wrapper that:
- * - Prefixes every request with VITE_API_URL
+ * - Uses VITE_API_URL when configured, otherwise sends requests through the
+ *   same-origin /api proxy (Vite in development, Vercel in production)
  * - Attaches Authorization header from the token getter passed in
  * - Deduplicates identical in-flight GET requests (same URL + token)
  * - Retries once on 429 after the Retry-After delay (or 5 s fallback)
@@ -27,7 +28,7 @@ export class ApiError extends Error {
 }
 
 const configuredBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? '';
-export const API_BASE_URL = (configuredBase || 'https://phishingsimulation.webandappdevelopmenttech.com')
+export const API_BASE_URL = configuredBase
   .replace(/\/+$/, '')
   .replace(/\/api$/i, '');
 

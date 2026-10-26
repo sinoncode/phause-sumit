@@ -7,7 +7,7 @@ import tailwindcss from '@tailwindcss/vite';
 // DEV PROXY — all backend API calls go through /api/*.  Vite proxies them to
 // the real backend so the browser sees same-origin requests (no CORS).
 // The /admin proxy rule has been removed — admin login is POST /api/admin/login.
-const BACKEND = 'https://phishingsimulation.webandappdevelopmenttech.com';
+const BACKEND = 'http://phishingsimulation.webandappdevelopmenttech.com';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
