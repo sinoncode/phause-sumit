@@ -5,7 +5,8 @@ import { refreshToken } from '../auth/auth.api';
  * Phause — HTTP client.
  *
  * Thin fetch wrapper that:
- * - Prefixes every request with VITE_API_URL
+ * - Uses VITE_API_URL when configured, otherwise sends requests through the
+ *   same-origin /api proxy (Vite in development, Vercel in production)
  * - Attaches Authorization header from the token getter passed in
  * - Deduplicates identical in-flight GET requests (same URL + token)
  * - Retries once on 429 after the Retry-After delay (or 5 s fallback)
@@ -28,13 +29,7 @@ export class ApiError extends Error {
 
 const productionApiBase = 'https://phishingsimulation.webandappdevelopmenttech.com';
 const configuredBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? '';
-const requestedBase = configuredBase || productionApiBase;
-
-// Never allow an HTTP backend URL when this application is deployed over HTTPS.
-// Prefer the dedicated production API so Vercel environment variables containing
-// an old IP address cannot introduce mixed-content requests.
-export const API_BASE_URL = (import.meta.env.PROD ? productionApiBase : requestedBase)
-  .replace(/^http:/i, 'https:')
+export const API_BASE_URL = (configuredBase || 'https://phishingsimulation.webandappdevelopmenttech.com')
   .replace(/\/+$/, '')
   .replace(/\/api$/i, '');
 
