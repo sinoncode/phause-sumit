@@ -27,11 +27,11 @@ export class ApiError extends Error {
   }
 }
 
-const productionApiBase = 'http://82.29.162.169';
 const configuredBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? '';
-export const API_BASE_URL = (configuredBase || 'http://82.29.162.169')
-  .replace(/\/+$/, '')
-  .replace(/\/api$/i, '');
+const developmentApiBase = configuredBase || 'http://82.29.162.169';
+export const API_BASE_URL = import.meta.env.PROD
+  ? ''
+  : developmentApiBase.replace(/\/+$/, '').replace(/\/api$/i, '');
 
 type TokenGetter = () => string | null;
 
