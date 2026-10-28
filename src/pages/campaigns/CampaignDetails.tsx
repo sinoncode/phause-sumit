@@ -3,39 +3,8 @@ import { Link, useParams, useLocation } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { CampaignForm } from '../../features/campaigns/CampaignForm';
 import { CampaignStatusBadge, ConfirmDialog } from '../../features/campaigns/components';
+import { TrainingVideo } from '../../features/campaigns/TrainingVideo';
 import { useCampaignStore } from '../../stores/campaign.store';
-
-function TrainingVideo({ contentRef, title }: { contentRef: string; title: string }) {
-  if (!contentRef) return null;
-
-  let embedUrl = '';
-  try {
-    const url = new URL(contentRef);
-    const youtubeId = url.hostname.includes('youtu.be')
-      ? url.pathname.slice(1).split('/')[0]
-      : url.searchParams.get('v') || url.pathname.match(/\/embed\/([^/]+)/)?.[1] || '';
-    if ((url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be')) && youtubeId) {
-      embedUrl = `https://www.youtube.com/embed/${youtubeId}`;
-    } else if (url.hostname.includes('vimeo.com')) {
-      const vimeoId = url.pathname.match(/\/(\d+)/)?.[1];
-      if (vimeoId) embedUrl = `https://player.vimeo.com/video/${vimeoId}`;
-    }
-  } catch {
-    // Relative or direct video URLs do not need conversion.
-  }
-
-  return (
-    <div style={{ aspectRatio: '16 / 9', width: '100%', overflow: 'hidden', borderRadius: 'var(--ax-radius-lg)', background: '#000' }}>
-      {embedUrl ? (
-        <iframe src={embedUrl} title={title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen style={{ width: '100%', height: '100%', border: 0 }} />
-      ) : (/\.(mp4|webm|ogg)(?:$|\?)/i).test(contentRef) ? (
-        <video src={contentRef} title={title} controls style={{ width: '100%', height: '100%' }} />
-      ) : (
-        <iframe src={contentRef} title={title} allowFullScreen style={{ width: '100%', height: '100%', border: 0 }} />
-      )}
-    </div>
-  );
-}
 
 export function CampaignDetails() {
   const { campaignId } = useParams();
@@ -47,7 +16,7 @@ export function CampaignDetails() {
   const [notice, setNotice] = useState<string | null>((location.state as { notice?: string } | null)?.notice ?? null);
   const campaign = campaignId ? getCampaign(campaignId) : undefined;
 
-  useEffect(() => { if (!campaigns.length) void load(); }, [campaigns.length, load]);
+  useEffect(() => { void load(); }, [load]);
   useEffect(() => { if (notice) window.history.replaceState({}, document.title); }, [notice]);
 
   if (!campaign) return <><PageHead title="Campaign details" subtitle="Loading campaign…" /><p style={{ color: 'var(--ax-text-muted)' }}>The campaign may still be loading or may no longer exist.</p></>;

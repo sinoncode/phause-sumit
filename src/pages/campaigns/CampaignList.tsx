@@ -19,7 +19,7 @@ export function CampaignList() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
-  useEffect(() => { if (!campaigns.length) void load(); }, [campaigns.length, load]);
+  useEffect(() => { void load(); }, [load]);
 
   const filtered = useMemo(() => campaigns.filter((campaign) => {
     const matchesSearch = campaign.name.toLowerCase().includes(search.toLowerCase());
