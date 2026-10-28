@@ -13,10 +13,18 @@ export interface CampaignTargeting {
   targetSamplePercent: number | null;
 }
 
+export interface CampaignTrainingVideo {
+  id: string;
+  name: string;
+  category: string;
+  contentRef: string;
+}
+
 export interface Campaign {
   id: string;
   name: string;
   templateId: string;
+  trainingVideo: CampaignTrainingVideo | null;
   targeting: CampaignTargeting;
   staggerWindowMinutes: number;
   scheduledAt: string | null;

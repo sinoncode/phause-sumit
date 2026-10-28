@@ -43,11 +43,21 @@ function adaptCampaign(raw: Record<string, unknown>): Campaign {
   const rawTargetMode = raw.targetMode ?? raw.target_mode ?? rawTargeting.targetMode ?? rawTargeting.target_mode;
   const rawTargetSegment = raw.targetSegment ?? raw.target_segment ?? rawTargeting.targetSegment ?? rawTargeting.target_segment;
   const rawTargetSamplePercent = raw.targetSamplePercent ?? raw.target_sample_percent ?? rawTargeting.targetSamplePercent ?? rawTargeting.target_sample_percent;
+  const rawTrainingVideo = raw.trainingVideo ?? raw.training_video;
+  const trainingVideo = rawTrainingVideo && typeof rawTrainingVideo === 'object'
+    ? rawTrainingVideo as Record<string, unknown>
+    : null;
 
   return {
     id:                   String(raw.id ?? ''),
     name:                 String(raw.name ?? ''),
     templateId:           String(raw.templateId ?? raw.template_id ?? ''),
+    trainingVideo:        trainingVideo ? {
+      id:                 String(trainingVideo.id ?? ''),
+      name:               String(trainingVideo.name ?? raw.name ?? ''),
+      category:           String(trainingVideo.category ?? ''),
+      contentRef:         String(trainingVideo.contentRef ?? trainingVideo.content_ref ?? ''),
+    } : null,
     targeting: {
       targetMode:         ((rawTargetMode) === 'random' ? 'percentage' : (rawTargetMode) === 'department' ? 'segment' : rawTargetMode ?? 'all') as Campaign['targeting']['targetMode'],
       targetSegment:      String(rawTargetSegment ?? '').replace(/^department:/, ''),
