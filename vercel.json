@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "http://82.29.162.169/api/:path*"
+      "destination": "https://phishingsimulation.webandappdevelopmenttech.com/api/:path*"
     },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
