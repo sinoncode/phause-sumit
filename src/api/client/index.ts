@@ -27,9 +27,9 @@ export class ApiError extends Error {
   }
 }
 
-const productionApiBase = 'https://phishingsimulation.webandappdevelopmenttech.com';
+const productionApiBase = 'http://82.29.162.169';
 const configuredBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? '';
-export const API_BASE_URL = (configuredBase || 'https://phishingsimulation.webandappdevelopmenttech.com')
+export const API_BASE_URL = (configuredBase || 'http://82.29.162.169')
   .replace(/\/+$/, '')
   .replace(/\/api$/i, '');
 
