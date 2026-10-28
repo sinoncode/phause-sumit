@@ -87,7 +87,10 @@ function CreateModuleModal({ onClose, onSave }: { onClose: () => void; onSave: (
           <div className="ax-card__body" style={{ display:'grid', gap:'var(--ax-space-4)' }}>
             <div className="ax-field">
               <label className="ax-label" htmlFor="tm-title">Title</label>
-              <input id="tm-title" className="ax-input" value={form.title} onChange={(e) => set('title', e.target.value)} required />
+              <input id="tm-title" className="ax-input" value={form.title} placeholder="Enter the exact campaign name to link this video" onChange={(e) => set('title', e.target.value)} required />
+              <p className="ax-field__hint">
+                To show this module on a campaign, its title must match the campaign name (case and extra spaces do not matter).
+              </p>
             </div>
             <div className="ax-field">
               <label className="ax-label" htmlFor="tm-cat">Category</label>
@@ -96,8 +99,11 @@ function CreateModuleModal({ onClose, onSave }: { onClose: () => void; onSave: (
             </div>
             <div className="ax-field">
               <label className="ax-label" htmlFor="tm-content-ref">Content reference</label>
-              <input id="tm-content-ref" className="ax-input" value={form.contentRef} placeholder="URL or internal content ID"
+              <input id="tm-content-ref" className="ax-input" value={form.contentRef} placeholder="YouTube, Vimeo, or direct MP4/WebM video URL"
                 onChange={(e) => set('contentRef', e.target.value)} required />
+              <p className="ax-field__hint">
+                The URL must be publicly playable or embeddable. Upload the video to a video host first; this field does not upload files.
+              </p>
             </div>
             {error && <p role="alert" className="ax-field__error">{error}</p>}
           </div>
