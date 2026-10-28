@@ -166,7 +166,7 @@ function CreateOrganisationModal({
       >
         <div className="ax-card__header">
           <div className="ax-card__titles">
-            <h2 className="ax-card__title" id={titleId}>Create organisation</h2>
+            <h2 className="ax-card__title" id={titleId}>Create Networsys organisation</h2>
           </div>
           <button type="button" className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" aria-label="Close" onClick={onCancel}>
             {ICON_CLOSE}
