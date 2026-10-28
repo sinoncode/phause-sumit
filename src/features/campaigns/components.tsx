@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Campaign, CampaignStatus, CampaignTemplate, CreateCampaignInput } from './types';
+import { TrainingVideo } from './TrainingVideo';
 
 export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {
   const tone = status === 'completed' ? 'success' : status === 'cancelled' || status === 'failed' ? 'danger' : status === 'running' ? 'accent' : status === 'scheduled' ? 'warning' : 'neutral';
@@ -16,7 +17,95 @@ export function CampaignFilters({ search, status, templateId, templates, onSearc
 
 export function CampaignTable({ campaigns, templates, onView, onDispatch, onDelete }: { campaigns: Campaign[]; templates: CampaignTemplate[]; onView: (campaign: Campaign) => void; onDispatch?: (campaign: Campaign) => void; onDelete?: (campaign: Campaign) => void }) {
   const templateName = (id: string) => templates.find((template) => template.id === id)?.name ?? id;
-  return <section className="ax-card ax-col--12" role="region" aria-label="Campaigns"><div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Campaigns</h2><p className="ax-card__subtitle">{campaigns.length} campaign{campaigns.length === 1 ? '' : 's'}</p></div></div><div className="ax-table-wrap"><table className="ax-table ax-table--hover"><thead className="ax-table__head"><tr>{['Campaign', 'Template', 'Target', 'Scheduled', 'Status', 'Actions'].map((heading) => <th className="ax-table__th" scope="col" key={heading}>{heading}</th>)}</tr></thead><tbody>{campaigns.map((campaign) => <tr className="ax-table__row" key={campaign.id}><td className="ax-table__td"><div style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>{campaign.name}</div><div className="ax-num" style={{ color: 'var(--ax-text-subtle)', fontSize: 'var(--ax-text-xs)' }}>{campaign.id}</div></td><td className="ax-table__td">{templateName(campaign.templateId)}</td><td className="ax-table__td">{campaign.targeting.targetSegment}<br /><span style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-xs)' }}>{campaign.targeting.targetMode}{campaign.targeting.targetSamplePercent ? ` · ${campaign.targeting.targetSamplePercent}%` : ''}</span></td><td className="ax-table__td">{campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : 'Immediate'}</td><td className="ax-table__td"><CampaignStatusBadge status={campaign.status} /></td><td className="ax-table__td" style={{ whiteSpace: 'nowrap' }}>{(campaign.status === 'draft' || campaign.status === 'scheduled' || campaign.status === 'failed') && onDispatch && (<button type="button" className="ax-btn ax-btn--primary ax-btn--sm" style={{ marginRight: 'var(--ax-space-2)' }} onClick={(e) => { e.stopPropagation(); onDispatch(campaign); }}>{campaign.status === 'failed' ? 'Retry' : 'Dispatch'}</button>)}<button type="button" className="ax-btn ax-btn--ghost ax-btn--sm" onClick={() => onView(campaign)}>Open</button>{(campaign.status === 'draft' || campaign.status === 'failed' || campaign.status === 'completed') && onDelete && <button type="button" className="ax-btn ax-btn--danger ax-btn--sm" style={{ marginLeft: 'var(--ax-space-2)' }} onClick={() => onDelete(campaign)}>Delete</button>}</td></tr>)}</tbody></table></div></section>;
+  return (
+    <section className="ax-card ax-col--12" role="region" aria-label="Campaigns">
+      <div className="ax-card__header">
+        <div className="ax-card__titles">
+          <h2 className="ax-card__title">Campaigns</h2>
+          <p className="ax-card__subtitle">{campaigns.length} campaign{campaigns.length === 1 ? '' : 's'}</p>
+        </div>
+      </div>
+      <div className="ax-table-wrap">
+        <table className="ax-table ax-table--hover">
+          <thead className="ax-table__head">
+            <tr>
+              {['Campaign', 'Template', 'Training video', 'Target', 'Scheduled', 'Status', 'Actions'].map((heading) => (
+                <th className="ax-table__th" scope="col" key={heading}>{heading}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {campaigns.map((campaign) => (
+              <tr className="ax-table__row" key={campaign.id}>
+                <td className="ax-table__td">
+                  <div style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>{campaign.name}</div>
+                  <div className="ax-num" style={{ color: 'var(--ax-text-subtle)', fontSize: 'var(--ax-text-xs)' }}>{campaign.id}</div>
+                </td>
+                <td className="ax-table__td">{templateName(campaign.templateId)}</td>
+                <td className="ax-table__td" style={{ minWidth: 220 }}>
+                  {campaign.trainingVideo?.contentRef ? (
+                    <div style={{ display: 'grid', gap: 'var(--ax-space-2)' }}>
+                      <span style={{ color: 'var(--ax-text-strong)', fontSize: 'var(--ax-text-xs)' }}>
+                        {campaign.trainingVideo.name}
+                      </span>
+                      <TrainingVideo
+                        contentRef={campaign.trainingVideo.contentRef}
+                        title={campaign.trainingVideo.name}
+                        maxWidth={220}
+                      />
+                    </div>
+                  ) : (
+                    <span style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-xs)' }}>
+                      No matching training video
+                    </span>
+                  )}
+                </td>
+                <td className="ax-table__td">
+                  {campaign.targeting.targetSegment}
+                  <br />
+                  <span style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-xs)' }}>
+                    {campaign.targeting.targetMode}{campaign.targeting.targetSamplePercent ? ` · ${campaign.targeting.targetSamplePercent}%` : ''}
+                  </span>
+                </td>
+                <td className="ax-table__td">
+                  {campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : 'Immediate'}
+                </td>
+                <td className="ax-table__td"><CampaignStatusBadge status={campaign.status} /></td>
+                <td className="ax-table__td" style={{ whiteSpace: 'nowrap' }}>
+                  {(campaign.status === 'draft' || campaign.status === 'scheduled' || campaign.status === 'failed') && onDispatch && (
+                    <button
+                      type="button"
+                      className="ax-btn ax-btn--primary ax-btn--sm"
+                      style={{ marginRight: 'var(--ax-space-2)' }}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onDispatch(campaign);
+                      }}
+                    >
+                      {campaign.status === 'failed' ? 'Retry' : 'Dispatch'}
+                    </button>
+                  )}
+                  <button type="button" className="ax-btn ax-btn--ghost ax-btn--sm" onClick={() => onView(campaign)}>
+                    Open
+                  </button>
+                  {(campaign.status === 'draft' || campaign.status === 'failed' || campaign.status === 'completed') && onDelete && (
+                    <button
+                      type="button"
+                      className="ax-btn ax-btn--danger ax-btn--sm"
+                      style={{ marginLeft: 'var(--ax-space-2)' }}
+                      onClick={() => onDelete(campaign)}
+                    >
+                      Delete
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
 }
 
 export function CampaignReview({ input }: { input: CreateCampaignInput }) {
