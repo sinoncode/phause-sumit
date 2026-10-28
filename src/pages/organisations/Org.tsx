@@ -256,7 +256,7 @@ function CreateOrganisationModal({
           <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end', gap: 'var(--ax-space-3)' }}>
             <button type="button" className="ax-btn ax-btn--secondary" onClick={onCancel}>Cancel</button>
             <button type="submit" className="ax-btn ax-btn--primary" disabled={busy}>
-              <span className="ax-btn__label">{busy ? 'Creating…' : 'Create organisation'}</span>
+              <span className="ax-btn__label">{busy ? 'Creating…' : 'Create Networsys organisation'}</span>
             </button>
           </div>
         </form>
