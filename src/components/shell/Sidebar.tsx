@@ -197,7 +197,7 @@ export function Sidebar({ drawerOpen = false }: { drawerOpen?: boolean }) {
             tabIndex={activeSlug === 'dashboard' || activeSlug === '' ? 0 : -1}
           >
             <Icon name="layout-dashboard" className="ax-nav__icon" />
-            <span className="ax-nav__label">Phishing simluation Dashboard </span>
+            <span className="ax-nav__label">Phause Dashboard </span>
           </Link>
         )}
 
