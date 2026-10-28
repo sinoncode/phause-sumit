@@ -26,8 +26,15 @@ export class ApiError extends Error {
   }
 }
 
+const productionApiBase = 'https://phishingsimulation.webandappdevelopmenttech.com';
 const configuredBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? '';
-export const API_BASE_URL = (configuredBase || 'https://phishingsimulation.webandappdevelopmenttech.com')
+const requestedBase = configuredBase || productionApiBase;
+
+// Never allow an HTTP backend URL when this application is deployed over HTTPS.
+// Prefer the dedicated production API so Vercel environment variables containing
+// an old IP address cannot introduce mixed-content requests.
+export const API_BASE_URL = (import.meta.env.PROD ? productionApiBase : requestedBase)
+  .replace(/^http:/i, 'https:')
   .replace(/\/+$/, '')
   .replace(/\/api$/i, '');
 
