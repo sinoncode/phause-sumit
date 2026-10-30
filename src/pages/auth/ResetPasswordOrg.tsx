@@ -7,10 +7,12 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthStandalone, OffappTools, BrandInline } from './authShared';
+import { apiClient } from '../../api/client';
 
 export function ResetPasswordOrg() {
   const [email, setEmail] = useState('');
   const [emailErr, setEmailErr] = useState('');
+  const [requestError, setRequestError] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [masked, setMasked] = useState('');
@@ -32,22 +34,34 @@ export function ResetPasswordOrg() {
     cancelAnimationFrame(raf.current);
     tick();
   }
-  function submit(ev: React.FormEvent) {
+  async function submit(ev: React.FormEvent) {
     ev.preventDefault();
     const err = !email.trim() ? 'Enter your email.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim()) ? 'Enter a valid email address.' : '';
     setEmailErr(err);
     if (err) return;
     setLoading(true);
-    setTimeout(() => {
+    setRequestError('');
+    try {
+      await apiClient.post('/api/auth/forgot-password', null, { email: email.trim().toLowerCase() });
       setLoading(false);
       setMasked(maskEmail(email.trim()));
       setSent(true);
       startCooldown();
-    }, 800);
+    } catch {
+      setRequestError('Unable to request a reset link right now. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
-  function resend() {
+  async function resend() {
     if (cooldown > 0) return;
-    startCooldown();
+    setRequestError('');
+    try {
+      await apiClient.post('/api/auth/forgot-password', null, { email: email.trim().toLowerCase() });
+      startCooldown();
+    } catch {
+      setRequestError('Unable to resend the reset link right now. Please try again.');
+    }
   }
 
   return (
@@ -67,6 +81,7 @@ export function ResetPasswordOrg() {
                     <h1 style={{ margin: 0, fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-2xl)', fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)', letterSpacing: '-.015em' }}>Reset password</h1>
                     <p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>Enter your account email and we'll send a reset link.</p>
                   </header>
+                  {requestError && <p className="ax-field__message ax-field__message--error" role="alert">{requestError}</p>}
 
                   <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }} noValidate>
                     <div className="ax-field">
@@ -98,8 +113,9 @@ export function ResetPasswordOrg() {
                   </span>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-2)' }}>
                     <h1 style={{ margin: 0, fontFamily: 'var(--ax-font-display)', fontSize: 'var(--ax-text-xl)', fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)' }}>Check your inbox</h1>
-                    <p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', lineHeight: 1.55 }}>We sent a password reset link to <b className="ax-num" style={{ color: 'var(--ax-text-strong)' }}>{masked}</b>. The link expires in 30 minutes.</p>
+                    <p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)', lineHeight: 1.55 }}>We sent a password reset link to <b className="ax-num" style={{ color: 'var(--ax-text-strong)' }}>{masked}</b>. The link expires in one hour.</p>
                   </div>
+                  {requestError && <p className="ax-field__message ax-field__message--error" role="alert">{requestError}</p>}
                   <div className="ax-center" style={{ flexDirection: 'column', gap: 'var(--ax-space-2)' }}>
                     <button type="button" className="ax-btn ax-btn--secondary ax-btn--block" disabled={cooldown > 0} onClick={resend}>
                       <span className="ax-btn__label">{cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend email'}</span>

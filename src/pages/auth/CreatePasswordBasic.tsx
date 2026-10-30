@@ -7,6 +7,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthStandalone, OffappToolsCompact, EYE, EYE_OFF } from './authShared';
+import { apiClient } from '../../api/client';
 
 const LOCAL_STYLE = `
 @keyframes ax-spin-local { to { transform: rotate(360deg); } }
@@ -22,12 +23,14 @@ const HEX = (
 export function CreatePasswordBasic() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const expired = params.get('token') === 'expired';
+  const resetToken = params.get('token') ?? '';
+  const expired = resetToken === 'expired' || !resetToken;
   const [pw, setPw] = useState('');
   const [confirm, setConfirm] = useState('');
   const [reveal, setReveal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
 
   const rules = useMemo(() => [
     { id: 'len', text: 'At least 8 characters', ok: pw.length >= 8 },
@@ -48,15 +51,20 @@ export function CreatePasswordBasic() {
   const match = confirm.length > 0 && pw === confirm;
   const canSubmit = rules.every((r) => r.ok) && match;
 
-  function submit(ev: React.FormEvent) {
+  async function submit(ev: React.FormEvent) {
     ev.preventDefault();
     if (!canSubmit) return;
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    setError('');
+    try {
+      await apiClient.post('/api/auth/reset-password', null, { token: resetToken, password: pw });
       setDone(true);
       setTimeout(() => navigate('/auth/sign-in-org'), 1400);
-    }, 650);
+    } catch {
+      setError('This reset link is invalid or expired. Request a new link to continue.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -102,6 +110,7 @@ export function CreatePasswordBasic() {
 
                   {!done && (
                     <form className="ax-stack" onSubmit={submit} noValidate>
+                      {error && <div className="ax-alert ax-alert--danger" role="alert"><div className="ax-alert__content"><p className="ax-alert__message">{error}</p></div></div>}
                       <div className="ax-field">
                         <label className="ax-label" htmlFor="np">New password</label>
                         <div className="ax-field__control">

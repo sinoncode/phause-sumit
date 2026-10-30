@@ -234,6 +234,7 @@ const Widgets = lazy(() => import('./pages/Widgets'));
 const standalone: Record<string, PageComponent> = {
   'auth/coming-soon': AuthComingSoon,
   'auth/create-password-basic': AuthCreatePasswordBasic,
+  'reset-password': AuthCreatePasswordBasic,
   'auth/create-password-cover': AuthCreatePasswordCover,
   'auth/lock-screen-basic': AuthLockScreenBasic,
   'auth/lock-screen-cover': AuthLockScreenCover,

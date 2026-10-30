@@ -1,16 +1,8 @@
 /*
  * Phause — Organisation self-registration (POST /api/auth/register).
  *
- * Fields:
- *   organizationName  (required)
- *   email             (required)
- *   password          (required, ≥ 8 chars, strength meter)
- *   region            (optional)
- *
- * On success the backend returns:
- *   { accessToken, user, organization, status: 'pending_plan', nextStep: '/plans', message }
- *
- * We store the JWT and redirect to the nextStep path (usually /billing).
+ * Creates a pending registration, verifies its emailed OTP, then starts the
+ * organization-admin session returned by the API.
  */
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -49,7 +41,7 @@ function decodeJwt(token: string): Record<string, unknown> {
 
 // ── Region options (matches common AWS-style regions) ────────────────────────
 const REGIONS = [
-  { value: '',         label: 'Select a region (optional)' },
+  { value: 'India', label: 'India' },
   { value: 'us-east-1',   label: 'US East (N. Virginia)' },
   { value: 'us-west-2',   label: 'US West (Oregon)' },
   { value: 'eu-west-1',   label: 'Europe (Ireland)' },
@@ -63,18 +55,22 @@ const REGIONS = [
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function SignUpOrg() {
+  const [fullName, setFullName] = useState('');
   const [orgName, setOrgName]   = useState('');
   const [email, setEmail]       = useState('');
   const [password, setPassword] = useState('');
-  const [region, setRegion]     = useState('');
+  const [region, setRegion]     = useState('India');
   const [reveal, setReveal]     = useState(false);
   const [terms, setTerms]       = useState(false);
   const [termsTouched, setTermsTouched] = useState(false);
   const [score, setScore]       = useState(0);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
+  const [otp, setOtp]           = useState('');
+  const [verifyStep, setVerifyStep] = useState(false);
 
   // Per-field error messages
+  const [fullNameErr, setFullNameErr] = useState('');
   const [orgNameErr, setOrgNameErr] = useState('');
   const [emailErr, setEmailErr]     = useState('');
   const [passErr, setPassErr]       = useState('');
@@ -85,6 +81,8 @@ export function SignUpOrg() {
 
   // ── Validation ──────────────────────────────────────────────────────────────
   function validate(): boolean {
+    const fn = fullName.trim();
+    const fnErr = !fn ? 'Enter your full name.' : fn.length > 120 ? 'Name must be 120 characters or fewer.' : '';
     const on = orgName.trim();
     const onErr = !on
       ? 'Enter your organization name.'
@@ -105,12 +103,13 @@ export function SignUpOrg() {
       ? 'Use at least 8 characters.'
       : '';
 
+    setFullNameErr(fnErr);
     setOrgNameErr(onErr);
     setEmailErr(emErr);
     setPassErr(pwErr);
     setTermsTouched(true);
 
-    return !onErr && !emErr && !pwErr && terms;
+    return !fnErr && !onErr && !emErr && !pwErr && terms;
   }
 
   // ── Submit ──────────────────────────────────────────────────────────────────
@@ -121,28 +120,54 @@ export function SignUpOrg() {
 
     setLoading(true);
     try {
-      const body: Record<string, string> = {
+      const body = {
+        fullName: fullName.trim(),
         organizationName: orgName.trim(),
         email: email.trim().toLowerCase(),
         password,
+        region,
+        termsAccepted: terms,
       };
-      if (region) body.region = region;
 
+      const res = await apiClient.post<{ email: string }>('/api/auth/register', null, body);
+      setEmail(res.email ?? body.email);
+      setVerifyStep(true);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 409) {
+          setError('An account with this email already exists. Try signing in instead.');
+        } else if (err.status === 400) {
+          setError('Please check your details and try again.');
+        } else {
+          setError('Registration failed. Please check your connection and try again.');
+        }
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function submitOtp(ev: React.FormEvent) {
+    ev.preventDefault();
+    setError('');
+    if (!/^\d{6}$/.test(otp)) {
+      setError('Enter the six-digit code sent to your email.');
+      return;
+    }
+
+    setLoading(true);
+    try {
       const res = await apiClient.post<{
         accessToken: string;
         refreshToken?: string;
-        user?: {
-          orgId?: string;
-          organizationId?: string;
-          permissions?: string[];
-        };
+        user?: { orgId?: string; organizationId?: string; permissions?: string[] };
         organization?: { id?: string };
         nextStep?: string;
-        status?: string;
-      }>('/api/auth/register', null, body);
-
+      }>('/api/auth/verify-email', null, { email: email.trim().toLowerCase(), otp });
       const token = res.accessToken ?? '';
-      if (!token) throw new Error('No token returned from registration.');
+      if (!token) throw new Error('No token returned after email verification.');
 
       // Save the refresh token if the backend returned one
       if (res.refreshToken) {
@@ -168,17 +193,18 @@ export function SignUpOrg() {
 
       setAppToken(token, orgId, permissions);
 
-      // Navigate to nextStep from the response (usually /billing), fallback to /billing
-      const next = res.nextStep ?? '/billing';
+      const next = res.nextStep ?? '/dashboard';
       navigate(next, { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 409) {
           setError('An account with this email already exists. Try signing in instead.');
+        } else if (err.status === 401) {
+          setError('That code is invalid or expired. Check it and try again.');
         } else if (err.status === 400) {
-          setError('Please check your details and try again.');
+          setError('Please enter the verification code from your email.');
         } else {
-          setError('Registration failed. Please check your connection and try again.');
+          setError('Verification failed. Please check your connection and try again.');
         }
       } else {
         setError('Something went wrong. Please try again.');
@@ -225,10 +251,10 @@ export function SignUpOrg() {
                     letterSpacing: '-.015em',
                   }}
                 >
-                  Create your account
+                  {verifyStep ? 'Verify your email' : 'Create your account'}
                 </h1>
                 <p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
-                  Set up your organisation on Phause.
+                  {verifyStep ? `Enter the six-digit code sent to ${email}.` : 'Set up your organisation on Phause.'}
                 </p>
               </header>
 
@@ -259,21 +285,65 @@ export function SignUpOrg() {
                 </div>
               )}
 
-              {/* Form */}
-              <form
+              {verifyStep ? (
+                <form onSubmit={submitOtp} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }} noValidate>
+                  <div className="ax-field">
+                    <label className="ax-label" htmlFor="su-otp">Email verification code</label>
+                    <input
+                      id="su-otp"
+                      className="ax-input"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="123456"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      aria-label="Six-digit email verification code"
+                      required
+                    />
+                    <p className="ax-field__hint">The code is valid for 10 minutes.</p>
+                  </div>
+                  <button type="submit" className={`ax-btn ax-btn--primary ax-btn--lg ax-btn--block${loading ? ' is-loading' : ''}`} disabled={loading} aria-busy={loading}>
+                    <span className="ax-btn__spinner" aria-hidden="true" />
+                    <span className="ax-btn__label">Verify email</span>
+                  </button>
+                  <button type="button" className="ax-btn ax-btn--ghost ax-btn--block" onClick={() => { setVerifyStep(false); setOtp(''); setError(''); }}>
+                    <span className="ax-btn__label">Back to account details</span>
+                  </button>
+                </form>
+              ) : <form
                 onSubmit={submit}
                 style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-4)' }}
                 noValidate
               >
-                {/* Organisation name */}
+                {/* Full name */}
                 <div className="ax-field">
-                  <label className="ax-label" htmlFor="su-org-name">Organisation name</label>
+                  <label className="ax-label" htmlFor="su-full-name">Full name</label>
+                  <input
+                    id="su-full-name"
+                    type="text"
+                    className={`ax-input${fullNameErr ? ' is-invalid' : ''}`}
+                    autoComplete="name"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    aria-invalid={fullNameErr ? 'true' : 'false'}
+                    aria-describedby="su-full-name-msg"
+                    required
+                  />
+                  {fullNameErr && <p id="su-full-name-msg" className="ax-field__message ax-field__message--error">{fullNameErr}</p>}
+                </div>
+
+                {/* Company name */}
+                <div className="ax-field">
+                  <label className="ax-label" htmlFor="su-org-name">Company name</label>
                   <input
                     id="su-org-name"
                     type="text"
                     className={`ax-input${orgNameErr ? ' is-invalid' : ''}`}
                     autoComplete="organization"
-                    placeholder="Acme Corporation"
+                    placeholder="Contoso Corp"
                     value={orgName}
                     onChange={(e) => setOrgName(e.target.value)}
                     aria-invalid={orgNameErr ? 'true' : 'false'}
@@ -363,12 +433,7 @@ export function SignUpOrg() {
                 {/* Region (optional) */}
                 <div className="ax-field">
                   <label className="ax-label" htmlFor="su-region">
-                    Region
-                    <span
-                      style={{ marginInlineStart: 'var(--ax-space-1)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)', fontWeight: 'var(--ax-weight-normal)' }}
-                    >
-                      — optional
-                    </span>
+                    Storage region
                   </label>
                   <select
                     id="su-region"
@@ -418,10 +483,10 @@ export function SignUpOrg() {
                   <span className="ax-btn__spinner" aria-hidden="true" />
                   <span className="ax-btn__label">Create account</span>
                 </button>
-              </form>
+              </form>}
 
               <p style={{ textAlign: 'center', margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>
-                Already have an account?{' '}
+                {verifyStep ? 'Already verified?' : 'Already have an account?'}{' '}
                 <Link className="ax-link" to="/auth/sign-in-org" style={{ fontWeight: 'var(--ax-weight-medium)' }}>
                   Sign in
                 </Link>
