@@ -35,6 +35,7 @@ const AuthLockScreenCover = lazy(() => import('./pages/auth/LockScreenCover'));
 const AuthMaintenance = lazy(() => import('./pages/auth/Maintenance'));
 const AuthResetPasswordOrg = lazy(() => import('./pages/auth/ResetPasswordOrg'));
 const AuthResetPasswordAdmin = lazy(() => import('./pages/auth/ResetPasswordAdmin'));
+const AuthSsoCallback = lazy(() => import('./pages/auth/SsoCallback'));
 const AuthSignInOrg = lazy(() => import('./pages/auth/SignInOrg'));
 const AuthSignInAdmin = lazy(() => import('./pages/auth/SignInAdmin'));
 const AuthSignUpBasic = lazy(() => import('./pages/auth/SignUpBasic'));
@@ -241,6 +242,7 @@ const standalone: Record<string, PageComponent> = {
   'auth/maintenance': AuthMaintenance,
   'auth/reset-password-org': AuthResetPasswordOrg,
   'auth/reset-password-admin': AuthResetPasswordAdmin,
+  'auth/sso': AuthSsoCallback,
   'auth/sign-in-org': AuthSignInOrg,
   'auth/sign-in-admin': AuthSignInAdmin,
   'auth/sign-up-basic': AuthSignUpBasic,
