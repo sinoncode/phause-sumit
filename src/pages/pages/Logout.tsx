@@ -2,23 +2,21 @@
  * Phause — Logout / signed-out screen (route "pages/logout").
  *
  * On mount: clears the auth store (both tokens, role, permissions).
- * Auto-redirects to /admin/login after 5 seconds (cancellable).
- * "Sign in again" → /admin/login
- * "Back to home"  → /admin/login (same — no unauthenticated home)
+ * Auto-redirects to the public frontend after 5 seconds (cancellable).
  */
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
 import { BrandInline } from '../auth/authShared';
 
-const LOGIN_PATH = '/admin/login';
+const MARKETING_HOME = (
+  import.meta.env.VITE_MARKETING_URL?.trim() || 'http://localhost:3000'
+).replace(/\/+$/, '') + '/';
 const COUNTDOWN  = 5;
 
 export function Logout() {
   const [seconds, setSeconds]   = useState(COUNTDOWN);
   const [cancelled, setCancelled] = useState(false);
   const cancelledRef = useRef(false);
-  const navigate     = useNavigate();
 
   // grab display info BEFORE clearing
   const userRole  = useAuthStore((s) => s.userRole);
@@ -40,14 +38,14 @@ export function Logout() {
       setSeconds((s) => {
         if (s <= 1) {
           clearInterval(timer);
-          navigate(LOGIN_PATH, { replace: true });
+          window.location.replace(MARKETING_HOME);
           return 0;
         }
         return s - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, []);
 
   const cancel = () => { cancelledRef.current = true; setCancelled(true); };
 
@@ -105,16 +103,16 @@ export function Logout() {
 
             {/* actions */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-3)', width: '100%' }}>
-              <Link
+              <a
                 className="ax-btn ax-btn--primary ax-btn--block"
-                to={LOGIN_PATH}
+                href={MARKETING_HOME}
               >
                 <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M15 8v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-2"/>
                   <path d="M21 12H8l3-3"/><path d="M11 15l-3-3"/>
                 </svg>
                 <span className="ax-btn__label">Sign in again</span>
-              </Link>
+              </a>
             </div>
 
             {/* countdown */}

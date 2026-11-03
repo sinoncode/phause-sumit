@@ -28,6 +28,10 @@ import { useCustomizer } from '../../context/CustomizerContext';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useAuthStore } from '../../stores/auth.store';
 
+const MARKETING_HOME = (
+  import.meta.env.VITE_MARKETING_URL?.trim() || 'http://localhost:3000'
+).replace(/\/+$/, '') + '/';
+
 const ICON = {
   apps: (
     <svg className="ax-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" width={24} height={24} aria-hidden="true"><path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" /><path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" /><path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" /><path d="M14 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" /></svg>
@@ -91,6 +95,7 @@ export function HeaderUtils({ onCustomizer: _onCustomizer }: { onCustomizer: () 
   const appToken = useAuthStore((s) => s.appToken);
   const adminToken = useAuthStore((s) => s.adminToken);
   const userRole = useAuthStore((s) => s.userRole);
+  const clearAll = useAuthStore((s) => s.clearAll);
 
   // Decode JWT to get email
   function decodeJwtEmail(token: string | null): string {
@@ -277,7 +282,18 @@ export function HeaderUtils({ onCustomizer: _onCustomizer }: { onCustomizer: () 
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/support">Support</Link>
         <Link className="ax-dropdown__item" role="menuitem" to="/pages/activity-log">Activity Log</Link>
         <div className="ax-dropdown__divider" role="separator"></div>
-        <Link className="ax-dropdown__item ax-dropdown__item--danger" role="menuitem" to="/pages/logout">Log Out</Link>
+        <a
+          className="ax-dropdown__item ax-dropdown__item--danger"
+          role="menuitem"
+          href={MARKETING_HOME}
+          onClick={(event) => {
+            event.preventDefault();
+            clearAll();
+            window.location.replace(MARKETING_HOME);
+          }}
+        >
+          Log Out
+        </a>
       </Dropdown>
 
       {/* 11 · CUSTOMIZER TRIGGER */}
