@@ -1,0 +1,251 @@
+/* Main layout */
+
+.human-risk-analytics {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.65fr);
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+
+/* Chart cards */
+
+.human-risk-card {
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  isolation: isolate;
+  transition:
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    transform 0.35s ease;
+}
+
+.human-risk-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--ax-chart-1);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.07);
+}
+
+.human-risk-card .ax-card__header {
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.human-risk-chart {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 12px 0;
+  animation: risk-chart-appear 1s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.human-risk-chart--timeline {
+  padding-top: 12px;
+}
+
+/* Overall score */
+
+.human-risk-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.human-risk-score span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--risk-color);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.human-risk-score strong {
+  font-size: 27px;
+  line-height: 1;
+  font-weight: 750;
+  color: var(--ax-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Factor indicators */
+
+.human-risk-indicators {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 20px 20px;
+}
+
+.human-risk-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid var(--ax-border);
+  border-radius: 10px;
+  background: var(--ax-surface-subtle);
+  animation: risk-indicator-enter 0.6s ease both;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.human-risk-indicator:hover {
+  transform: translateY(-2px);
+  border-color: var(--ax-chart-1);
+}
+
+.human-risk-indicator__dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ax-chart-1);
+  box-shadow: 0 0 10px var(--ax-chart-1);
+}
+
+.human-risk-indicator__name {
+  min-width: 0;
+  flex: 1;
+  color: var(--ax-text-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.human-risk-indicator strong {
+  color: var(--ax-text-strong);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Live indicator */
+
+.human-risk-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border: 1px solid var(--ax-border);
+  border-radius: 30px;
+  color: var(--ax-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.human-risk-live__dot {
+  width: 7px;
+  height: 7px;
+  background: var(--ax-viz-emerald);
+  border-radius: 50%;
+  animation: risk-live-pulse 2s ease-in-out infinite;
+}
+
+/* Empty state */
+
+.human-risk-empty {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  color: var(--ax-text-muted);
+  font-size: 13px;
+}
+
+/* Animations */
+
+@keyframes risk-chart-appear {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes risk-indicator-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes risk-live-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(33, 250, 144, 0.35);
+  }
+
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 0 6px rgba(33, 250, 144, 0);
+  }
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+  .human-risk-analytics {
+    grid-template-columns: 1fr;
+  }
+
+  .human-risk-card {
+    width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .human-risk-analytics {
+    gap: 14px;
+  }
+
+  .human-risk-card .ax-card__header {
+    padding: 16px;
+  }
+
+  .human-risk-chart {
+    padding: 0 4px;
+  }
+
+  .human-risk-indicators {
+    padding: 10px 14px 16px;
+    gap: 8px;
+  }
+
+  .human-risk-indicator {
+    padding: 9px 8px;
+    gap: 6px;
+  }
+
+  .human-risk-indicator__name {
+    font-size: 10px;
+  }
+
+  .human-risk-score strong {
+    font-size: 23px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .human-risk-card,
+  .human-risk-chart,
+  .human-risk-indicator,
+  .human-risk-live__dot {
+    animation: none !important;
+    transition: none !important;
+  }
+}

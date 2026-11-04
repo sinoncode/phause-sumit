@@ -28,7 +28,7 @@ export class ApiError extends Error {
 }
 
 const configuredBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? '';
-const developmentApiBase = configuredBase || 'http://82.29.162.169';
+const developmentApiBase = configuredBase || 'https://phishingsimulation.webandappdevelopmenttech.com';
 export const API_BASE_URL = import.meta.env.PROD
   ? ''
   : developmentApiBase.replace(/\/+$/, '').replace(/\/api$/i, '');
@@ -52,7 +52,7 @@ async function _attemptRefresh(): Promise<string | null> {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
-    const { appToken, adminToken, setAppToken, setAdminToken, setRefreshToken, clearAll } = useAuthStore.getState();
+    const { appToken, adminToken, setAppToken, setRefreshToken, clearAll } = useAuthStore.getState();
     // Only attempt refresh for org users (appToken). Admin tokens don't use refresh tokens.
     const isOrgUser = Boolean(appToken) && !adminToken;
     if (!isOrgUser) return null;
@@ -210,8 +210,8 @@ async function _handleResponse<T>(
 }
 
 export const apiClient = {
-  get:    <T>(path: string, getToken: TokenGetter | null = null)             => request<T>('GET',    path, getToken),
-  post:   <T>(path: string, getToken: TokenGetter | null, body?: unknown)    => request<T>('POST',   path, getToken, body),
-  patch:  <T>(path: string, getToken: TokenGetter | null, body?: unknown)    => request<T>('PATCH',  path, getToken, body),
-  delete: <T>(path: string, getToken: TokenGetter | null)                    => request<T>('DELETE', path, getToken),
+  get: <T>(path: string, getToken: TokenGetter | null = null) => request<T>('GET', path, getToken),
+  post: <T>(path: string, getToken: TokenGetter | null, body?: unknown) => request<T>('POST', path, getToken, body),
+  patch: <T>(path: string, getToken: TokenGetter | null, body?: unknown) => request<T>('PATCH', path, getToken, body),
+  delete: <T>(path: string, getToken: TokenGetter | null) => request<T>('DELETE', path, getToken),
 };

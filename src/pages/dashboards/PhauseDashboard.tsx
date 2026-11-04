@@ -23,10 +23,26 @@ import { useAuthStore } from '../../stores/auth.store';
 import type { Campaign } from '../../features/campaigns/types';
 import type { ReportSummary, RiskTrendPoint, EmployeeRiskScore } from '../reports/reportsData';
 
+import { ApexChart } from '@/components/charts/ApexChart';
+
+
+import { HumanRiskAnalytics } from '@/components/charts/HumanRiskAnalytics';
+import '@/styles/HumanRiskAnalytics.css';
+
+const cv = (n: string): string => {
+  if (typeof window === 'undefined') return '';
+  const val = getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const match = val.match(/^var\((--[^)]+)\)$/);
+  if (match) return cv(match[1]);
+  return val;
+};
+
 // ─── tiny inline sparkline ───────────────────────────────────────────────────
 function Spark({ data, color = 'var(--ax-accent)' }: { data: number[]; color?: string }) {
   if (!data.length) return null;
   const max = Math.max(...data, 1);
+
+
   const min = Math.min(...data);
   const range = max - min || 1;
   const W = 80; const H = 32; const pts = data.length;
@@ -46,9 +62,9 @@ function RiskBadge({ score }: { score: number | null | undefined }) {
   const level = safe >= 75 ? 'critical' : safe >= 50 ? 'high' : safe >= 25 ? 'medium' : 'low';
   const colors: Record<string, string> = {
     critical: 'var(--ax-danger-500)',
-    high:     'var(--ax-warning-500)',
-    medium:   'var(--ax-viz-amber)',
-    low:      'var(--ax-viz-emerald)',
+    high: 'var(--ax-warning-500)',
+    medium: 'var(--ax-viz-amber)',
+    low: 'var(--ax-viz-emerald)',
   };
   return (
     <span style={{ fontWeight: 600, color: colors[level], fontVariantNumeric: 'tabular-nums' }}>
@@ -59,11 +75,11 @@ function RiskBadge({ score }: { score: number | null | undefined }) {
 
 // ─── status pill ─────────────────────────────────────────────────────────────
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  draft:     { bg: 'var(--ax-surface-subtle)', color: 'var(--ax-text-muted)',    label: 'Draft' },
-  scheduled: { bg: 'color-mix(in oklch,var(--ax-viz-cyan) 15%,transparent)',     color: 'var(--ax-viz-cyan)',    label: 'Scheduled' },
-  running:   { bg: 'color-mix(in oklch,var(--ax-accent) 15%,transparent)',        color: 'var(--ax-accent)',      label: 'Running' },
-  completed: { bg: 'color-mix(in oklch,var(--ax-viz-emerald) 15%,transparent)',  color: 'var(--ax-viz-emerald)', label: 'Completed' },
-  cancelled: { bg: 'color-mix(in oklch,var(--ax-danger-500) 12%,transparent)',   color: 'var(--ax-danger-500)',  label: 'Cancelled' },
+  draft: { bg: 'var(--ax-surface-subtle)', color: 'var(--ax-text-muted)', label: 'Draft' },
+  scheduled: { bg: 'color-mix(in oklch,var(--ax-viz-cyan) 15%,transparent)', color: 'var(--ax-viz-cyan)', label: 'Scheduled' },
+  running: { bg: 'color-mix(in oklch,var(--ax-accent) 15%,transparent)', color: 'var(--ax-accent)', label: 'Running' },
+  completed: { bg: 'color-mix(in oklch,var(--ax-viz-emerald) 15%,transparent)', color: 'var(--ax-viz-emerald)', label: 'Completed' },
+  cancelled: { bg: 'color-mix(in oklch,var(--ax-danger-500) 12%,transparent)', color: 'var(--ax-danger-500)', label: 'Cancelled' },
 };
 function StatusPill({ status }: { status: string }) {
   const s = STATUS_STYLE[status] ?? STATUS_STYLE.draft;
@@ -102,8 +118,8 @@ function KpiCard({
 }
 
 // ─── ICONS ───────────────────────────────────────────────────────────────────
-const IC_ORG  = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M9 8l1 0" /><path d="M9 12l1 0" /><path d="M9 16l1 0" /><path d="M14 8l1 0" /><path d="M14 12l1 0" /><path d="M14 16l1 0" /><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" /></svg>;
-const IC_EMP  = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg>;
+const IC_ORG = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 21l18 0" /><path d="M9 8l1 0" /><path d="M9 12l1 0" /><path d="M9 16l1 0" /><path d="M14 8l1 0" /><path d="M14 12l1 0" /><path d="M14 16l1 0" /><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" /></svg>;
+const IC_EMP = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg>;
 const IC_CAMP = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" /></svg>;
 const IC_RISK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>;
 
@@ -111,14 +127,22 @@ const IC_RISK = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
 export function PhauseDashboard() {
   const navigate = useNavigate();
   const userRole = useAuthStore((s) => s.userRole);
-  const isAdmin  = userRole === 'admin' || userRole === null;
+  const isAdmin = userRole === 'admin' || userRole === null;
   const [loading, setLoading] = useState(true);
-  const [orgCount, setOrgCount]       = useState(0);
-  const [empCount, setEmpCount]       = useState(0);
-  const [campaigns, setCampaigns]     = useState<Campaign[]>([]);
-  const [riskScores, setRiskScores]   = useState<EmployeeRiskScore[]>([]);
-  const [riskTrend, setRiskTrend]     = useState<RiskTrendPoint[]>([]);
-  const [reports, setReports]         = useState<ReportSummary[]>([]);
+  const [orgCount, setOrgCount] = useState(0);
+  const [empCount, setEmpCount] = useState(0);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [riskScores, setRiskScores] = useState<EmployeeRiskScore[]>([]);
+  const [riskTrend, setRiskTrend] = useState<RiskTrendPoint[]>([]);
+  const [reports, setReports] = useState<ReportSummary[]>([]);
+
+  // DEMO DATA ONLY — replace with actual backend risk-factor values.
+const humanRiskFactors = [
+  { name: 'Intelligence Risk', value: 85 },
+  { name: 'Phishing Risk', value: 28 },
+  { name: 'Engagement Risk', value: 76 },
+  { name: 'Breach Risk', value: 58 },
+];
 
   useEffect(() => {
     let cancelled = false;
@@ -155,19 +179,19 @@ export function PhauseDashboard() {
         r.status === 'fulfilled' ? r.value : fallback;
 
       const [r0, r1, r2, r3, r4, r5] = results;
-      setOrgCount(val(r0 as PromiseSettledResult<Awaited<ReturnType<typeof listOrganisations>>>,   []).length);
-      setEmpCount(val(r1 as PromiseSettledResult<Awaited<ReturnType<typeof listEmployees>>>,       []).length);
+      setOrgCount(val(r0 as PromiseSettledResult<Awaited<ReturnType<typeof listOrganisations>>>, []).length);
+      setEmpCount(val(r1 as PromiseSettledResult<Awaited<ReturnType<typeof listEmployees>>>, []).length);
       setCampaigns(val(r2 as PromiseSettledResult<Awaited<ReturnType<typeof campaignsApiReal.list>>>, []));
-      setRiskScores(val(r3 as PromiseSettledResult<Awaited<ReturnType<typeof listRiskScores>>>,    []));
-      setRiskTrend(val(r4 as PromiseSettledResult<Awaited<ReturnType<typeof getRiskTrend>>>,       []));
-      setReports(val(r5 as PromiseSettledResult<Awaited<ReturnType<typeof listReports>>>,          []).slice(0, 5));
+      setRiskScores(val(r3 as PromiseSettledResult<Awaited<ReturnType<typeof listRiskScores>>>, []));
+      setRiskTrend(val(r4 as PromiseSettledResult<Awaited<ReturnType<typeof getRiskTrend>>>, []));
+      setReports(val(r5 as PromiseSettledResult<Awaited<ReturnType<typeof listReports>>>, []).slice(0, 5));
       setLoading(false);
     });
     return () => { cancelled = true; };
   }, [navigate, isAdmin]);
 
   // derived numbers
-  const activeCampaigns  = campaigns.filter((c) => c.status === 'running').length;
+  const activeCampaigns = campaigns.filter((c) => c.status === 'running').length;
   const avgRisk = riskScores.length
     ? Math.round(riskScores.reduce((s, r) => s + (r.riskScore ?? 0), 0) / riskScores.length)
     : 0;
@@ -204,14 +228,28 @@ export function PhauseDashboard() {
 
       <div className="ax-dash-grid">
 
+
+        {/* ── ACTIVITY & ENGAGEMENT OVERVIEW (12 cols) ─────────────────────── */}
+        <section className="ax-card ax-card--chart ax-col--12" role="region" aria-label="Activity and engagement overview">
+          <HumanRiskAnalytics
+  riskScore={avgRisk}
+  riskFactors={humanRiskFactors}
+  trend={riskTrend}
+  // Pass this only when you have a verified benchmark.
+  industryAverage={undefined}
+/>
+        </section>
+
+
+
         {/* ── KPI ROW ─────────────────────────────────────────────────────── */}
         {isAdmin && (
           <KpiCard label="Organisations" value={orgCount} icon={IC_ORG} loading={loading} />
         )}
-        <KpiCard label="Employees"       value={empCount}        icon={IC_EMP}  loading={loading} />
+        <KpiCard label="Employees" value={empCount} icon={IC_EMP} loading={loading} />
         <KpiCard label="Active Campaigns" value={activeCampaigns} icon={IC_CAMP} loading={loading}
           sub={campaigns.length ? `${campaigns.length} total` : undefined} />
-        <KpiCard label="Avg. Risk Score"  value={avgRisk}         icon={IC_RISK} loading={loading}
+        <KpiCard label="Avg. Risk Score" value={avgRisk} icon={IC_RISK} loading={loading}
           sub={riskScores.length ? `${riskScores.length} employees` : undefined}
           spark={trendSpark} sparkColor="var(--ax-danger-500)" />
 
