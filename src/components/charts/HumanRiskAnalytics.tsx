@@ -117,11 +117,11 @@ export function HumanRiskAnalytics({
         : 'var(--ax-viz-emerald)';
 
   return (
-    <div className="human-risk-analytics">
+    <div className="human-risk-analytics bg-transparent border-0">
 
       {/* GRAPH 1 — HUMAN RISK ASSESSMENT */}
 
-      <section className="ax-card human-risk-card">
+      <section className="ax-card human-risk-card bg-transparent border-0">
 
         <div className="ax-card__header">
           <div className="ax-card__titles">

@@ -229,16 +229,7 @@ const humanRiskFactors = [
       <div className="ax-dash-grid">
 
 
-        {/* ── ACTIVITY & ENGAGEMENT OVERVIEW (12 cols) ─────────────────────── */}
-        <section className="ax-card ax-card--chart ax-col--12" role="region" aria-label="Activity and engagement overview">
-          <HumanRiskAnalytics
-  riskScore={avgRisk}
-  riskFactors={humanRiskFactors}
-  trend={riskTrend}
-  // Pass this only when you have a verified benchmark.
-  industryAverage={undefined}
-/>
-        </section>
+       
 
 
 
@@ -252,7 +243,16 @@ const humanRiskFactors = [
         <KpiCard label="Avg. Risk Score" value={avgRisk} icon={IC_RISK} loading={loading}
           sub={riskScores.length ? `${riskScores.length} employees` : undefined}
           spark={trendSpark} sparkColor="var(--ax-danger-500)" />
-
+ {/* ── ACTIVITY & ENGAGEMENT OVERVIEW (12 cols) ─────────────────────── */}
+        <section className="ax-card--chart ax-col--12" role="region" aria-label="Activity and engagement overview">
+          <HumanRiskAnalytics
+  riskScore={avgRisk}
+  riskFactors={humanRiskFactors}
+  trend={riskTrend}
+  // Pass this only when you have a verified benchmark.
+  industryAverage={undefined}
+/>
+        </section>
         {/* ── CAMPAIGNS TABLE (8 cols) ─────────────────────────────────────── */}
         <section className="ax-card ax-col--8" role="region" aria-label="Recent campaigns">
           <div className="ax-card__header">
