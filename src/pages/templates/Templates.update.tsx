@@ -30,6 +30,8 @@ export interface PhishingTemplate {
   category: TemplateCategory;
   difficulty: TemplateDifficulty;
   disclaimerEnabled: boolean;
+  isPremium: boolean;
+  isLocked: boolean;
 }
 
 type TemplateFormValues = Omit<PhishingTemplate, "id">;
@@ -154,6 +156,8 @@ function TemplateForm({
       category: "credential-harvest",
       difficulty: "medium",
       disclaimerEnabled: false,
+      isPremium: false,
+      isLocked: false,
     },
   );
   const set = <K extends keyof TemplateFormValues>(

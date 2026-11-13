@@ -8,6 +8,7 @@ import {
   deleteTemplate as deleteTemplateApi,
 } from "../../api/templates/templates.api";
 import { useApiErrorHandler } from "../../hooks/useApiErrorHandler";
+import { useCustomizer } from "../../context/CustomizerContext";
 
 export type TemplateLureType = "urgency" | "authority" | "curiosity" | "reward";
 export type TemplateCategory =
@@ -28,6 +29,8 @@ export interface PhishingTemplate {
   category: TemplateCategory;
   difficulty: TemplateDifficulty;
   disclaimerEnabled: boolean;
+  isPremium: boolean;
+  isLocked: boolean;
 }
 
 type TemplateFormValues = Omit<PhishingTemplate, "id">;
@@ -140,14 +143,28 @@ const getTemplatePreviewHtml = (html: string) =>
       "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=",
     );
 
+const getTemplatePreviewDocument = (
+  html: string,
+  theme: "light" | "dark",
+  padding: number,
+) => {
+  const isDark = theme === "dark";
+  const background = isDark ? "#0A0C11" : "#FFFFFF";
+  const color = isDark ? "#D4DAE4" : "#3A4456";
+
+  return `<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html{color-scheme:${theme}}body{box-sizing:border-box;margin:0;padding:${padding}px;font:14px/1.5 Arial,sans-serif;color:${color};background:${background};overflow-wrap:anywhere}img{max-width:100%;height:auto}</style></head><body>${getTemplatePreviewHtml(html)}</body></html>`;
+};
+
 function TemplateForm({
   initial,
   mode,
+  theme,
   onCancel,
   onSubmit,
 }: {
   initial?: PhishingTemplate;
   mode: "create" | "edit";
+  theme: "light" | "dark";
   onCancel: () => void;
   onSubmit: (values: TemplateFormValues) => void;
 }) {
@@ -161,6 +178,8 @@ function TemplateForm({
       category: "credential-harvest",
       difficulty: "medium",
       disclaimerEnabled: false,
+      isPremium: false,
+      isLocked: false,
     },
   );
   const set = <K extends keyof TemplateFormValues>(
@@ -171,30 +190,13 @@ function TemplateForm({
     event.preventDefault();
     onSubmit(form);
   };
-  const previewHtml = form.htmlBody
-    .replaceAll("{{tracking_link}}", "#preview-link")
-    .replaceAll(
-      "{{tracking_pixel}}",
-      "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=",
-    );
-
   return (
     <div
+      className="tpl-modal-overlay"
       role="presentation"
       onMouseDown={(event) =>
         event.target === event.currentTarget && onCancel()
       }
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "var(--ax-space-4)",
-        background: "rgba(15, 23, 42, 0.62)",
-        backdropFilter: "blur(4px)",
-      }}
     >
       <div
         className="ax-card"
@@ -276,7 +278,7 @@ function TemplateForm({
                 <iframe
                   title="Live phishing template preview"
                   sandbox="allow-popups allow-popups-to-escape-sandbox"
-                  srcDoc={`<!doctype html><html><body style="font-family:Arial,sans-serif;color:#17202a;padding:20px;line-height:1.5">${previewHtml}</body></html>`}
+                  srcDoc={getTemplatePreviewDocument(form.htmlBody, theme, 20)}
                   style={{
                     display: "block",
                     width: "100%",
@@ -284,8 +286,7 @@ function TemplateForm({
                     marginBlockStart: "var(--ax-space-2)",
                     border: "1px solid var(--ax-border)",
                     borderRadius: "var(--ax-radius-md)",
-                    background: "var(--ax-card, #fff)",
-                    boxShadow: "inset 0 0 0 1px rgba(148, 163, 184, 0.18)",
+                    background: "var(--ax-surface-solid)",
                   }}
                 />
               </div>
@@ -368,6 +369,58 @@ function TemplateForm({
                 </select>
               </div>
             </div>
+            <section className="tpl-form-settings" aria-label="Template access settings">
+              <div className="tpl-form-settings__header">
+                <div>
+                  <h3>Access settings</h3>
+                  <p>Control whether this template is premium or locked.</p>
+                </div>
+              </div>
+              <div className="tpl-form-settings__grid">
+                <div className={`tpl-setting${form.isPremium ? " is-active" : ""}`}>
+                  <div className="tpl-setting__copy">
+                    <span className="tpl-setting__title">Premium template</span>
+                    <span className="tpl-setting__description">
+                      Mark this template as part of a premium offering.
+                    </span>
+                    <span className="tpl-setting__state">
+                      {form.isPremium ? "Premium enabled" : "Standard access"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="tpl-switch"
+                    role="switch"
+                    aria-checked={form.isPremium}
+                    aria-label="Premium template"
+                    onClick={() => set("isPremium", !form.isPremium)}
+                  >
+                    <span className="tpl-switch__thumb" />
+                  </button>
+                </div>
+                <div className={`tpl-setting${form.isLocked ? " is-active is-locked" : ""}`}>
+                  <div className="tpl-setting__copy">
+                    <span className="tpl-setting__title">Lock template</span>
+                    <span className="tpl-setting__description">
+                      Prevent this template from being selected until unlocked.
+                    </span>
+                    <span className="tpl-setting__state tpl-setting__state--locked">
+                      {form.isLocked ? "Locked" : "Available"}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="tpl-switch"
+                    role="switch"
+                    aria-checked={form.isLocked}
+                    aria-label="Lock template"
+                    onClick={() => set("isLocked", !form.isLocked)}
+                  >
+                    <span className="tpl-switch__thumb" />
+                  </button>
+                </div>
+              </div>
+            </section>
             <label className="ax-check">
               <input
                 type="checkbox"
@@ -403,104 +456,1032 @@ function TemplateForm({
 
 function TemplatePreview({
   template,
+  theme,
   onClose,
 }: {
   template: PhishingTemplate;
+  theme: "light" | "dark";
   onClose: () => void;
 }) {
   const renderedHtml = template.htmlBody
     .replaceAll("{{tracking_link}}", "#preview-link")
     .replaceAll(
       "{{tracking_pixel}}",
-      "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=",
+      "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
     );
+
+  const emailBackground = theme === "dark" ? "#0A0C11" : "#FFFFFF";
+  const emailText = theme === "dark" ? "#D4DAE4" : "#3A4456";
+
+  const emailDocument = `
+    <!DOCTYPE html>
+    <html lang="en" style="color-scheme: ${theme}">
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <style>
+          * { box-sizing: border-box; }
+          body {
+            margin: 0;
+            padding: 24px;
+            background: ${emailBackground};
+            color: ${emailText};
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+          }
+          img { max-width: 100%; height: auto; }
+          table { max-width: 100%; }
+          a { cursor: pointer; }
+          @media(max-width:600px) {
+            body { padding: 12px; }
+          }
+        </style>
+      </head>
+      <body>
+        ${renderedHtml}
+      </body>
+    </html>
+  `;
+
+  const [activeFolder, setActiveFolder] = useState("Inbox");
+  const [showIdentityEditor, setShowIdentityEditor] = useState(false);
+
+  const folders = [
+    { icon: "▣", label: "Inbox", count: "6" },
+    { icon: "☆", label: "Starred" },
+    { icon: "▤", label: "Draft", count: "3" },
+    { icon: "➤", label: "Sent Mail" },
+    { icon: "ⓘ", label: "Spam" },
+    { icon: "▱", label: "Trash" },
+  ];
+
+  const labels = [
+    { label: "Work", color: "#ea5535" },
+    { label: "Business", color: "#25a8e8" },
+    { label: "Family", color: "#ffb841" },
+    { label: "Friends", color: "#315bb0" },
+  ];
+
   return (
-    <div
-      role="presentation"
-      onMouseDown={(event) => event.target === event.currentTarget && onClose()}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "var(--ax-space-4)",
-        background: "rgba(15, 23, 42, 0.62)",
-        backdropFilter: "blur(4px)",
-      }}
-    >
+    <div className="mail-preview-overlay" data-ax-theme={theme}>
+
+    <style>{`
+  /* =========================================
+     PH AUSE EMAIL PREVIEW — THEME SYSTEM
+  ========================================= */
+
+  .mail-preview-overlay {
+    --mp-bg: var(--ax-canvas);
+    --mp-surface: var(--ax-surface-overlay);
+    --mp-surface-secondary: var(--ax-surface-subtle);
+    --mp-surface-hover: var(--ax-fill-hover);
+    --mp-text: var(--ax-text);
+    --mp-text-strong: var(--ax-text-strong);
+    --mp-text-muted: var(--ax-text-muted);
+    --mp-border: var(--ax-border);
+    --mp-border-strong: var(--ax-border-strong);
+    --mp-primary: var(--ax-accent);
+    --mp-primary-soft: var(--ax-accent-wash);
+    --mp-button-bg: var(--ax-surface);
+    --mp-button-text: var(--ax-text);
+    --mp-shadow: var(--ax-shadow-lg);
+
+    color-scheme: light;
+
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--ax-backdrop);
+    backdrop-filter: blur(9px);
+    animation: mailFade .2s ease;
+  }
+
+  .mail-preview-overlay[data-ax-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  /* =========================================
+     MAIN MODAL
+  ========================================= */
+
+  .mail-preview {
+    width: 100%;
+    max-width: 1240px;
+    height: min(900px, 94vh);
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--mp-bg);
+    color: var(--mp-text);
+
+    border: 1px solid var(--mp-border);
+    border-radius: 15px;
+
+    overflow: hidden;
+    box-shadow: var(--mp-shadow);
+
+    animation: mailSlide .25s ease;
+
+    transition:
+      background .25s ease,
+      border-color .25s ease,
+      color .25s ease;
+  }
+
+  /* =========================================
+     HEADER
+  ========================================= */
+
+  .mail-preview-header {
+    min-height: 66px;
+    padding: 12px 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    background: var(--mp-surface);
+    border-bottom: 1px solid var(--mp-border);
+  }
+
+  .mail-preview-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .mail-preview-icon {
+    width: 40px;
+    height: 40px;
+
+    display: grid;
+    place-items: center;
+
+    background: var(--mp-primary-soft);
+    color: var(--mp-primary);
+
+    border: 1px solid var(--mp-border);
+    border-radius: 12px;
+
+    font-size: 21px;
+    flex-shrink: 0;
+  }
+
+  .mail-preview-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .7px;
+    color: var(--mp-primary);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+
+  .mail-preview-name {
+    font-size: 17px;
+    font-weight: 650;
+    color: var(--mp-text-strong);
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mail-preview-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .mail-preview-badge {
+    padding: 5px 11px;
+    border-radius: 20px;
+
+    background: var(--mp-surface-secondary);
+    color: var(--mp-text-muted);
+
+    border: 1px solid var(--mp-border);
+
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .mail-preview-badge--difficulty-easy {
+    background: var(--ax-success-50);
+    color: var(--ax-success-500);
+    border-color: var(--ax-success-200);
+  }
+
+  .mail-preview-badge--difficulty-medium {
+    background: var(--ax-warning-50);
+    color: var(--ax-warning-500);
+    border-color: var(--ax-warning-200);
+  }
+
+  .mail-preview-badge--difficulty-hard {
+    background: var(--ax-danger-50);
+    color: var(--ax-danger-500);
+    border-color: var(--ax-danger-200);
+  }
+
+  .mail-preview-badge--premium {
+    background: var(--ax-accent-wash);
+    color: var(--ax-accent);
+    border-color: var(--ax-accent);
+  }
+
+  .mail-preview-badge--locked {
+    background: var(--ax-danger-50);
+    color: var(--ax-danger-500);
+    border-color: var(--ax-danger-200);
+  }
+
+  .mail-preview-close {
+    border: none;
+    background: transparent;
+    color: var(--mp-text-muted);
+
+    font-size: 25px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+
+    transition: color .2s ease;
+  }
+
+  .mail-preview-close:hover {
+    color: var(--ax-danger-500);
+  }
+
+  /* =========================================
+     EMPLOYEE IDENTITY BAR
+  ========================================= */
+
+  .mail-preview-identity {
+    min-height: 50px;
+    padding: 10px 25px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+
+    background: var(--mp-surface-secondary);
+    border-bottom: 1px solid var(--mp-border);
+
+    color: var(--mp-text-muted);
+    font-size: 13px;
+  }
+
+  .mail-preview-identity strong {
+    color: var(--mp-text-strong) !important;
+  }
+
+  .mail-preview-identity button {
+    border: none;
+    background: transparent;
+    color: var(--mp-primary);
+
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 8px;
+  }
+
+  .mail-preview-identity button:hover {
+    text-decoration: underline;
+  }
+
+  /* =========================================
+     IDENTITY EDITOR
+  ========================================= */
+
+  .mail-preview-overlay .mail-preview-identity + div {
+    background: var(--mp-surface-secondary) !important;
+    border-bottom: 1px solid var(--mp-border) !important;
+    color: var(--mp-text) !important;
+  }
+
+  /* =========================================
+     MAIN WORKSPACE
+  ========================================= */
+
+  .mail-preview-workspace {
+    flex: 1;
+    min-height: 0;
+
+    display: grid;
+    grid-template-columns: 216px minmax(0, 1fr);
+
+    padding: 0 24px;
+    overflow: hidden;
+
+    background: var(--mp-bg);
+  }
+
+  /* =========================================
+     SIDEBAR
+  ========================================= */
+
+  .mail-preview-sidebar {
+    padding: 16px 12px;
+
+    background: var(--mp-surface-secondary);
+
+    border-left: 1px solid var(--mp-border);
+    border-right: 1px solid var(--mp-border);
+
+    overflow-y: auto;
+  }
+
+  .mail-send-button {
+    width: 100%;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+
+    background: var(--mp-primary);
+    color: var(--ax-on-accent);
+
+    border: none;
+    border-radius: 11px;
+
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow: var(--ax-glow-accent);
+
+    transition: .2s ease;
+  }
+
+  .mail-send-button:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  .mail-sidebar-heading {
+    margin: 22px 10px 10px;
+
+    color: var(--mp-text-muted);
+
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+  }
+
+  .mail-folder {
+    width: 100%;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 0 10px;
+
+    border: none;
+    border-radius: 9px;
+
+    background: transparent;
+    color: var(--mp-text);
+
+    font-size: 13px;
+    text-align: left;
+
+    cursor: pointer;
+    transition: .2s ease;
+  }
+
+  .mail-folder:hover {
+    background: var(--mp-surface-hover);
+  }
+
+  .mail-folder.active {
+    background: var(--mp-primary-soft);
+    color: var(--mp-primary);
+    font-weight: 650;
+  }
+
+  .mail-folder-icon {
+    width: 16px;
+    font-size: 17px;
+    color: var(--mp-text-muted);
+  }
+
+  .mail-folder-count {
+    margin-left: auto;
+
+    background: var(--mp-primary);
+    color: var(--ax-on-accent);
+
+    padding: 2px 8px;
+    border-radius: 20px;
+
+    font-size: 10px;
+  }
+
+  .mail-label {
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    padding: 0 12px;
+
+    font-size: 13px;
+    color: var(--mp-text);
+  }
+
+  .mail-label-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+  }
+
+  /* =========================================
+     EMAIL CONTENT AREA
+  ========================================= */
+
+  .mail-content {
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px 24px 0;
+
+    overflow-y: auto;
+
+    background: var(--mp-bg);
+    color: var(--mp-text);
+  }
+
+  .mail-subject {
+    font-size: 19px;
+    font-weight: 650;
+
+    color: var(--mp-text-strong);
+
+    margin: 0 0 14px;
+  }
+
+  .mail-sender {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin-bottom: 15px;
+  }
+
+  .mail-sender-avatar {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 50%;
+
+    background: var(--ax-accent);
+    display: grid;
+    place-items: center;
+
+    color: white;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .mail-sender-name {
+    font-size: 14px;
+    font-weight: 650;
+    color: var(--mp-text-strong);
+  }
+
+  .mail-sender-address {
+    font-size: 12px;
+    color: var(--mp-text-muted);
+    margin-top: 3px;
+  }
+
+  /* The message canvas follows the selected theme; author-provided email
+     colors remain intact so branded templates still preview faithfully. */
+
+  .mail-body-container {
+    flex: 1;
+    min-height: 360px;
+
+    border: 1px solid var(--mp-border);
+    border-radius: 11px 11px 0 0;
+
+    overflow: hidden;
+
+    background: var(--ax-surface-solid);
+  }
+
+  .mail-body-container iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 520px;
+
+    display: block;
+
+    border: none;
+    background: var(--ax-surface-solid);
+    color-scheme: inherit;
+  }
+
+  /* =========================================
+     FOOTER
+  ========================================= */
+
+  .mail-preview-footer {
+    min-height: 69px;
+    padding: 10px 24px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+
+    border-top: 1px solid var(--mp-border);
+
+    background: var(--mp-surface);
+  }
+
+  .mail-footer-hint {
+    font-size: 13px;
+    color: var(--mp-text-muted);
+  }
+
+  .mail-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .mail-nav-button {
+    width: 40px;
+    height: 40px;
+
+    border: 1px solid var(--mp-border-strong);
+    border-radius: 9px;
+
+    background: var(--mp-button-bg);
+    color: var(--mp-button-text);
+
+    font-size: 22px;
+    cursor: pointer;
+
+    transition: .2s ease;
+  }
+
+  .mail-nav-button:hover:not(:disabled) {
+    background: var(--mp-surface-hover);
+    border-color: var(--mp-primary);
+    color: var(--mp-primary);
+  }
+
+  .mail-nav-button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+  }
+
+  .mail-page-count {
+    font-size: 12px;
+    color: var(--mp-text-muted);
+    padding: 0 5px;
+    white-space: nowrap;
+  }
+
+  .mail-close-button {
+    height: 40px;
+    padding: 0 20px;
+
+    background: var(--mp-button-bg);
+
+    border: 1px solid var(--mp-border-strong);
+    border-radius: 9px;
+
+    color: var(--mp-button-text);
+
+    font-size: 13px;
+    cursor: pointer;
+
+    transition: .2s ease;
+  }
+
+  .mail-close-button:hover {
+    background: var(--mp-surface-hover);
+    border-color: var(--mp-primary);
+    color: var(--mp-primary);
+  }
+
+  /* =========================================
+     SCROLLBARS
+  ========================================= */
+
+  .mail-preview-sidebar::-webkit-scrollbar,
+  .mail-content::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .mail-preview-sidebar::-webkit-scrollbar-thumb,
+  .mail-content::-webkit-scrollbar-thumb {
+    background: var(--mp-border-strong);
+    border-radius: 20px;
+  }
+
+  .mail-preview-sidebar::-webkit-scrollbar-thumb:hover,
+  .mail-content::-webkit-scrollbar-thumb:hover {
+    background: var(--mp-text-muted);
+  }
+
+  /* =========================================
+     ANIMATIONS
+  ========================================= */
+
+  @keyframes mailFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes mailSlide {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(.99);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* =========================================
+     TABLET RESPONSIVENESS
+  ========================================= */
+
+  @media(max-width: 850px) {
+    .mail-preview-overlay {
+      padding: 10px;
+    }
+
+    .mail-preview {
+      height: 96vh;
+    }
+
+    .mail-preview-workspace {
+      grid-template-columns: 165px minmax(0,1fr);
+      padding: 0 12px;
+    }
+
+    .mail-preview-content {
+      padding: 16px 12px 0;
+    }
+
+    .mail-preview-identity {
+      flex-wrap: wrap;
+    }
+
+    .mail-preview-meta {
+      gap: 4px;
+    }
+  }
+
+  /* =========================================
+     MOBILE RESPONSIVENESS
+  ========================================= */
+
+  @media(max-width: 600px) {
+    .mail-preview-overlay {
+      padding: 6px;
+    }
+
+    .mail-preview {
+      height: 98vh;
+      border-radius: 12px;
+    }
+
+    .mail-preview-header {
+      padding: 12px;
+    }
+
+    .mail-preview-icon {
+      width: 34px;
+      height: 34px;
+    }
+
+    .mail-preview-name {
+      font-size: 14px;
+    }
+
+    .mail-preview-meta .mail-preview-badge:nth-child(n+2) {
+      display: none;
+    }
+
+    .mail-preview-workspace {
+      display: flex;
+      padding: 0;
+    }
+
+    .mail-preview-sidebar {
+      display: none;
+    }
+
+    .mail-content {
+      padding: 16px 12px 0;
+    }
+
+    .mail-subject {
+      font-size: 16px;
+    }
+
+    .mail-preview-footer {
+      padding: 10px 12px;
+    }
+
+    .mail-footer-hint {
+      display: none;
+    }
+
+    .mail-page-count {
+      font-size: 11px;
+    }
+  }
+
+  /* =========================================
+     REDUCED MOTION ACCESSIBILITY
+  ========================================= */
+
+  @media(prefers-reduced-motion: reduce) {
+    .mail-preview-overlay,
+    .mail-preview,
+    .mail-folder,
+    .mail-nav-button,
+    .mail-close-button {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+`}</style>
+
+      {/* HEADER */}
       <div
-        className="ax-card"
+        className="mail-preview"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="template-preview-title"
-        style={{
-          width: "100%",
-          maxWidth: 760,
-          maxHeight: "92vh",
-          overflowY: "auto",
-        }}
+        aria-label="Email inbox simulator"
       >
-        <div className="ax-card__header">
-          <div className="ax-card__titles">
-            <span className="ax-card__eyebrow">Template preview</span>
-            <h2 className="ax-card__title" id="template-preview-title">
-              {template.subject}
-            </h2>
-            <p className="ax-card__subtitle">
-              Preview tokens are rendered as safe preview values.
-            </p>
+        <div className="mail-preview-header">
+
+          <div className="mail-preview-title">
+            <div className="mail-preview-icon">✉</div>
+
+            <div style={{ minWidth: 0 }}>
+              <div className="mail-preview-eyebrow">
+                Email Inbox Simulator
+              </div>
+
+              <div className="mail-preview-name">
+                {template.name}
+              </div>
+            </div>
           </div>
-          <button
-            type="button"
-            className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
-            aria-label="Close preview"
-            onClick={onClose}
-          >
-            {ICON_CLOSE}
-          </button>
+
+          <div className="mail-preview-meta">
+            <span className={`mail-preview-badge mail-preview-badge--difficulty-${template.difficulty}`}>
+              {template.difficulty.toUpperCase()} ·{" "}
+              {template.difficulty === "hard"
+                ? "31%"
+                : template.difficulty === "medium"
+                  ? "22%"
+                  : "13%"}
+            </span>
+            {template.isPremium && (
+              <span className="mail-preview-badge mail-preview-badge--premium">Premium</span>
+            )}
+            {template.isLocked && (
+              <span className="mail-preview-badge mail-preview-badge--locked">Locked</span>
+            )}
+
+            <span className="mail-preview-badge">🌐 Website link</span>
+            <span className="mail-preview-badge">🌍 Global</span>
+
+            <button
+              className="mail-preview-close"
+              onClick={onClose}
+              aria-label="Close preview"
+            >
+              ×
+            </button>
+          </div>
         </div>
-        <div
-          className="ax-card__body"
-          style={{ display: "grid", gap: "var(--ax-space-5)" }}
-        >
-          <iframe
-            title={`${template.name} HTML preview`}
-            sandbox="allow-popups allow-popups-to-escape-sandbox"
-            srcDoc={`<!doctype html><html><body style="font-family:Arial,sans-serif;color:#17202a;padding:24px;line-height:1.5;background:#ffffff">${renderedHtml}</body></html>`}
-            style={{
-              width: "100%",
-              minHeight: 280,
-              border: "1px solid var(--ax-border)",
-              borderRadius: "var(--ax-radius-md)",
-              background: "var(--ax-card, #fff)",
-              boxShadow: "inset 0 0 0 1px rgba(148, 163, 184, 0.18)",
-            }}
-          />
+
+        {/* EMPLOYEE IDENTITY */}
+        <div className="mail-preview-identity">
           <div>
-            <h3 className="ax-card__title">Plain-text fallback</h3>
-            <pre
+            ◉ &nbsp; Previewing as{" "}
+            <strong>John Doe</strong>,
+            {" "}Developer at Contoso Corp
+
+            <button
+              onClick={() => setShowIdentityEditor(!showIdentityEditor)}
+            >
+              Edit
+            </button>
+          </div>
+
+          <span>
+            ✳ &nbsp; Click the links and attachments to see what an employee
+            would see.
+          </span>
+        </div>
+
+        {showIdentityEditor && (
+          <div
+            style={{
+              padding: 14,
+              background: "var(--mp-surface-secondary)",
+              borderBottom: "1px solid var(--mp-border)",
+              fontSize: 13,
+              color: "var(--mp-text)",
+            }}
+          >
+            Preview identity customization is coming soon.
+            <button
+              onClick={() => setShowIdentityEditor(false)}
               style={{
-                whiteSpace: "pre-wrap",
-                color: "var(--ax-text-muted)",
-                background: "var(--ax-surface, rgba(148, 163, 184, 0.06))",
-                border: "1px solid var(--ax-border)",
-                borderRadius: "var(--ax-radius-md)",
-                padding: "var(--ax-space-3)",
-                fontFamily: "var(--ax-font-mono)",
-                fontSize: "var(--ax-text-sm)",
+                marginLeft: 12,
+                border: "none",
+                background: "transparent",
+                color: "var(--mp-primary)",
+                cursor: "pointer",
               }}
             >
-              {template.textBody}
-            </pre>
+              Close
+            </button>
+          </div>
+        )}
+
+        {/* MAIN WORKSPACE */}
+        <div className="mail-preview-workspace">
+
+          {/* SIDEBAR */}
+          <aside className="mail-preview-sidebar">
+
+            <button
+              className="mail-send-button"
+              type="button"
+              onClick={() => window.alert("Test email functionality can be connected to your API.")}
+            >
+              ➤ &nbsp; Send test email
+            </button>
+
+            <div className="mail-sidebar-heading">
+              Folders
+            </div>
+
+            {folders.map((folder) => (
+              <button
+                key={folder.label}
+                className={`mail-folder ${
+                  activeFolder === folder.label ? "active" : ""
+                }`}
+                onClick={() => setActiveFolder(folder.label)}
+                type="button"
+              >
+                <span className="mail-folder-icon">
+                  {folder.icon}
+                </span>
+
+                <span>{folder.label}</span>
+
+                {folder.count && (
+                  <span className="mail-folder-count">
+                    {folder.count}
+                  </span>
+                )}
+              </button>
+            ))}
+
+            <div className="mail-sidebar-heading">
+              Labels
+            </div>
+
+            {labels.map((label) => (
+              <div className="mail-label" key={label.label}>
+                <span
+                  className="mail-label-dot"
+                  style={{ background: label.color }}
+                />
+                {label.label}
+              </div>
+            ))}
+          </aside>
+
+          {/* EMAIL CONTENT */}
+          <main className="mail-content">
+
+            <h2 className="mail-subject">
+              {template.subject}
+            </h2>
+
+            <div className="mail-sender">
+              <div className="mail-sender-avatar">
+                ●
+              </div>
+
+              <div>
+                <div className="mail-sender-name">
+                  {template.lureType === "authority"
+                    ? "IT Administration"
+                    : template.lureType === "reward"
+                      ? "Rewards & Benefits"
+                      : template.lureType === "curiosity"
+                        ? "Company Notifications"
+                        : "Google Notifications"}
+
+                  <span
+                    style={{
+                      color: "var(--mp-text-muted)",
+                      fontWeight: 400,
+                      marginLeft: 5,
+                    }}
+                  >
+                    ( notifications@example.com )
+                  </span>
+                </div>
+
+                <div className="mail-sender-address">
+                  to john[.]doe@mybusiness[.]com
+                </div>
+              </div>
+            </div>
+
+            <div className="mail-body-container">
+              <iframe
+                title={`${template.name} email preview`}
+                srcDoc={emailDocument}
+                sandbox="allow-popups"
+                referrerPolicy="no-referrer"
+              />
+            </div>
+
+          </main>
+        </div>
+
+        {/* FOOTER */}
+        <div className="mail-preview-footer">
+
+          <div className="mail-footer-hint">
+            Use the arrow keys to step through the emails.
+          </div>
+
+          <div className="mail-footer-actions">
+
+            <button
+              className="mail-nav-button"
+              disabled
+              aria-label="Previous email"
+            >
+              ‹
+            </button>
+
+            <span className="mail-page-count">
+              1 of 1
+            </span>
+
+            <button
+              className="mail-nav-button"
+              disabled
+              aria-label="Next email"
+            >
+              ›
+            </button>
+
+            <button
+              className="mail-close-button"
+              onClick={onClose}
+            >
+              Close
+            </button>
+
           </div>
         </div>
       </div>
     </div>
   );
 }
-
 function TemplateDetails({
   template,
   onClose,
@@ -510,30 +1491,21 @@ function TemplateDetails({
 }) {
   return (
     <div
+      className="tpl-modal-overlay"
       role="presentation"
       onMouseDown={(event) => event.target === event.currentTarget && onClose()}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "var(--ax-space-4)",
-        background: "rgba(15, 23, 42, 0.62)",
-        backdropFilter: "blur(4px)",
-      }}
     >
       <div
         className="ax-card"
         role="dialog"
         aria-modal="true"
-        style={{ width: "100%", maxWidth: 620 }}
+        aria-labelledby="template-details-title"
+        style={{ width: "100%", maxWidth: 620, maxHeight: "92vh", overflowY: "auto" }}
       >
         <div className="ax-card__header">
           <div className="ax-card__titles">
             <span className="ax-card__eyebrow">{template.id}</span>
-            <h2 className="ax-card__title">{template.name}</h2>
+            <h2 className="ax-card__title" id="template-details-title">{template.name}</h2>
           </div>
           <button
             type="button"
@@ -557,6 +1529,8 @@ function TemplateDetails({
               "Disclaimer enabled",
               template.disclaimerEnabled ? "True" : "False",
             ],
+            ["Premium", template.isPremium ? "Enabled" : "Disabled"],
+            ["Locked", template.isLocked ? "Yes" : "No"],
           ].map(([label, value]) => (
             <div
               key={label}
@@ -581,6 +1555,7 @@ function TemplateDetails({
 export function Templates() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { themeResolved } = useCustomizer();
   const templateView = location.pathname.endsWith("/custom") ? "custom" : "all";
   const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
   const [loadError, setLoadError] = useState('');
@@ -641,56 +1616,460 @@ export function Templates() {
   const visibleTemplateRows = templateRows.filter(({ saved }) =>
     templateView === "custom" ? saved : true,
   );
+  const theme = themeResolved === "dark" ? "dark" : "light";
 
   return (
     <>
       <style>{`
-        .tpl-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px; }
-        .tpl-toolbar__left, .tpl-toolbar__right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-        .tpl-view-toggle { display:inline-flex; padding:4px; gap:3px; border:1px solid var(--ax-border); border-radius:12px; background:var(--ax-surface, rgba(127,127,127,.06)); }
-        .tpl-view-toggle button { display:inline-flex; align-items:center; gap:7px; border:0; border-radius:8px; padding:8px 12px; background:transparent; color:var(--ax-text-muted); cursor:pointer; font:inherit; font-size:13px; transition:background .2s ease,color .2s ease,box-shadow .2s ease; }
-        .tpl-view-toggle button[aria-pressed="true"] { color:var(--ax-text-strong); background:var(--ax-card, #fff); box-shadow:0 1px 4px rgba(15,23,42,.12); }
-        .tpl-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; }
-        .tpl-card { min-width:0; overflow:hidden; border:1px solid var(--ax-border); border-radius:15px; background:var(--ax-card, #fff); transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease; }
-        .tpl-card:hover { transform:translateY(-3px); border-color:var(--ax-primary, #2780c3); box-shadow:0 12px 28px rgba(15,23,42,.08); }
-        .tpl-card__preview { height:218px; overflow:hidden; border-bottom:1px solid var(--ax-border); background:#f4f6f9; position:relative; }
-        .tpl-card__preview iframe { display:block; width:100%; height:100%; border:0; background:#fff; pointer-events:none; }
-        .tpl-card__preview-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:#64748b; background:linear-gradient(145deg,#f8fafc,#e9eff6); }
-        .tpl-card__preview-empty svg { width:36px;height:36px; }
-        .tpl-card__body { padding:16px; }
-        .tpl-card__title { margin:0; color:var(--ax-text-strong); font-size:15px; font-weight:650; line-height:1.4; overflow-wrap:anywhere; }
-        .tpl-card__subject { margin:5px 0 13px; color:var(--ax-text-muted); font-size:13px; line-height:1.5; min-height:20px; }
-        .tpl-card__meta { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:15px; }
-        .tpl-chip { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:5px 9px; background:var(--ax-surface, #f1f5f9); color:var(--ax-text-muted); font-size:11px; line-height:1.2; }
-        .tpl-chip--easy { color:#07834c; background:rgba(16,185,129,.11); }
-        .tpl-chip--medium { color:#a16207; background:rgba(245,158,11,.13); }
-        .tpl-chip--hard { color:#d94820; background:rgba(249,115,22,.12); }
-        .tpl-card__actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-        .tpl-card__actions .ax-btn { justify-content:center; min-width:0; }
-        .tpl-list { overflow-x:auto; }
-        .tpl-empty { padding:52px 20px; text-align:center; color:var(--ax-text-muted); }
-        .tpl-empty strong { display:block; margin-bottom:6px; color:var(--ax-text-strong); font-size:15px; }
-        .tpl-choice-overlay { position:fixed; inset:0; z-index:1100; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(9,16,28,.58); backdrop-filter:blur(8px); animation:tpl-fade .18s ease both; }
-        .tpl-choice { width:min(100%,620px); overflow:hidden; border:1px solid rgba(255,255,255,.5); border-radius:20px; background:var(--ax-card,#fff); box-shadow:0 28px 90px rgba(0,0,0,.24); animation:tpl-rise .24s cubic-bezier(.2,.8,.2,1) both; }
-        .tpl-choice__head { padding:25px 26px 18px; display:flex; justify-content:space-between; gap:16px; }
-        .tpl-choice__eyebrow { display:block; margin-bottom:7px; color:var(--ax-primary,#2780c3); font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }
-        .tpl-choice__title { margin:0; color:var(--ax-text-strong); font-size:22px; font-weight:700; letter-spacing:-.03em; }
-        .tpl-choice__subtitle { margin:7px 0 0; color:var(--ax-text-muted); font-size:13px; line-height:1.55; }
-        .tpl-choice__options { display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:8px 26px 26px; }
-        .tpl-choice__option { position:relative; display:flex; flex-direction:column; align-items:flex-start; gap:12px; min-height:180px; padding:18px; text-align:left; border:1px solid var(--ax-border); border-radius:14px; background:var(--ax-card,#fff); color:var(--ax-text-strong); cursor:pointer; transition:border-color .2s ease,transform .2s ease,box-shadow .2s ease; }
-        .tpl-choice__option:not(:disabled):hover { transform:translateY(-2px); border-color:var(--ax-primary,#2780c3); box-shadow:0 10px 24px rgba(39,128,195,.12); }
-        .tpl-choice__option:disabled { cursor:not-allowed; opacity:.58; background:var(--ax-surface, #f8fafc); }
-        .tpl-choice__icon { width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:rgba(39,128,195,.1);color:var(--ax-primary,#2780c3); }
-        .tpl-choice__icon svg { width:21px;height:21px; }
-        .tpl-choice__option strong { font-size:14px; }
-        .tpl-choice__option small { color:var(--ax-text-muted); font-size:12px; line-height:1.5; }
-        .tpl-choice__badge { position:absolute; top:15px; right:14px; padding:4px 7px; border-radius:999px; background:rgba(148,163,184,.16); color:var(--ax-text-muted); font-size:10px; font-weight:700; }
-        .tpl-choice__foot { padding:13px 26px; border-top:1px solid var(--ax-border); color:var(--ax-text-muted); font-size:11px; }
-        @keyframes tpl-fade { from{opacity:0}to{opacity:1} }
-        @keyframes tpl-rise { from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)} }
-        @media(max-width:1100px){.tpl-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
-        @media(max-width:650px){.tpl-grid{grid-template-columns:1fr}.tpl-choice__options{grid-template-columns:1fr;padding:8px 18px 20px}.tpl-choice__head{padding:20px 18px 14px}.tpl-choice__option{min-height:145px}.tpl-choice__title{font-size:19px}.tpl-choice__foot{padding-inline:18px}.tpl-card__preview{height:200px}}
-        @media(prefers-reduced-motion:reduce){.tpl-card,.tpl-choice__option,.tpl-choice-overlay,.tpl-choice{animation:none!important;transition:none!important}}
+        .tpl-toolbar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--ax-space-4);
+          flex-wrap: wrap;
+          margin-block-end: var(--ax-space-5);
+        }
+        .tpl-toolbar__left,
+        .tpl-toolbar__right {
+          display: flex;
+          align-items: center;
+          gap: var(--ax-space-3);
+          flex-wrap: wrap;
+        }
+        .tpl-view-toggle {
+          display: inline-flex;
+          gap: var(--ax-space-1);
+          padding: var(--ax-space-1);
+          border: 1px solid var(--ax-border);
+          border-radius: var(--ax-radius-md);
+          background: var(--ax-surface-subtle);
+        }
+        .tpl-view-toggle button {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--ax-space-2);
+          padding: var(--ax-space-2) var(--ax-space-3);
+          border: 0;
+          border-radius: var(--ax-radius-sm);
+          background: transparent;
+          color: var(--ax-text-muted);
+          cursor: pointer;
+          font: inherit;
+          font-size: var(--ax-text-sm);
+          transition: background var(--ax-motion-fast) var(--ax-ease-standard),
+            color var(--ax-motion-fast) var(--ax-ease-standard),
+            box-shadow var(--ax-motion-fast) var(--ax-ease-standard);
+        }
+        .tpl-view-toggle button[aria-pressed="true"] {
+          color: var(--ax-text-strong);
+          background: var(--ax-surface-overlay);
+          box-shadow: var(--ax-shadow-sm);
+        }
+        .tpl-view-toggle button:focus-visible,
+        .tpl-choice__option:focus-visible {
+          outline: 2px solid var(--ax-focus-ring);
+          outline-offset: 2px;
+        }
+        .tpl-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: var(--ax-space-4);
+        }
+        .tpl-card {
+          min-width: 0;
+          overflow: hidden;
+          border: 1px solid var(--ax-border);
+          border-radius: var(--ax-radius-lg);
+          background: var(--ax-surface);
+          box-shadow: var(--ax-shadow-card);
+          transition: transform var(--ax-motion-base) var(--ax-ease-standard),
+            border-color var(--ax-motion-base) var(--ax-ease-standard),
+            box-shadow var(--ax-motion-base) var(--ax-ease-standard);
+        }
+        .tpl-card:hover {
+          transform: translateY(-2px);
+          border-color: var(--ax-accent);
+        }
+        .tpl-card__preview {
+          position: relative;
+          height: 218px;
+          overflow: hidden;
+          border-block-end: 1px solid var(--ax-border);
+          background: var(--ax-surface-subtle);
+        }
+        .tpl-card__preview iframe {
+          display: block;
+          width: 100%;
+          height: 100%;
+          border: 0;
+          background: var(--ax-surface-solid);
+          pointer-events: none;
+        }
+        .tpl-card__preview-empty {
+          display: flex;
+          height: 100%;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: var(--ax-space-2);
+          color: var(--ax-text-muted);
+          background: var(--ax-surface-subtle);
+        }
+        .tpl-card__preview-empty svg { width: 36px; height: 36px; }
+        .tpl-card__body { padding: var(--ax-space-4); }
+        .tpl-card__title {
+          margin: 0;
+          color: var(--ax-text-strong);
+          font-family: var(--ax-font-display);
+          font-size: var(--ax-text-base);
+          font-weight: var(--ax-weight-semibold);
+          line-height: 1.4;
+          overflow-wrap: anywhere;
+        }
+        .tpl-card__subject {
+          min-height: 20px;
+          margin: var(--ax-space-1) 0 var(--ax-space-3);
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-sm);
+          line-height: 1.5;
+        }
+        .tpl-card__meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: var(--ax-space-2);
+          margin-block-end: var(--ax-space-4);
+        }
+        .tpl-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: var(--ax-space-1);
+          padding: 5px 9px;
+          border: 1px solid var(--ax-border);
+          border-radius: var(--ax-radius-pill);
+          background: var(--ax-surface-subtle);
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-2xs);
+          line-height: 1.2;
+        }
+        .tpl-chip--easy {
+          border-color: var(--ax-success-200);
+          background: var(--ax-success-50);
+          color: var(--ax-success-500);
+        }
+        .tpl-chip--medium {
+          border-color: var(--ax-warning-200);
+          background: var(--ax-warning-50);
+          color: var(--ax-warning-500);
+        }
+        .tpl-chip--hard {
+          border-color: var(--ax-danger-200);
+          background: var(--ax-danger-50);
+          color: var(--ax-danger-500);
+        }
+        .tpl-chip--premium {
+          border-color: var(--ax-accent);
+          background: var(--ax-accent-wash);
+          color: var(--ax-accent);
+        }
+        .tpl-chip--locked {
+          border-color: var(--ax-danger-200);
+          background: var(--ax-danger-50);
+          color: var(--ax-danger-500);
+        }
+        .tpl-card__actions {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: var(--ax-space-2);
+        }
+        .tpl-card__actions .ax-btn {
+          justify-content: center;
+          min-width: 0;
+        }
+        .tpl-list { overflow-x: auto; }
+        .tpl-empty {
+          padding: var(--ax-space-12) var(--ax-space-5);
+          color: var(--ax-text-muted);
+          text-align: center;
+        }
+        .tpl-empty strong {
+          display: block;
+          margin-block-end: var(--ax-space-1);
+          color: var(--ax-text-strong);
+          font-size: var(--ax-text-base);
+        }
+        .tpl-form-settings {
+          display: grid;
+          gap: var(--ax-space-3);
+          padding: var(--ax-space-4);
+          border: 1px solid var(--ax-border);
+          border-radius: var(--ax-radius-lg);
+          background: var(--ax-surface-subtle);
+        }
+        .tpl-form-settings__header h3 {
+          color: var(--ax-text-strong);
+          font-size: var(--ax-text-sm);
+          font-weight: var(--ax-weight-semibold);
+        }
+        .tpl-form-settings__header p {
+          margin-block-start: var(--ax-space-1);
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-xs);
+        }
+        .tpl-form-settings__grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: var(--ax-space-3);
+        }
+        .tpl-setting {
+          display: flex;
+          min-width: 0;
+          align-items: center;
+          justify-content: space-between;
+          gap: var(--ax-space-3);
+          padding: var(--ax-space-3);
+          border: 1px solid var(--ax-border);
+          border-radius: var(--ax-radius-md);
+          background: var(--ax-surface);
+          transition: border-color var(--ax-motion-fast) var(--ax-ease-standard),
+            background var(--ax-motion-fast) var(--ax-ease-standard);
+        }
+        .tpl-setting.is-active {
+          border-color: var(--ax-accent);
+          background: var(--ax-accent-wash);
+        }
+        .tpl-setting.is-locked.is-active {
+          border-color: var(--ax-danger-200);
+          background: var(--ax-danger-50);
+        }
+        .tpl-setting__copy {
+          display: grid;
+          min-width: 0;
+          gap: var(--ax-space-1);
+        }
+        .tpl-setting__title {
+          color: var(--ax-text-strong);
+          font-size: var(--ax-text-sm);
+          font-weight: var(--ax-weight-semibold);
+        }
+        .tpl-setting__description,
+        .tpl-setting__state {
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-xs);
+          line-height: 1.45;
+        }
+        .tpl-setting__state {
+          color: var(--ax-accent);
+          font-weight: var(--ax-weight-medium);
+        }
+        .tpl-setting__state--locked {
+          color: var(--ax-text-muted);
+        }
+        .tpl-setting.is-locked.is-active .tpl-setting__state--locked {
+          color: var(--ax-danger-500);
+        }
+        .tpl-switch {
+          position: relative;
+          flex: 0 0 auto;
+          width: 44px;
+          height: 26px;
+          padding: 3px;
+          border: 1px solid var(--ax-border-strong);
+          border-radius: var(--ax-radius-pill);
+          background: var(--ax-fill-active);
+          cursor: pointer;
+          transition: background var(--ax-motion-fast) var(--ax-ease-standard),
+            border-color var(--ax-motion-fast) var(--ax-ease-standard),
+            box-shadow var(--ax-motion-fast) var(--ax-ease-standard);
+        }
+        .tpl-switch[aria-checked="true"] {
+          border-color: var(--ax-accent);
+          background: var(--ax-accent);
+        }
+        .tpl-switch:focus-visible {
+          outline: none;
+          box-shadow: var(--ax-focus-shadow);
+        }
+        .tpl-switch__thumb {
+          display: block;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: var(--ax-surface-solid);
+          box-shadow: var(--ax-shadow-sm);
+          transform: translateX(0);
+          transition: transform var(--ax-motion-fast) var(--ax-ease-standard);
+        }
+        .tpl-switch[aria-checked="true"] .tpl-switch__thumb {
+          transform: translateX(18px);
+        }
+        [dir="rtl"] .tpl-switch[aria-checked="true"] .tpl-switch__thumb {
+          transform: translateX(-18px);
+        }
+        .tpl-modal-overlay,
+        .tpl-choice-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: var(--ax-z-modal);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--ax-space-4);
+          background: var(--ax-backdrop);
+          -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+          animation: tpl-fade var(--ax-motion-fast) var(--ax-ease-standard) both;
+        }
+        .tpl-modal-overlay > .ax-card {
+          width: 100%;
+          max-width: 760px;
+          max-height: 92vh;
+          overflow-y: auto;
+        }
+        .tpl-modal-overlay .ax-input::placeholder,
+        .tpl-modal-overlay .ax-textarea::placeholder {
+          color: var(--ax-text-muted);
+          opacity: 1;
+        }
+        .tpl-choice {
+          width: min(100%, 620px);
+          max-height: 92vh;
+          overflow-y: auto;
+          border: 1px solid var(--ax-border-strong);
+          border-radius: var(--ax-radius-xl);
+          background: var(--ax-surface-overlay);
+          color: var(--ax-text);
+          box-shadow: var(--ax-shadow-lg);
+          animation: tpl-rise var(--ax-motion-base) var(--ax-ease-emphasized) both;
+        }
+        .tpl-choice__head {
+          display: flex;
+          justify-content: space-between;
+          gap: var(--ax-space-4);
+          padding: var(--ax-space-6) var(--ax-space-6) var(--ax-space-4);
+        }
+        .tpl-choice__eyebrow {
+          display: block;
+          margin-block-end: var(--ax-space-2);
+          color: var(--ax-accent);
+          font-size: var(--ax-text-2xs);
+          font-weight: var(--ax-weight-bold);
+          letter-spacing: .1em;
+          text-transform: uppercase;
+        }
+        .tpl-choice__title {
+          margin: 0;
+          color: var(--ax-text-strong);
+          font-family: var(--ax-font-display);
+          font-size: var(--ax-text-xl);
+          font-weight: var(--ax-weight-bold);
+          letter-spacing: -.025em;
+        }
+        .tpl-choice__subtitle {
+          margin-block-start: var(--ax-space-2);
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-sm);
+          line-height: 1.55;
+        }
+        .tpl-choice__options {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: var(--ax-space-3);
+          padding: var(--ax-space-2) var(--ax-space-6) var(--ax-space-6);
+        }
+        .tpl-choice__option {
+          position: relative;
+          display: flex;
+          min-height: 180px;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: var(--ax-space-3);
+          padding: var(--ax-space-4);
+          border: 1px solid var(--ax-border);
+          border-radius: var(--ax-radius-lg);
+          background: var(--ax-surface);
+          color: var(--ax-text-strong);
+          text-align: start;
+          cursor: pointer;
+          transition: transform var(--ax-motion-fast) var(--ax-ease-standard),
+            border-color var(--ax-motion-fast) var(--ax-ease-standard),
+            box-shadow var(--ax-motion-fast) var(--ax-ease-standard),
+            background var(--ax-motion-fast) var(--ax-ease-standard);
+        }
+        .tpl-choice__option:not(:disabled):hover {
+          transform: translateY(-2px);
+          border-color: var(--ax-accent);
+          background: var(--ax-surface-overlay);
+          box-shadow: var(--ax-shadow-md);
+        }
+        .tpl-choice__option:disabled {
+          background: var(--ax-surface-subtle);
+          cursor: not-allowed;
+          opacity: .7;
+        }
+        .tpl-choice__icon {
+          display: grid;
+          width: 40px;
+          height: 40px;
+          place-items: center;
+          border-radius: var(--ax-radius-md);
+          background: var(--ax-accent-wash);
+          color: var(--ax-accent);
+        }
+        .tpl-choice__icon svg { width: 21px; height: 21px; }
+        .tpl-choice__option strong { font-size: var(--ax-text-sm); }
+        .tpl-choice__option small {
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-xs);
+          line-height: 1.5;
+        }
+        .tpl-choice__badge {
+          position: absolute;
+          inset-block-start: var(--ax-space-3);
+          inset-inline-end: var(--ax-space-3);
+          padding: var(--ax-space-1) var(--ax-space-2);
+          border: 1px solid var(--ax-border);
+          border-radius: var(--ax-radius-pill);
+          background: var(--ax-surface-subtle);
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-2xs);
+          font-weight: var(--ax-weight-bold);
+        }
+        .tpl-choice__foot {
+          padding: var(--ax-space-3) var(--ax-space-6);
+          border-block-start: 1px solid var(--ax-border);
+          color: var(--ax-text-muted);
+          font-size: var(--ax-text-2xs);
+        }
+        @keyframes tpl-fade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes tpl-rise {
+          from { opacity: 0; transform: translateY(8px) scale(.99); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @media (max-width: 1100px) {
+          .tpl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 650px) {
+          .tpl-grid { grid-template-columns: 1fr; }
+          .tpl-form-settings__grid { grid-template-columns: 1fr; }
+          .tpl-choice__options {
+            grid-template-columns: 1fr;
+            padding: var(--ax-space-2) var(--ax-space-4) var(--ax-space-4);
+          }
+          .tpl-choice__head { padding: var(--ax-space-5) var(--ax-space-4) var(--ax-space-3); }
+          .tpl-choice__option { min-height: 145px; }
+          .tpl-choice__title { font-size: var(--ax-text-lg); }
+          .tpl-choice__foot { padding-inline: var(--ax-space-4); }
+          .tpl-card__preview { height: 200px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .tpl-card,
+          .tpl-choice__option,
+          .tpl-choice-overlay,
+          .tpl-modal-overlay,
+          .tpl-choice { animation: none !important; transition: none !important; }
+          .tpl-card:hover,
+          .tpl-choice__option:not(:disabled):hover { transform: none; }
+        }
       `}</style>
       <PageHead
         title={templateView === "custom" ? "Custom templates" : "Templates"}
@@ -726,7 +2105,7 @@ export function Templates() {
         </div>
       </div>
 
-      <section className="ax-card" role="region" aria-label="Phishing templates">
+      <section className="ax-card" role="region" aria-label="Phishing templates" style={{ margin: "0 25px" }}>
         <div className="ax-card__header">
           <div className="ax-card__titles">
             <h2 className="ax-card__title">Phishing templates</h2>
@@ -757,7 +2136,7 @@ export function Templates() {
                         title={`${template.name} email thumbnail`}
                         sandbox=""
                         tabIndex={-1}
-                        srcDoc={`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;padding:18px;font-family:Arial,sans-serif;color:#202a35;line-height:1.45;font-size:13px;overflow:hidden">${getTemplatePreviewHtml(template.htmlBody)}</body></html>`}
+                        srcDoc={getTemplatePreviewDocument(template.htmlBody, theme, 18)}
                       />
                     ) : (
                       <div className="tpl-card__preview-empty">
@@ -773,6 +2152,8 @@ export function Templates() {
                       <span className={`tpl-chip tpl-chip--${template.difficulty}`}>{template.difficulty[0].toUpperCase() + template.difficulty.slice(1)}</span>
                       <span className="tpl-chip">{labelFor(CATEGORIES, template.category)}</span>
                       <span className="tpl-chip">{labelFor(LURE_TYPES, template.lureType)}</span>
+                      {template.isPremium && <span className="tpl-chip tpl-chip--premium">Premium</span>}
+                      {template.isLocked && <span className="tpl-chip tpl-chip--locked">Locked</span>}
                     </div>
                     <div className="tpl-card__actions">
                       <button type="button" className="ax-btn ax-btn--secondary ax-btn--sm" onClick={() => setModal({ preview: template })}>
@@ -803,7 +2184,7 @@ export function Templates() {
               <table className="ax-table ax-table--hover">
                 <thead className="ax-table__head">
                   <tr>
-                    {["Name", "Subject", "Lure type", "Category", "Difficulty", "Disclaimer", "Actions"].map((heading) => (
+                    {["Name", "Subject", "Lure type", "Category", "Difficulty", "Premium", "Locked", "Disclaimer", "Actions"].map((heading) => (
                       <th className="ax-table__th" scope="col" key={heading}>{heading}</th>
                     ))}
                   </tr>
@@ -816,6 +2197,8 @@ export function Templates() {
                       <td className="ax-table__td">{labelFor(LURE_TYPES, template.lureType)}</td>
                       <td className="ax-table__td">{labelFor(CATEGORIES, template.category)}</td>
                       <td className="ax-table__td"><span className="ax-badge ax-badge--soft ax-badge--pill">{template.difficulty}</span></td>
+                      <td className="ax-table__td">{template.isPremium ? "Yes" : "No"}</td>
+                      <td className="ax-table__td">{template.isLocked ? "Yes" : "No"}</td>
                       <td className="ax-table__td">{template.disclaimerEnabled ? "Enabled" : "Disabled"}</td>
                       <td className="ax-table__td">
                         <div className="ax-cluster" style={{ gap: "var(--ax-space-1)", flexWrap: "nowrap" }}>
@@ -871,6 +2254,7 @@ export function Templates() {
       {modal === "create" && (
         <TemplateForm
           mode="create"
+          theme={theme}
           onCancel={() => setModal(null)}
           onSubmit={createTemplate}
         />
@@ -879,6 +2263,7 @@ export function Templates() {
         <TemplateForm
           mode="edit"
           initial={modal.edit}
+          theme={theme}
           onCancel={() => setModal(null)}
           onSubmit={updateTemplate}
         />
@@ -886,6 +2271,7 @@ export function Templates() {
       {modal && typeof modal === "object" && "preview" in modal && (
         <TemplatePreview
           template={modal.preview}
+          theme={theme}
           onClose={() => setModal(null)}
         />
       )}

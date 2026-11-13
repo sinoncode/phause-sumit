@@ -14,6 +14,10 @@ import { apiClient } from '../client';
 import { getAppToken } from '../../stores/auth.store';
 import type { PhishingTemplate } from '../../pages/templates/Templates';
 
+function booleanValue(value: unknown): boolean {
+  return value === true || value === 1 || value === 'true' || value === '1';
+}
+
 function adapt(raw: Record<string, unknown>): PhishingTemplate {
   return {
     id:                 String(raw.id ?? ''),
@@ -25,6 +29,8 @@ function adapt(raw: Record<string, unknown>): PhishingTemplate {
     category:           (raw.category ?? 'credential-harvest') as PhishingTemplate['category'],
     difficulty:         (raw.difficulty ?? 'medium') as PhishingTemplate['difficulty'],
     disclaimerEnabled:  Boolean(raw.disclaimerEnabled ?? raw.disclaimer_enabled ?? false),
+    isPremium:          booleanValue(raw.isPremium ?? raw.is_premium),
+    isLocked:           booleanValue(raw.isLocked ?? raw.is_locked),
   };
 }
 
