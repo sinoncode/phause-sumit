@@ -145,7 +145,7 @@ export function SignInAdmin() {
           <BrandInline />
 
           {/* ── Mode switcher pill ─────────────────────────────────────── */}
-          <div
+          {/* <div
             role="group"
             aria-label="Login type"
             style={{
@@ -181,7 +181,7 @@ export function SignInAdmin() {
                 {m === 'admin' ? 'Admin Login' : 'Org User Login'}
               </button>
             ))}
-          </div>
+          </div> */}
 
           {/* ── Card ──────────────────────────────────────────────────── */}
           <div className="ax-card" style={{ borderRadius: 'var(--ax-radius-xl)' }}>
