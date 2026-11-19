@@ -9,7 +9,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { BrandInline } from '../auth/authShared';
 
 const MARKETING_HOME = (
-  import.meta.env.VITE_MARKETING_URL?.trim() || 'https://phause.vercel.app/'
+  import.meta.env.VITE_MARKETING_URL?.trim() || 'https://phause.webandappdevelopmenttech.com/'
 ).replace(/\/+$/, '') + '/';
 const COUNTDOWN  = 5;
 

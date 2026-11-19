@@ -38,6 +38,34 @@ export interface Subscription {
   stripeSubscriptionId: string | null;
 }
 
+export interface SubscriptionUsage {
+  maxCampaigns: number;
+  maxUsers: number;
+  monthlyApiQuota: number;
+  usedApiRequests: number;
+  remainingApiRequests: number;
+  usedCampaigns: number;
+  usedUsers: number;
+  remainingCampaigns: number;
+  remainingUsers: number;
+}
+
+export interface SubscriptionPayment {
+  id: string;
+  amount?: number;
+  currency?: string;
+  status?: string;
+  createdAt?: string;
+  paymentDate?: string;
+  [key: string]: unknown;
+}
+
+export interface CurrentSubscriptionResponse {
+  subscription: Subscription | null;
+  payments: SubscriptionPayment[];
+  usage: SubscriptionUsage | null;
+}
+
 export interface CheckoutSession {
   sessionId: string;
   url: string;
@@ -121,9 +149,58 @@ export async function createCheckoutSession(planId: string): Promise<CheckoutSes
 }
 
 /** Get the current subscription for the org */
-export async function getCurrentSubscription(): Promise<Subscription | null> {
-  const raw = await apiClient.get<Record<string, unknown> | null>('/api/subscriptions/current', getAppToken);
-  return raw ? adaptSubscription(raw) : null;
+/** Get current subscription, payments and usage for the organisation */
+export async function getCurrentSubscription(): Promise<CurrentSubscriptionResponse> {
+  const raw = await apiClient.get<Record<string, unknown> | null>(
+    '/api/subscriptions/current',
+    getAppToken
+  );
+
+  if (!raw) {
+    return {
+      subscription: null,
+      payments: [],
+      usage: null,
+    };
+  }
+
+  const subscriptionRaw =
+    raw.subscription &&
+    typeof raw.subscription === 'object'
+      ? raw.subscription as Record<string, unknown>
+      : null;
+
+  const usageRaw =
+    raw.usage &&
+    typeof raw.usage === 'object'
+      ? raw.usage as Record<string, unknown>
+      : null;
+
+  const paymentsRaw = Array.isArray(raw.payments)
+    ? raw.payments
+    : [];
+
+  return {
+    subscription: subscriptionRaw
+      ? adaptSubscription(raw)
+      : null,
+
+    payments: paymentsRaw as SubscriptionPayment[],
+
+    usage: usageRaw
+      ? {
+          maxCampaigns: Number(usageRaw.maxCampaigns ?? 0),
+          maxUsers: Number(usageRaw.maxUsers ?? 0),
+          monthlyApiQuota: Number(usageRaw.monthlyApiQuota ?? 0),
+          usedApiRequests: Number(usageRaw.usedApiRequests ?? 0),
+          remainingApiRequests: Number(usageRaw.remainingApiRequests ?? 0),
+          usedCampaigns: Number(usageRaw.usedCampaigns ?? 0),
+          usedUsers: Number(usageRaw.usedUsers ?? 0),
+          remainingCampaigns: Number(usageRaw.remainingCampaigns ?? 0),
+          remainingUsers: Number(usageRaw.remainingUsers ?? 0),
+        }
+      : null,
+  };
 }
 
 /** Cancel the current subscription (at period end) */
