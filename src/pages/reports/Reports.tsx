@@ -13,7 +13,7 @@
  *   10.9  Template effectiveness table
  *   10.10 Training correlation table
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
 import { ApexChart } from '../../components/charts/ApexChart';
 import { useCampaignStore } from '../../stores/campaign.store';
@@ -79,6 +79,36 @@ const ICON_EYE = (
 const fmt = (iso: string) =>
   iso ? new Date(iso).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
 
+function getResponseMessage(value: unknown): string | null {
+  if (typeof value === 'string') {
+    const message = value.trim();
+    if (!message) return null;
+    try {
+      return getResponseMessage(JSON.parse(message));
+    } catch {
+      return /^(GET|POST|PUT|PATCH|DELETE)\s+\/.*(?:→|->)\s*\d+$/i.test(message) ? null : message;
+    }
+  }
+  if (Array.isArray(value)) {
+    const messages = value.map(getResponseMessage).filter((message): message is string => message !== null);
+    return messages.length ? messages.join('. ') : null;
+  }
+  if (value && typeof value === 'object') {
+    const response = value as Record<string, unknown>;
+    for (const key of ['message', 'errors', 'data', 'error']) {
+      const message = getResponseMessage(response[key]);
+      if (message) return message;
+    }
+  }
+  return null;
+}
+
+function getReportErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof ApiError) return getResponseMessage(error.body) ?? fallback;
+  if (error instanceof Error) return getResponseMessage(error.message) ?? fallback;
+  return fallback;
+}
+
 function Pagination({ page, pageCount, total, start, size, onPage }: { page: number; pageCount: number; total: number; start: number; size: number; onPage: (p: number) => void }) {
   return (
     <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'space-between' }}>
@@ -130,14 +160,12 @@ function StatusBadge({ status }: { status: ReportSummary['status'] }) {
 // 10.2 — Report detail modal
 // ---------------------------------------------------------------------------
 
-function ReportModal({ report, onClose }: { report: ReportSummary; onClose: () => void }) {
-  const [exportError, setExportError] = useState('');
+function ReportModal({ report, onClose, onError }: { report: ReportSummary; onClose: () => void; onError: (error: unknown) => void }) {
   const handleExport = async (format: 'csv' | 'pdf') => {
-    setExportError('');
     try {
       await downloadReport(report.id, format);
     } catch (error) {
-      setExportError(error instanceof Error ? error.message : 'Unable to export report.');
+      onError(error);
     }
   };
   return (
@@ -187,7 +215,6 @@ function ReportModal({ report, onClose }: { report: ReportSummary; onClose: () =
           </button>
           <button type="button" className="ax-btn ax-btn--primary" onClick={onClose}>Close</button>
         </div>
-        {exportError && <p role="alert" className="ax-field__error">{exportError}</p>}
       </div>
     </div>
   );
@@ -197,11 +224,10 @@ function ReportModal({ report, onClose }: { report: ReportSummary; onClose: () =
 // 10.1 — Generate report modal
 // ---------------------------------------------------------------------------
 
-function GenerateModal({ campaigns, onClose, onGenerate }: { campaigns: Campaign[]; onClose: () => void; onGenerate: (campaignId: string) => Promise<void> }) {
+function GenerateModal({ campaigns, onClose, onGenerate, onError }: { campaigns: Campaign[]; onClose: () => void; onGenerate: (campaignId: string) => Promise<void>; onError: (error: unknown) => void }) {
   const eligibleCampaigns = campaigns.filter((campaign) => campaign.status === 'completed' || campaign.status === 'running');
   const [campaignId, setCampaignId] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     if (!campaignId && eligibleCampaigns.length) setCampaignId(eligibleCampaigns[0].id);
@@ -210,11 +236,10 @@ function GenerateModal({ campaigns, onClose, onGenerate }: { campaigns: Campaign
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
-    setError('');
     try {
       await onGenerate(campaignId);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to generate report.');
+      onError(err);
     } finally {
       setBusy(false);
     }
@@ -242,7 +267,6 @@ function GenerateModal({ campaigns, onClose, onGenerate }: { campaigns: Campaign
                 ))}
               </select>
               <p className="ax-field__hint">{eligibleCampaigns.length ? 'Only completed or running campaigns can generate a report.' : 'No completed or running campaigns are available.'}</p>
-              {error && <p role="alert" className="ax-field__error">{error}</p>}
             </div>
           </div>
           <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end', gap: 'var(--ax-space-3)' }}>
@@ -270,13 +294,35 @@ export function Reports() {
   const [templateEff, setTemplateEff] = useState<TemplateEffectiveness[]>([]);
   const [trainingCorr, setTrainingCorr] = useState<TrainingCorrelationRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [errorToast, setErrorToast] = useState('');
+  const toastTimer = useRef<number | null>(null);
   const handleApiError = useApiErrorHandler();
 
   const [viewReport, setViewReport] = useState<ReportSummary | null>(null);
   const [showGenerate, setShowGenerate] = useState(false);
   const [rptPage, setRptPage] = useState(1);
   const [riskPage, setRiskPage] = useState(1);
+
+  const showErrorToast = (message: string) => {
+    if (toastTimer.current !== null) window.clearTimeout(toastTimer.current);
+    setErrorToast(message);
+    toastTimer.current = window.setTimeout(() => {
+      setErrorToast('');
+      toastTimer.current = null;
+    }, 40000);
+  };
+
+  const handleReportError = (error: unknown, fallback = 'Unable to complete the report request.') => {
+    if (error instanceof ApiError && error.status === 401) {
+      handleApiError(error, fallback);
+      return;
+    }
+    showErrorToast(getReportErrorMessage(error, fallback));
+  };
+
+  useEffect(() => () => {
+    if (toastTimer.current !== null) window.clearTimeout(toastTimer.current);
+  }, []);
 
   // Load all data on mount
   useEffect(() => {
@@ -285,7 +331,6 @@ export function Reports() {
 
   useEffect(() => {
     setLoading(true);
-    setLoadError('');
     Promise.allSettled([
       listReports(),
       listRiskScores(),
@@ -311,9 +356,9 @@ export function Reports() {
       if (te.status === 'fulfilled') setTemplateEff(te.value);
       if (tc.status === 'fulfilled') setTrainingCorr(tc.value);
       const errors = results.flatMap((result) => result.status === 'rejected'
-        ? [result.reason instanceof Error ? result.reason.message : 'A report API request failed.']
+        ? [getReportErrorMessage(result.reason, 'A report request failed.')]
         : []);
-      setLoadError(errors.join(' '));
+      if (errors.length) showErrorToast(errors.join(' '));
     }).finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -353,7 +398,7 @@ export function Reports() {
           </button>
         }
       />
-      {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
+      {errorToast && <div className="ax-toast-region ax-toast-region--top-end" aria-live="assertive"><div className="ax-toast ax-toast--danger" role="alert">{errorToast}</div></div>}
 
       {loading && (
         <p style={{ color: 'var(--ax-text-muted)', padding: 'var(--ax-space-4)' }}>Loading reports…</p>
@@ -688,8 +733,8 @@ export function Reports() {
       )} {/* end !loading */}
 
       {/* Modals */}
-      {viewReport && <ReportModal report={viewReport} onClose={() => setViewReport(null)} />}
-      {showGenerate && <GenerateModal campaigns={campaigns} onClose={() => setShowGenerate(false)} onGenerate={handleGenerate} />}
+      {viewReport && <ReportModal report={viewReport} onClose={() => setViewReport(null)} onError={(error) => handleReportError(error, 'Unable to export report.')} />}
+      {showGenerate && <GenerateModal campaigns={campaigns} onClose={() => setShowGenerate(false)} onGenerate={handleGenerate} onError={(error) => handleReportError(error, 'Unable to generate report.')} />}
     </>
   );
 }

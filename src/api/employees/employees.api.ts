@@ -12,16 +12,22 @@
  */
 
 import { apiClient } from '../client';
-import { getAppToken } from '../../stores/auth.store';
+import { getAppToken, useAuthStore } from '../../stores/auth.store';
 import type { EmployeeRecord, EmployeeFormValues } from '../../pages/employees/Employees';
 
 function adapt(raw: Record<string, unknown>): EmployeeRecord {
+  const [nameFirst = '', ...nameLastParts] = String(raw.name ?? '').trim().split(/\s+/);
+  const firstName = String(raw.firstName ?? nameFirst);
+  const lastName = String(raw.lastName ?? nameLastParts.join(' '));
   return {
     id:             String(raw.id ?? ''),
     organisationId: String(raw.organisationId ?? raw.organizationId ?? raw.orgId ?? ''),
     email:          String(raw.email ?? ''),
-    name:           String(raw.name ?? [raw.firstName, raw.lastName].filter(Boolean).join(' ')),
+    firstName,
+    lastName,
+    name:           String(raw.name ?? [firstName, lastName].filter(Boolean).join(' ')),
     department:     String(raw.department ?? ''),
+    jobRole:        String(raw.jobRole ?? ''),
     seniority:      (raw.seniority ?? 'mid') as EmployeeRecord['seniority'],
     hasConsent:     Boolean(raw.hasConsent ?? raw.has_consent ?? true),
   };
@@ -34,15 +40,17 @@ export async function listEmployees(): Promise<EmployeeRecord[]> {
 }
 
 export async function createEmployee(values: EmployeeFormValues & { organisationId?: string }): Promise<EmployeeRecord> {
-  const [firstName, ...lastNameParts] = values.name.trim().split(/\s+/);
+  const organizationId = values.organisationId ?? useAuthStore.getState().orgId;
+  if (!organizationId) throw new Error('Select an organization before adding an employee.');
   const raw = await apiClient.post<Record<string, unknown>>('/api/employees', getAppToken, {
     email:          values.email,
-    firstName,
-    lastName:       lastNameParts.join(' '),
+    firstName:      values.firstName.trim(),
+    lastName:       values.lastName.trim(),
     department:     values.department,
+    jobRole:        values.jobRole,
     seniority:      values.seniority,
     hasConsent:     values.hasConsent,
-    organizationId: values.organisationId,
+    organizationId,
   });
   return adapt(raw);
 }
