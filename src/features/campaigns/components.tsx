@@ -39,7 +39,7 @@ export function CampaignTable({ campaigns, templates, onView, onDispatch, onDele
               <tr className="ax-table__row" key={campaign.id}>
                 <td className="ax-table__td">
                   <div style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>{campaign.name}</div>
-                  <div className="ax-num" style={{ color: 'var(--ax-text-subtle)', fontSize: 'var(--ax-text-xs)' }}>{campaign.id}</div>
+                  {/* <div className="ax-num" style={{ color: 'var(--ax-text-subtle)', fontSize: 'var(--ax-text-xs)' }}>{campaign.id}</div> */}
                 </td>
                 <td className="ax-table__td">{templateName(campaign.templateId)}</td>
                 <td className="ax-table__td" style={{ minWidth: 220 }}>

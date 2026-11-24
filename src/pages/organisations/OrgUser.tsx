@@ -377,7 +377,7 @@ export function OrgUser() {
             <table className="ax-table ax-table--hover">
               <thead className="ax-table__head">
                 <tr>
-                  <th className="ax-table__th" scope="col">User ID</th>
+                  {/* <th className="ax-table__th" scope="col">User ID</th> */}
                   <th className="ax-table__th" scope="col">Organization</th>
                   <th className="ax-table__th" scope="col">Email</th>
                   <th className="ax-table__th" scope="col">Role</th>
@@ -388,7 +388,7 @@ export function OrgUser() {
               <tbody>
                 {rows.map((u) => (
                   <tr key={u.id} className="ax-table__row">
-                    <td className="ax-table__td ax-num" style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>{u.id}</td>
+                    {/* <td className="ax-table__td ax-num" style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>{u.id}</td> */}
                     <td className="ax-table__td" style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>
                       {orgName(u.orgId)}
                     </td>

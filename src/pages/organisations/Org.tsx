@@ -612,7 +612,7 @@ export function Org({ onViewOrganisation }: Props) {
             <table className="ax-table ax-table--hover">
               <thead className="ax-table__head">
                 <tr>
-                  <th className="ax-table__th" scope="col">Id</th>
+                  {/* <th className="ax-table__th" scope="col">Id</th> */}
                   <th className="ax-table__th" scope="col">Name</th>
                   <th className="ax-table__th" scope="col">Verified domains</th>
                   <th className="ax-table__th" scope="col">Plan</th>
@@ -628,7 +628,7 @@ export function Org({ onViewOrganisation }: Props) {
               <tbody>
                 {rows.map((o) => (
                   <tr key={o.id} className="ax-table__row">
-                    <td className="ax-table__td ax-num">{o.id}</td>
+                    {/* <td className="ax-table__td ax-num">{o.id}</td> */}
                     <td className="ax-table__td" style={{ color: 'var(--ax-text-strong)', fontWeight: 'var(--ax-weight-medium)' }}>{o.name}</td>
                     <td className="ax-table__td">
                       <div className="ax-cluster" style={{ gap: 'var(--ax-space-1)', flexWrap: 'wrap' }}>

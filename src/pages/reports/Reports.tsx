@@ -420,7 +420,7 @@ export function Reports() {
             <table className="ax-table ax-table--hover">
               <thead className="ax-table__head">
                 <tr>
-                  <th className="ax-table__th" scope="col">Report ID</th>
+                  {/* <th className="ax-table__th" scope="col">Report ID</th> */}
                   <th className="ax-table__th" scope="col">Campaign</th>
                   <th className="ax-table__th" scope="col">Generated</th>
                   <th className="ax-table__th" scope="col">Status</th>
@@ -434,7 +434,7 @@ export function Reports() {
               <tbody>
                 {rptRows.map((r) => (
                   <tr key={r.id} className="ax-table__row">
-                    <td className="ax-table__td ax-num" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>{r.id}</td>
+                    {/* <td className="ax-table__td ax-num" style={{ fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>{r.id}</td> */}
                     <td className="ax-table__td" style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>
                       {r.campaignName}
                       <div style={{ fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>{r.campaignId}</div>
