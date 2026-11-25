@@ -25,6 +25,12 @@ export interface BillingPlan {
   maxEmployees: number | null;
   maxCampaigns: number | null;
   stripePriceId: string;
+  billingCycle?: string;
+  maxCampaignsPerDay?: number | null;
+  maxUsers?: number | null;
+  trialDays?: number;
+  isActive?: boolean;
+  featureValues?: Record<string, boolean | number | string>;
 }
 
 export interface Subscription {
@@ -79,6 +85,13 @@ function adaptPlan(raw: Record<string, unknown>): BillingPlan {
   const features = raw.features && typeof raw.features === 'object'
     ? raw.features as Record<string, unknown>
     : {};
+  const featureValues = raw.features && typeof raw.features === 'object' && !Array.isArray(raw.features)
+    ? Object.fromEntries(
+        Object.entries(features).filter(([, value]) =>
+          typeof value === 'boolean' || typeof value === 'number' || typeof value === 'string',
+        ),
+      ) as Record<string, boolean | number | string>
+    : undefined;
   return {
     id:            String(raw.id ?? ''),
     name:          String(raw.name ?? ''),
@@ -89,6 +102,12 @@ function adaptPlan(raw: Record<string, unknown>): BillingPlan {
     maxEmployees:  raw.maxEmployees != null ? Number(raw.maxEmployees) : raw.maxUsers != null ? Number(raw.maxUsers) || null : null,
     maxCampaigns:  raw.maxCampaigns != null ? Number(raw.maxCampaigns) : raw.max_campaigns != null ? Number(raw.max_campaigns) : null,
     stripePriceId: String(raw.gatewayPriceId ?? raw.gateway_price_id ?? raw.stripePriceId ?? raw.stripe_price_id ?? ''),
+    billingCycle: raw.billingCycle == null && raw.billing_cycle == null ? undefined : String(raw.billingCycle ?? raw.billing_cycle),
+    maxCampaignsPerDay: raw.maxCampaignsPerDay != null ? Number(raw.maxCampaignsPerDay) : raw.max_campaigns_per_day != null ? Number(raw.max_campaigns_per_day) : null,
+    maxUsers: raw.maxUsers != null ? Number(raw.maxUsers) : raw.maxEmployees != null ? Number(raw.maxEmployees) : null,
+    trialDays: raw.trialDays != null ? Number(raw.trialDays) : raw.trial_days != null ? Number(raw.trial_days) : undefined,
+    isActive: typeof raw.isActive === 'boolean' ? raw.isActive : typeof raw.is_active === 'boolean' ? raw.is_active : undefined,
+    featureValues,
   };
 }
 
