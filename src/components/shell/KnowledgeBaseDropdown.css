@@ -59,11 +59,11 @@
   overflow-x: hidden;
   overscroll-behavior: contain;
   border: 1px solid var(--ax-border);
-  border-radius: 20px;
-  background: rgba(5, 6, 9, 0.91);
-  box-shadow:
-    0 25px 80px rgba(0, 0, 0, .17),
-    0 5px 20px rgba(0, 0, 0, .06);
+  border-radius: var(--ax-radius-xl);
+  background: var(--ax-surface-overlay);
+  box-shadow: var(--ax-shadow-lg);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -231,7 +231,7 @@
 .kb-mega__browse:hover {
   background: var(--ax-accent);
   border-color: var(--ax-accent);
-  color: white;
+  color: var(--ax-on-accent);
   transform: translateY(-3px);
 }
 
@@ -310,9 +310,9 @@
 
 .kb-article:hover {
   border-color: var(--ax-accent);
-  background: var(--ax-surface);
+  background: var(--ax-surface-raised);
   transform: translateY(-4px) !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, .07);
+  box-shadow: var(--ax-shadow-md);
 }
 
 .kb-article__icon {
@@ -456,6 +456,13 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 11px;
+}
+
+.kb-nav__trigger:focus-visible,
+.kb-mega a:focus-visible {
+  outline: 2px solid var(--ax-focus-ring);
+  outline-offset: 3px;
+  box-shadow: var(--ax-focus-shadow);
 }
 
 /* ==========================================

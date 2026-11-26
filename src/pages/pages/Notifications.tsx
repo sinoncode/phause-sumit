@@ -29,14 +29,12 @@ interface ApiResponse {
 }
 
 const API_BASE_URL = (
-  import.meta.env.VITE_API_BASE_URL || ''
-).replace(/\/+$/, '');
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  'https://phishingsimulation.webandappdevelopmenttech.com'
+).replace(/\/+$/, '').replace(/\/api$/i, '');
 
-const API_PREFIX = API_BASE_URL.endsWith('/api')
-  ? API_BASE_URL
-  : `${API_BASE_URL}/api`;
-
-const NOTIFICATIONS_ENDPOINT = `${API_PREFIX}/notifications`;
+const NOTIFICATIONS_ENDPOINT = `${API_BASE_URL}/api/notifications`;
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'all', label: 'All' },
