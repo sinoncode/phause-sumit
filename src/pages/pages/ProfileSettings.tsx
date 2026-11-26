@@ -170,7 +170,10 @@ export function ProfileSettings() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [pw, setPw] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+const [pw, setPw] = useState('');
+const [confirmPassword, setConfirmPassword] = useState('');
+const [changingPassword, setChangingPassword] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [notifications, setNotifications] = useState<Record<string, { email: boolean; push: boolean; app: boolean }>>(
@@ -180,6 +183,72 @@ export function ProfileSettings() {
       app: row.title !== 'Weekly digest',
     }]))
   );
+
+
+  const changePassword = async () => {
+  setError('');
+  setSuccess('');
+
+  if (!currentPassword || !pw || !confirmPassword) {
+    setError('Please fill in all password fields.');
+    return;
+  }
+
+  if (pw !== confirmPassword) {
+    setError('New password and confirmation do not match.');
+    return;
+  }
+
+  if (pw.length < 8) {
+    setError('New password must contain at least 8 characters.');
+    return;
+  }
+
+  if (currentPassword === pw) {
+    setError('New password must be different from your current password.');
+    return;
+  }
+
+  setChangingPassword(true);
+
+  try {
+    const token = getAccessToken();
+
+    const response = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: token.startsWith('Bearer ')
+          ? token
+          : `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        currentPassword,
+        newPassword: pw,
+      }),
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        getErrorMessage(payload, `Password update failed (${response.status}).`)
+      );
+    }
+
+    setCurrentPassword('');
+    setPw('');
+    setConfirmPassword('');
+    setSuccess('Your password has been changed successfully.');
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : 'Unable to change password.'
+    );
+  } finally {
+    setChangingPassword(false);
+  }
+};
 
   const score = useMemo(() => {
     let value = 0;
@@ -379,15 +448,92 @@ export function ProfileSettings() {
 
               {tab === 'security' && (
                 <div role="tabpanel" aria-label="Security settings" className="ax-stack" style={{ ['--ax-gap' as string]: 'var(--ax-space-6)' }}>
-                  <section className="ax-card" aria-label="Change password">
-                    <div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Change password</h2><p className="ax-card__subtitle">Password update requires a dedicated password API, which was not included.</p></div></div>
-                    <div className="ax-card__body" style={{ paddingTop: 0, display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-5)', maxWidth: 480 }}>
-                      <div className="ax-field"><label className="ax-label" htmlFor="ps-cur">Current password</label><input id="ps-cur" type="password" className="ax-input" autoComplete="current-password" disabled /></div>
-                      <div className="ax-field"><label className="ax-label" htmlFor="ps-new">New password</label><input id="ps-new" type="password" className="ax-input" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} disabled /><div className="ax-strength" aria-hidden="true"><div className="ax-strength__bars"><span className={barClass(1)} /><span className={barClass(2)} /><span className={`ax-strength__bar${score >= 3 ? ' is-medium' : ''}${score >= 4 ? ' is-strong' : ''}`} /><span className={`ax-strength__bar${score >= 4 ? ' is-strong' : ''}`} /></div><span className="ax-strength__label">{['Too short', 'Weak', 'Fair', 'Good', 'Strong'][score]}</span></div></div>
-                      <div className="ax-field"><label className="ax-label" htmlFor="ps-conf">Confirm new password</label><input id="ps-conf" type="password" className="ax-input" autoComplete="new-password" disabled /></div>
-                    </div>
-                  </section>
-                  <section className="ax-card" aria-label="Two-factor authentication">
+                 <section className="ax-card" aria-label="Change password">
+  <div className="ax-card__header">
+    <div className="ax-card__titles">
+      <h2 className="ax-card__title">Change password</h2>
+      <p className="ax-card__subtitle">
+        Update your account password to keep your account secure.
+      </p>
+    </div>
+  </div>
+
+  <div
+    className="ax-card__body"
+    style={{
+      paddingTop: 0,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 'var(--ax-space-5)',
+      maxWidth: 480,
+    }}
+  >
+    <div className="ax-field">
+      <label className="ax-label" htmlFor="ps-cur">
+        Current password
+      </label>
+      <input
+        id="ps-cur"
+        type="password"
+        className="ax-input"
+        autoComplete="current-password"
+        value={currentPassword}
+        onChange={(e) => setCurrentPassword(e.target.value)}
+      />
+    </div>
+
+    <div className="ax-field">
+      <label className="ax-label" htmlFor="ps-new">
+        New password
+      </label>
+      <input
+        id="ps-new"
+        type="password"
+        className="ax-input"
+        autoComplete="new-password"
+        value={pw}
+        onChange={(e) => setPw(e.target.value)}
+      />
+
+      <div className="ax-strength" aria-live="polite">
+        <div className="ax-strength__bars">
+          {[1, 2, 3, 4].map((level) => (
+            <span key={level} className={barClass(level)} />
+          ))}
+        </div>
+        <span className="ax-strength__label">
+          {['Too short', 'Weak', 'Fair', 'Good', 'Strong'][score]}
+        </span>
+      </div>
+    </div>
+
+    <div className="ax-field">
+      <label className="ax-label" htmlFor="ps-conf">
+        Confirm new password
+      </label>
+      <input
+        id="ps-conf"
+        type="password"
+        className="ax-input"
+        autoComplete="new-password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+      />
+    </div>
+
+    <div>
+      <button
+        type="button"
+        className="ax-btn ax-btn--primary"
+        onClick={() => void changePassword()}
+        disabled={changingPassword}
+      >
+        {changingPassword ? 'Updating password...' : 'Update password'}
+      </button>
+    </div>
+  </div>
+</section>
+                  {/* <section className="ax-card" aria-label="Two-factor authentication">
                     <div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Two-factor authentication</h2><p className="ax-card__subtitle">Status is loaded from your profile API. Management actions need MFA endpoints.</p></div></div>
                     <div className="ax-card__body" style={{ paddingTop: 0 }}>
                       <div className="ax-cluster" style={{ justifyContent: 'space-between', gap: 'var(--ax-space-4)', flexWrap: 'wrap' }}>
@@ -399,7 +545,7 @@ export function ProfileSettings() {
                   <section className="ax-card" aria-label="Active sessions">
                     <div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Active sessions</h2><p className="ax-card__subtitle">Session listing and revocation endpoints have not been provided.</p></div></div>
                     <div className="ax-card__body" style={{ paddingTop: 0, color: 'var(--ax-text-muted)' }}>Session details will appear here when the backend provides a sessions API.</div>
-                  </section>
+                  </section> */}
                 </div>
               )}
 

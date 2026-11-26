@@ -17,6 +17,7 @@ import {
 import { apiClient, ApiError } from '../../api/client';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 import { useAuthStore, getAppToken, getAdminToken } from '../../stores/auth.store';
+import { ShieldCheck } from 'lucide-react';
 
 type FeatureValue = boolean | number | string;
 type PlanFeatures = Record<string, FeatureValue>;
@@ -563,14 +564,19 @@ export function Billing() {
 
   useEffect(() => {
     let alive = true;
+    const subscriptionRequest = canEditPlans
+      ? Promise.resolve(null)
+      : apiClient.get<CurrentSubscriptionApiResponse>('/api/subscriptions/current', getAppToken);
     Promise.allSettled([
       listBillingPlans(),
-      apiClient.get<CurrentSubscriptionApiResponse>('/api/subscriptions/current', getAppToken),
+      subscriptionRequest,
     ])
       .then(([plansResult, subscriptionResult]) => {
         if (!alive) return;
         if (plansResult.status === 'fulfilled') setPlans(plansResult.value.map(normalizePlan));
-        if (subscriptionResult.status === 'fulfilled') setSub(normalizeCurrentSubscription(subscriptionResult.value));
+        if (subscriptionResult.status === 'fulfilled' && subscriptionResult.value) {
+          setSub(normalizeCurrentSubscription(subscriptionResult.value));
+        }
         for (const result of [plansResult, subscriptionResult]) {
           if (result.status === 'rejected' && result.reason instanceof ApiError && result.reason.status === 401) {
             handleApiError(result.reason);
@@ -618,6 +624,52 @@ export function Billing() {
   }
 
   const currentPlanId = sub?.status !== 'cancelled' && sub?.status !== 'none' ? sub?.planId : null;
+
+  if (canEditPlans) {
+    return (
+      <>
+        {showCreate && <CreatePlanModal onClose={() => setShowCreate(false)} onSave={onPlanCreated} />}
+        {editingPlan && <PlanEditorModal plan={editingPlan} onClose={() => setEditingPlan(null)} onSaved={onPlanUpdated} />}
+        {toast && <div role="status" aria-live="polite" style={{ position: 'fixed', bottom: 'var(--ax-space-6)', right: 'var(--ax-space-6)', zIndex: 2000, background: 'var(--ax-surface-raised)', border: '1px solid var(--ax-border)', borderRadius: 'var(--ax-radius-lg)', padding: 'var(--ax-space-3) var(--ax-space-5)', boxShadow: 'var(--ax-shadow-lg)', fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-strong)' }}>{toast}</div>}
+        <PageHead
+          title="Billing & Plans"
+          subtitle="Manage subscription plans for your platform."
+          actions={
+            <button type="button" className="ax-btn ax-btn--primary" onClick={() => setShowCreate(true)}>
+              {IC_PLUS}<span className="ax-btn__label">Create a Plan</span>
+            </button>
+          }
+        />
+        {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
+        <section className="ax-card" style={{ marginBottom: 'var(--ax-space-6)' }}>
+          <div className="ax-card__body" style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--ax-space-4)', padding: 'var(--ax-space-6)' }}>
+            <span aria-hidden="true" style={{ display: 'grid', placeItems: 'center', flex: '0 0 52px', width: 52, height: 52, borderRadius: 'var(--ax-radius-lg)', background: 'color-mix(in oklch, var(--ax-accent) 12%, transparent)', color: 'var(--ax-accent)' }}>
+              <ShieldCheck size={26} />
+            </span>
+            <div>
+              <h2 style={{ margin: 0, fontSize: 'var(--ax-text-xl)', fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)' }}>You are the Super Admin</h2>
+              <p style={{ margin: 'var(--ax-space-2) 0 0', maxWidth: 680, fontSize: 'var(--ax-text-sm)', lineHeight: 1.6, color: 'var(--ax-text-muted)' }}>
+                Create and manage subscription plans made available to organisations. Changes here affect the plans displayed across the platform.
+              </p>
+            </div>
+          </div>
+        </section>
+        <section aria-labelledby="admin-plan-heading">
+          <div style={{ marginBottom: 'var(--ax-space-4)' }}>
+            <h2 id="admin-plan-heading" style={{ margin: 0, fontSize: 'var(--ax-text-xl)', fontWeight: 'var(--ax-weight-semibold)', color: 'var(--ax-text-strong)' }}>Manage Subscription Plans</h2>
+            <p style={{ margin: '4px 0 0', fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>Configure plan pricing, limits, features, and availability.</p>
+          </div>
+          {loading
+            ? <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 'var(--ax-space-5)' }}>{Array.from({ length: 3 }).map((_, index) => <div key={index} className="ax-skeleton" style={{ height: 390, borderRadius: 'var(--ax-radius-xl)' }} />)}</div>
+            : plans.length === 0
+              ? <div className="ax-card"><div className="ax-card__body" style={{ padding: 'var(--ax-space-8)', textAlign: 'center', color: 'var(--ax-text-muted)' }}>No subscription plans are available yet. Create a plan to get started.</div></div>
+              : <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: 'var(--ax-space-5)', paddingTop: 'var(--ax-space-3)' }}>
+                  {plans.map((plan) => <PlanCard key={plan.id} plan={plan} isCurrent={false} canEdit onEdit={setEditingPlan} />)}
+                </div>}
+        </section>
+      </>
+    );
+  }
 
   return <>
     {showCreate && <CreatePlanModal onClose={() => setShowCreate(false)} onSave={onPlanCreated} />}
