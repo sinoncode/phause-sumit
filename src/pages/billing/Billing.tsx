@@ -487,7 +487,7 @@ function SubscriptionCard({ sub, onCancel, cancelling }: {
           <div><p className="ax-label">Payment provider</p><strong style={{ color: 'var(--ax-text-strong)', textTransform: 'capitalize' }}>{sub.gatewayProvider || 'N/A'}</strong></div>
         </section>
 
-        <section>
+        {/* <section>
           <div style={{ marginBottom: 14 }}>
             <h3 style={{ margin: 0, fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>Plan Usage</h3>
             <p style={{ margin: '4px 0 0', fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>Monitor your current usage and available limits.</p>
@@ -516,9 +516,9 @@ function SubscriptionCard({ sub, onCancel, cancelling }: {
               })}
             </div>
           )}
-        </section>
+        </section> */}
 
-        <section>
+        {/* <section>
           <h3 style={{ margin: '0 0 12px', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>Included Features</h3>
           {Object.keys(plan.features || {}).length === 0 ? (
             <p style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>No feature details are available for this plan.</p>
@@ -532,7 +532,7 @@ function SubscriptionCard({ sub, onCancel, cancelling }: {
               ))}
             </div>
           )}
-        </section>
+        </section> */}
       </div>
 
       {/* {sub.status === 'active' && !sub.cancelAtPeriodEnd && (
