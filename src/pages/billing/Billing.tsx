@@ -538,10 +538,10 @@ function SubscriptionCard({ sub, onCancel, cancelling }: {
             <span className="ax-btn__spinner" aria-hidden="true" />{IC_CANCEL}<span className="ax-btn__label">Cancel subscription</span>
           </button>
         </div>
-      )} */}
+      )}
       {sub.cancelAtPeriodEnd && (
         <div className="ax-card__footer"><p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-warning-500)' }}>Your subscription will cancel at the end of the current billing period ({fmt(sub.currentPeriodEnd)}).</p></div>
-      )}
+      )} */}
     </div>
   );
 }
