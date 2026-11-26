@@ -5,6 +5,8 @@ import { useCampaignStore } from '../../stores/campaign.store';
 import type { Campaign, CampaignStatus } from '../../features/campaigns/types';
 import { CampaignFilters, CampaignTable, ConfirmDialog } from '../../features/campaigns/components';
 import { ApiError } from '../../api/client';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 export function CampaignList() {
   const navigate = useNavigate();
@@ -14,10 +16,10 @@ export function CampaignList() {
   const [templateId, setTemplateId] = useState('all');
   const [dispatchTarget, setDispatchTarget] = useState<Campaign | null>(null);
   const [dispatching, setDispatching] = useState(false);
-  const [dispatchError, setDispatchError] = useState('');
+  const [dispatchError, setDispatchError] = useToastFeedback('', 'error');
   const [deleteTarget, setDeleteTarget] = useState<Campaign | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState('');
+  const [deleteError, setDeleteError] = useToastFeedback('', 'error');
 
   useEffect(() => { void load(); }, [load]);
 

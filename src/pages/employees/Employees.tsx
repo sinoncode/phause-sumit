@@ -9,6 +9,8 @@ import {
 } from '../../api/employees/employees.api';
 import { ApiError } from '../../api/client';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 export type EmployeeSeniority = 'junior' | 'mid' | 'senior' | 'lead' | 'critical';
 
@@ -133,7 +135,7 @@ export function Employees() {
   const [employees, setEmployees] = useState<EmployeeRecord[]>([]);
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState<'create' | 'import' | { edit: EmployeeRecord } | { view: EmployeeRecord } | null>(null);
-  const [errorToast, setErrorToast] = useState('');
+  const [, setErrorToast] = useToastFeedback('', 'error');
   const fileInput = useRef<HTMLInputElement>(null);
   const toastTimer = useRef<number | null>(null);
   const pageCount = Math.max(1, Math.ceil(employees.length / PAGE_SIZE));
@@ -214,7 +216,6 @@ export function Employees() {
 
   return <>
     <PageHead title="Employees" subtitle="Manage employees eligible for authorised phishing simulations." />
-    {errorToast && <div className="ax-toast-region ax-toast-region--top-end" aria-live="assertive"><div className="ax-toast ax-toast--danger" role="alert">{errorToast}</div></div>}
     <div className="ax-cluster" style={{ gap: 'var(--ax-space-2)', marginBlockEnd: 'var(--ax-space-5)' }}>
       <button type="button" className="ax-btn ax-btn--primary" onClick={() => setModal('create')}>{ICON_PLUS}<span className="ax-btn__label">Create Employee</span></button>
       <button type="button" className="ax-btn ax-btn--secondary" onClick={() => setModal('import')}>{ICON_UPLOAD}<span className="ax-btn__label">Bulk Import (CSV)</span></button>

@@ -27,6 +27,46 @@ export class ApiError extends Error {
   }
 }
 
+function getResponseMessage(body: unknown): string | null {
+  if (typeof body === 'string') {
+    const message = body.trim();
+    return message && !message.startsWith('<') ? message : null;
+  }
+
+  if (!body || typeof body !== 'object') return null;
+
+  const record = body as Record<string, unknown>;
+  for (const key of ['message', 'detail', 'error']) {
+    const value = record[key];
+    if (typeof value === 'string' && value.trim()) return value.trim();
+    if (Array.isArray(value)) {
+      const messages = value.filter(
+        (item): item is string => typeof item === 'string' && Boolean(item.trim()),
+      );
+      if (messages.length) return messages.join(' ');
+    }
+  }
+
+  const errors = record.errors;
+  if (errors && typeof errors === 'object') {
+    const messages = Object.values(errors)
+      .flatMap((value) => Array.isArray(value) ? value : [value])
+      .filter((value): value is string => typeof value === 'string' && Boolean(value.trim()));
+    if (messages.length) return messages.join(' ');
+  }
+
+  return null;
+}
+
+function getStatusMessage(status: number): string {
+  if (status === 400 || status === 422) return 'Please check your details and try again.';
+  if (status === 401) return 'Your session has expired. Please sign in again.';
+  if (status === 403) return 'You do not have permission to complete this action.';
+  if (status === 404) return 'The requested information could not be found.';
+  if (status >= 500) return 'A server error occurred. Please try again later.';
+  return 'Unable to complete the request. Please try again.';
+}
+
 const configuredBase = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? '';
 const developmentApiBase = configuredBase || 'https://phishingsimulation.webandappdevelopmenttech.com';
 export const API_BASE_URL = import.meta.env.PROD
@@ -198,9 +238,14 @@ async function _handleResponse<T>(
       }
     }
 
+    const responseText = await res.text();
     let errBody: unknown;
-    try { errBody = await res.json(); } catch { errBody = await res.text(); }
-    throw new ApiError(res.status, errBody, `${method} ${path} → ${res.status}`);
+    try { errBody = JSON.parse(responseText) as unknown; } catch { errBody = responseText; }
+    throw new ApiError(
+      res.status,
+      errBody,
+      getResponseMessage(errBody) ?? getStatusMessage(res.status),
+    );
   }
 
   // 204 No Content

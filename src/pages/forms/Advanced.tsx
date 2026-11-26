@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
 import { useClickOutside } from '../../hooks/useClickOutside';
 
 const okEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -41,7 +42,7 @@ const X = (size = 13) => <svg viewBox="0 0 24 24" width={size} height={size} fil
 
 export function FormsAdvanced() {
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useToastFeedback(false, 'success', 'Preferences saved');
 
   const [tags, setTags] = useState(['Frontend', 'Design system', 'High priority']);
   const [tagDraft, setTagDraft] = useState('');

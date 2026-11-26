@@ -14,6 +14,8 @@ import { AuthStandalone, OffappTools, BrandInline, EYE, EYE_OFF } from './authSh
 import { useAuthStore } from '../../stores/auth.store';
 import { apiClient, ApiError } from '../../api/client';
 import { listAdminOrganizations } from '../../api/organisations/orgUsers.api';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 type Mode = 'admin' | 'org_user';
 
@@ -36,9 +38,9 @@ export function SignInAdmin() {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [reveal, setReveal]   = useState(false);
-  const [emailErr, setEmailErr] = useState('');
-  const [passErr, setPassErr]   = useState('');
-  const [error, setError]     = useState('');
+  const [emailErr, setEmailErr] = useToastFeedback('', 'error');
+  const [passErr, setPassErr] = useToastFeedback('', 'error');
+  const [error, setError] = useToastFeedback('', 'error');
   const [loading, setLoading] = useState(false);
 
   const navigate      = useNavigate();

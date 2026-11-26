@@ -8,6 +8,8 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthStandalone, OffappToolsCompact, EYE, EYE_OFF } from './authShared';
 import { apiClient } from '../../api/client';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const LOCAL_STYLE = `
 @keyframes ax-spin-local { to { transform: rotate(360deg); } }
@@ -30,7 +32,7 @@ export function CreatePasswordBasic() {
   const [reveal, setReveal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
 
   const rules = useMemo(() => [
     { id: 'len', text: 'At least 8 characters', ok: pw.length >= 8 },

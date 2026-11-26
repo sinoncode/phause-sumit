@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthStandalone, BrandInline } from './authShared';
 import { useAuthStore } from '../../stores/auth.store';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 function decodeAccessToken(token: string): Record<string, unknown> | null {
   try {
@@ -17,7 +19,7 @@ function decodeAccessToken(token: string): Record<string, unknown> | null {
 export default function SsoCallback() {
   const navigate = useNavigate();
   const handled = useRef(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const setAppToken = useAuthStore((state) => state.setAppToken);
   const setRefreshToken = useAuthStore((state) => state.setRefreshToken);
   const clearAll = useAuthStore((state) => state.clearAll);

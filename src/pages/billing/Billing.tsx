@@ -18,6 +18,8 @@ import { apiClient, ApiError } from '../../api/client';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
 import { useAuthStore, getAppToken, getAdminToken } from '../../stores/auth.store';
 import { ShieldCheck } from 'lucide-react';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 type FeatureValue = boolean | number | string;
 type PlanFeatures = Record<string, FeatureValue>;
@@ -259,7 +261,7 @@ function PlanEditorModal({ plan, onClose, onSaved }: {
 }) {
   const [form, setForm] = useState<PlanForm>(() => toForm(plan));
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const [newFeatureKey, setNewFeatureKey] = useState('');
 
   const setField = <K extends keyof PlanForm>(key: K, value: PlanForm[K]) =>
@@ -558,8 +560,8 @@ export function Billing() {
   const [showCreate, setShowCreate] = useState(false);
   const [editingPlan, setEditingPlan] = useState<AdminPlan | null>(null);
   const [cancelling, setCancelling] = useState(false);
-  const [toast, setToast] = useState('');
-  const [loadError, setLoadError] = useState('');
+  const [toast, setToast] = useToastFeedback('', 'auto');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const handleApiError = useApiErrorHandler();
 
   useEffect(() => {

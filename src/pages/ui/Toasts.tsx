@@ -6,8 +6,9 @@
  * Alpine $store.toasts queue is ported to a local React queue (the same DOM/
  * classes); the timer keyframe stays in an inline <style>. DOM/classes/ARIA 1:1.
  */
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { PageHead } from '../../components/shell/PageHead';
 
 const TOAST_LOCAL_CSS = `
@@ -18,7 +19,16 @@ const TOAST_LOCAL_CSS = `
 `;
 
 type Tone = 'success' | 'info' | 'warning' | 'danger' | 'accent';
-interface ToastItem { id: number; tone: Tone; title: string; msg: string; }
+type ToastPosition = 'bottom-end' | 'bottom-start' | 'bottom-center' | 'top-end' | 'top-start' | 'top-center';
+
+const POSITIONS: Record<ToastPosition, 'bottom-right' | 'bottom-left' | 'bottom-center' | 'top-right' | 'top-left' | 'top-center'> = {
+  'bottom-end': 'bottom-right',
+  'bottom-start': 'bottom-left',
+  'bottom-center': 'bottom-center',
+  'top-end': 'top-right',
+  'top-start': 'top-left',
+  'top-center': 'top-center',
+};
 
 const COPY: Record<Tone, { title: string; message: string }> = {
   success: { title: 'Changes saved', message: 'Your report settings were updated.' },
@@ -36,16 +46,16 @@ function ToastIcon({ tone }: { tone: Tone }) {
 }
 
 export function Toasts() {
-  const [pos, setPos] = useState('bottom-end');
-  const [items, setItems] = useState<ToastItem[]>([]);
-  const nextId = useRef(0);
-
-  const dismiss = (id: number) => setItems((cur) => cur.filter((t) => t.id !== id));
+  const [pos, setPos] = useState<ToastPosition>('bottom-end');
   const fire = (tone: Tone) => {
-    const id = ++nextId.current;
     const t = COPY[tone];
-    setItems((cur) => [...cur, { id, tone, title: t.title, msg: t.message }]);
-    window.setTimeout(() => dismiss(id), 4000);
+    const options = { description: t.message, duration: 4000, position: POSITIONS[pos] };
+
+    if (tone === 'danger') toast.error(t.title, options);
+    else if (tone === 'warning') toast.warning(t.title, options);
+    else if (tone === 'info') toast.info(t.title, options);
+    else if (tone === 'success') toast.success(t.title, options);
+    else toast(t.title, options);
   };
 
   return (
@@ -68,7 +78,7 @@ export function Toasts() {
             <div className="ax-card__titles">
               <span className="ax-card__eyebrow">Live</span>
               <h2 className="ax-card__title">Trigger a Toast</h2>
-              <p className="ax-card__subtitle">Pushes onto the shared queue and auto-dismisses after 4s.</p>
+              <p className="ax-card__subtitle">Shows a themed Sonner toast and auto-dismisses after 4s.</p>
             </div>
           </div>
           <div className="ax-card__body" style={{ paddingTop: 0, display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-5)' }}>
@@ -81,7 +91,7 @@ export function Toasts() {
             </div>
             <div className="ax-field" style={{ margin: 0, maxWidth: 260 }}>
               <label className="ax-label" htmlFor="toast-pos">Position</label>
-              <select id="toast-pos" className="ax-select" value={pos} onChange={(e) => setPos(e.target.value)}>
+              <select id="toast-pos" className="ax-select" value={pos} onChange={(e) => setPos(e.target.value as ToastPosition)}>
                 <option value="bottom-end">Bottom end</option>
                 <option value="bottom-start">Bottom start</option>
                 <option value="bottom-center">Bottom center</option>
@@ -89,25 +99,10 @@ export function Toasts() {
                 <option value="top-start">Top start</option>
                 <option value="top-center">Top center</option>
               </select>
-              <span className="ax-help">Where the live queue renders on screen.</span>
+              <span className="ax-help">Choose where Sonner displays the live toast.</span>
             </div>
 
-            <div className={`ax-toast-region ax-toast-region--${pos}`} aria-live="polite" aria-atomic="false">
-              {items.map((t) => (
-                <div key={t.id} className={`ax-toast ax-toast--${t.tone}`} role="status">
-                  <ToastIcon tone={t.tone} />
-                  <div className="ax-toast__content">
-                    <p className="ax-toast__title">{t.title}</p>
-                    <p className="ax-toast__message">{t.msg}</p>
-                  </div>
-                  <button type="button" className="ax-toast__action" onClick={() => dismiss(t.id)}>Undo</button>
-                  <button type="button" className="ax-toast__dismiss" onClick={() => dismiss(t.id)} aria-label="Dismiss notification">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>
-                  </button>
-                  <span className="ax-toast__timer" aria-hidden="true" style={{ animation: 'ax-toast-timer 4s linear forwards' }} />
-                </div>
-              ))}
-            </div>
+            <p className="ax-help" role="status">Toast examples appear in the shared Sonner container.</p>
           </div>
         </section>
 

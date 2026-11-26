@@ -9,6 +9,8 @@ import { Link } from 'react-router-dom';
 import {
   AuthStandalone, OffappTools, BrandCentered, SocialButtons, EYE, EYE_OFF,
 } from './authShared';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const STRENGTH = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
 
@@ -22,11 +24,11 @@ export function SignUpBasic() {
   const [reveal, setReveal] = useState(false);
   const [score, setScore] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [nameErr, setNameErr] = useState('');
-  const [emailErr, setEmailErr] = useState('');
-  const [passErr, setPassErr] = useState('');
-  const [confirmErr, setConfirmErr] = useState('');
+  const [error, setError] = useToastFeedback(false, 'error', 'That email is already in use. Try signing in instead.');
+  const [nameErr, setNameErr] = useToastFeedback('', 'error');
+  const [emailErr, setEmailErr] = useToastFeedback('', 'error');
+  const [passErr, setPassErr] = useToastFeedback('', 'error');
+  const [confirmErr, setConfirmErr] = useToastFeedback('', 'error');
 
   function scorePassword(p: string) {
     let s = 0;

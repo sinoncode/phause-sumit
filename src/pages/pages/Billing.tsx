@@ -11,6 +11,8 @@ import { cancelSubscription } from '../../api/billing/billing.api';
 import { getAppToken } from '../../stores/auth.store';
 import jsPDF from 'jspdf';
 import PhauseLogo from '../../image/phause-logo.png';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 interface Plan {
   id: string;
@@ -174,18 +176,18 @@ function UsageMeter({ label, used, limit, tone }: { label: string; used: number;
 export function Billing() {
   const [data, setData] = useState<CurrentSubscriptionResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState('');
+  const [cancelError, setCancelError] = useToastFeedback('', 'error');
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
-  const [invoicesError, setInvoicesError] = useState('');
+  const [invoicesError, setInvoicesError] = useToastFeedback('', 'error');
   const [statementLoading, setStatementLoading] = useState(false);
-  const [statementError, setStatementError] = useState('');
+  const [statementError, setStatementError] = useToastFeedback('', 'error');
 
   const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null);
-  const [invoiceDownloadError, setInvoiceDownloadError] = useState('');
+  const [invoiceDownloadError, setInvoiceDownloadError] = useToastFeedback('', 'error');
 
   // Retained UI state; this API does not return payment methods.
   const [methods, setMethods] = useState<Method[]>([]);

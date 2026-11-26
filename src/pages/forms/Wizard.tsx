@@ -10,6 +10,8 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const ic = (path: React.ReactNode) => <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{path}</svg>;
 
@@ -40,8 +42,8 @@ export function FormsWizard() {
     { id: 'assigned', title: 'Assignments', desc: 'When work is assigned to you.', on: true },
     { id: 'digest', title: 'Weekly digest', desc: 'A Monday summary by email.', on: false },
   ]);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
-  const [errorList, setErrorList] = useState<string[]>([]);
+  const [errors, setErrors] = useToastFeedback<Partial<Record<keyof FormState, string>>>({}, 'error');
+  const [errorList, setErrorList] = useToastFeedback<string[]>([], 'error');
   const errSummary = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setForm((f) => ({ ...f, [k]: v }));

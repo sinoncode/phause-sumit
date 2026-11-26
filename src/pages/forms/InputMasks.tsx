@@ -10,6 +10,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
 
 const d = (s: string) => (s || '').replace(/\D/g, '');
 const maskPhone = (v: string) => { const n = d(v).slice(0, 10); if (n.length < 4) return n; if (n.length < 7) return `(${n.slice(0, 3)}) ${n.slice(3)}`; return `(${n.slice(0, 3)}) ${n.slice(3, 6)}-${n.slice(6)}`; };
@@ -28,7 +29,7 @@ const maskZip = (v: string) => { const n = d(v).slice(0, 9); return n.length < 6
 
 export function FormsInputMasks() {
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useToastFeedback(false, 'success', 'Form submitted with masked values');
   const [phone, setPhone] = useState('(503) 555-0142');
   const [ein, setEin] = useState('82-1739204');
   const [ip, setIp] = useState('192.168.1.24');

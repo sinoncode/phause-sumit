@@ -52,6 +52,8 @@ import { apiClient, ApiError } from '../../api/client';
 import { getAppToken } from '../../stores/auth.store';
 
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 
 
@@ -677,7 +679,7 @@ export function Reports() {
   const navigate = useNavigate();
   const { campaigns, load: loadCampaigns } = useCampaignStore();
   const [premiumAccess, setPremiumAccess] = useState<PremiumAccess>('checking');
-  const [premiumAccessError, setPremiumAccessError] = useState('');
+  const [premiumAccessError, setPremiumAccessError] = useToastFeedback('', 'error');
 
   const [reports, setReports] = useState<ReportSummary[]>([]);
 
@@ -693,7 +695,7 @@ export function Reports() {
 
   const [loading, setLoading] = useState(true);
 
-  const [errorToast, setErrorToast] = useState('');
+  const [, setErrorToast] = useToastFeedback('', 'error');
 
   const toastTimer = useRef<number | null>(null);
 
@@ -986,7 +988,6 @@ export function Reports() {
 
       />
 
-      {errorToast && <div className="ax-toast-region ax-toast-region--top-end" aria-live="assertive"><div className="ax-toast ax-toast--danger" role="alert">{errorToast}</div></div>}
 
 
 

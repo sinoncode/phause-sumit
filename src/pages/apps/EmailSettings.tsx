@@ -5,6 +5,7 @@
  */
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
 
 const ic = (p: string) => (
   <svg viewBox="0 0 24 24" width={18} height={18} fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" dangerouslySetInnerHTML={{ __html: p }} />
@@ -31,7 +32,7 @@ interface Label { name: string; color: string }
 export function EmailSettings() {
   const [tab, setTab] = useState('account');
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useToastFeedback(false, 'success', 'Settings saved successfully');
   const [vacationOn, setVacationOn] = useState(true);
   const [rules, setRules] = useState<Rule[]>([
     { when: 'From', match: '@stripe.com', action: 'Apply label', enabled: true },

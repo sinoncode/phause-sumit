@@ -22,6 +22,8 @@ import {
 } from '../../api/billing/billing.api';
 import { ApiError } from '../../api/client';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ── icons ─────────────────────────────────────────────────────────────────────
 const IC_PLUS   = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
@@ -302,8 +304,8 @@ export function Billing() {
   const [showCreate, setShowCreate] = useState(false);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
   const [cancelling, setCancelling]   = useState(false);
-  const [toast, setToast]             = useState('');
-  const [loadError, setLoadError]     = useState('');
+  const [toast, setToast] = useToastFeedback('', 'auto');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const handleApiError = useApiErrorHandler();
 
   useEffect(() => {

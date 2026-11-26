@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { getAppToken } from '../../stores/auth.store';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 type Tab = 'account' | 'security' | 'notifications' | 'billing';
 
@@ -168,8 +170,8 @@ export function ProfileSettings() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
+  const [success, setSuccess] = useToastFeedback('', 'success');
   const [currentPassword, setCurrentPassword] = useState('');
 const [pw, setPw] = useState('');
 const [confirmPassword, setConfirmPassword] = useState('');
@@ -177,7 +179,7 @@ const [changingPassword, setChangingPassword] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [notificationTitle, setNotificationTitle] = useState('');
-const [notificationMessage, setNotificationMessage] = useState('');
+const [notificationMessage, setNotificationMessage] = useToastFeedback('', 'success');
 const [creatingNotification, setCreatingNotification] = useState(false);
 
   const [notifications, setNotifications] = useState<Record<string, { email: boolean; push: boolean; app: boolean }>>(

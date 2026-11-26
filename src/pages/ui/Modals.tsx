@@ -7,13 +7,11 @@
  * teleports to <body>, traps focus and Esc-closes; $toast → page-local store.
  * DOM/classes/ARIA 1:1.
  */
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { toast as sonnerToast } from 'sonner';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PageHead } from '../../components/shell/PageHead';
-
-interface Toast { id: number; msg: string; }
-let TID = 0;
 
 const X = <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg>;
 
@@ -57,13 +55,7 @@ export function Modals() {
   const [plan, setPlan] = useState('scale');
   const [agreed, setAgreed] = useState(false);
 
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const timers = useRef<Record<number, number>>({});
-  const toast = useCallback((msg: string, ttl: number) => {
-    const id = ++TID;
-    setToasts((t) => [...t, { id, msg }]);
-    timers.current[id] = window.setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), ttl);
-  }, []);
+  const toast = (msg: string, ttl: number) => sonnerToast.success(msg, { duration: ttl });
 
   return (
     <>
@@ -300,18 +292,6 @@ export function Modals() {
         <div className="ax-modal__footer" style={{ justifyContent: 'center' }}><button type="button" className="ax-btn ax-btn--primary" onClick={() => setOk(false)}>View order</button></div>
       </Modal>
 
-      {/* ───── Toast region ───── */}
-      {toasts.length > 0 && createPortal(
-        <div className="ax-toast-region" aria-live="polite" style={{ position: 'fixed', insetBlockEnd: 'var(--ax-space-6)', insetInlineEnd: 'var(--ax-space-6)', zIndex: 95, display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-2)' }}>
-          {toasts.map((t) => (
-            <div key={t.id} className="ax-toast" role="status">
-              <div className="ax-toast__content"><p className="ax-toast__message">{t.msg}</p></div>
-              <button type="button" className="ax-toast__dismiss" onClick={() => setToasts((cur) => cur.filter((x) => x.id !== t.id))} aria-label="Dismiss">{X}</button>
-            </div>
-          ))}
-        </div>,
-        document.body,
-      )}
     </>
   );
 }

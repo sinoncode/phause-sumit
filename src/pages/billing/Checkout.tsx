@@ -17,6 +17,8 @@ import {
   type BillingPlan,
   type Subscription,
 } from '../../api/billing/billing.api';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const IC_CHECK = (
@@ -216,8 +218,8 @@ export function BillingCheckout() {
   const [sub, setSub]                 = useState<Subscription | null>(null);
   const [loading, setLoading]         = useState(true);
   const [checkingOut, setCheckingOut] = useState<string | null>(null);
-  const [toast, setToast]             = useState('');
-  const [loadError, setLoadError]     = useState('');
+  const [toast, setToast] = useToastFeedback('', 'auto');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
 
   useEffect(() => {
     Promise.allSettled([listBillingPlans(), getCurrentSubscription()])

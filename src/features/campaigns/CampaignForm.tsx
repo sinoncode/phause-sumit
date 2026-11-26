@@ -3,13 +3,15 @@ import type { ChangeEvent, FormEvent } from 'react';
 import { createCampaignSchema } from '../../schemas/campaign.schema';
 import type { CreateCampaignInput, TargetMode } from './types';
 import { CampaignReview } from './components';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 interface Props { initial?: Partial<CreateCampaignInput>; submitLabel?: string; onSubmit: (input: CreateCampaignInput) => void; }
 const blank: CreateCampaignInput = { name: '', templateId: '', targetMode: 'segment', targetSegment: '', targetSamplePercent: null, staggerWindowMinutes: 0, scheduledAt: null };
 
 export function CampaignForm({ initial, submitLabel = 'Create campaign', onSubmit }: Props) {
   const [form, setForm] = useState<CreateCampaignInput>({ ...blank, ...initial });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useToastFeedback<Record<string, string>>({}, 'error');
   const [review, setReview] = useState(false);
   const set = <K extends keyof CreateCampaignInput>(key: K, value: CreateCampaignInput[K]) => setForm((current) => ({ ...current, [key]: value }));
   const validate = () => {

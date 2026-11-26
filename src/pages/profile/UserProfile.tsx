@@ -11,6 +11,8 @@ import { apiClient } from '../../api/client';
 import { getAppToken } from '../../stores/auth.store';
 import { PageHead } from '../../components/shell/PageHead';
 import { ApiError } from '../../api/client';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ── JWT helper ────────────────────────────────────────────────────────────────
 function decodeJwt(token: string): Record<string, unknown> {
@@ -152,8 +154,8 @@ function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
   const [next,     setNext]     = useState('');
   const [confirm,  setConfirm]  = useState('');
   const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState('');
-  const [success,  setSuccess]  = useState(false);
+  const [error, setError] = useToastFeedback('', 'error');
+  const [success,  setSuccess]  = useToastFeedback(false, 'success', 'Password updated successfully.');
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

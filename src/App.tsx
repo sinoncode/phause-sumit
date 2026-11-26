@@ -16,13 +16,15 @@
  * Maps are generated from the page-component tree + nav-manifest slugs; add a
  * page by dropping its component in src/pages/** and adding one map entry.
  */
-import { lazy, Suspense, type ReactElement } from 'react';
+import { lazy, Suspense, useEffect, type ReactElement } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/shell/Layout';
 import { AppLayout } from './components/shell/AppLayout';
 import { CustomizerProvider } from './context/CustomizerContext';
 import { DocumentTitle } from './hooks/useDocumentTitle';
 import { useAuthStore } from './stores/auth.store';
+import { toast, Toaster } from 'sonner';
+import { getToastMessage } from './hooks/useToastFeedback';
 
 type PageComponent = ReturnType<typeof lazy>;
 
@@ -500,9 +502,59 @@ function adminOnlyWrap(C: PageComponent): ReactElement {
   );
 }
 
+function ToastEventBridge() {
+  useEffect(() => {
+    const onToast = (event: Event) => {
+      const detail = (event as CustomEvent<{ msg?: unknown }>).detail;
+      const message = getToastMessage(detail?.msg);
+      if (message) toast.success(message);
+    };
+    const onError = (event: ErrorEvent) => {
+      const message = getToastMessage(event.message);
+      if (message) toast.error(message);
+    };
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const message =
+        getToastMessage(event.reason) ||
+        'An unexpected error occurred. Please try again.';
+      toast.error(message);
+    };
+
+    document.addEventListener('ax-toast', onToast);
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onUnhandledRejection);
+
+    return () => {
+      document.removeEventListener('ax-toast', onToast);
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onUnhandledRejection);
+    };
+  }, []);
+
+  return null;
+}
+
 export function App() {
   return (
     <CustomizerProvider>
+      <ToastEventBridge />
+      <Toaster
+        position="bottom-right"
+        closeButton
+        richColors
+        duration={4000}
+        visibleToasts={4}
+        toastOptions={{
+          style: {
+            background: 'var(--ax-surface-overlay)',
+            border: '1px solid var(--ax-border)',
+            borderRadius: 'var(--ax-radius-lg)',
+            boxShadow: 'var(--ax-shadow-lg)',
+            color: 'var(--ax-text-strong)',
+            fontFamily: 'var(--ax-font-sans)',
+          },
+        }}
+      />
       <BrowserRouter>
         <DocumentTitle />
         <Routes>

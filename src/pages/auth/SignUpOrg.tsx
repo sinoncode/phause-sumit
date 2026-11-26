@@ -11,6 +11,8 @@ import {
 } from './authShared';
 import { useAuthStore } from '../../stores/auth.store';
 import { apiClient, ApiError } from '../../api/client';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ── Password strength helpers ─────────────────────────────────────────────────
 const STRENGTH_LABELS = ['Weak', 'Weak', 'Fair', 'Good', 'Strong'];
@@ -65,15 +67,15 @@ export function SignUpOrg() {
   const [termsTouched, setTermsTouched] = useState(false);
   const [score, setScore]       = useState(0);
   const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const [otp, setOtp]           = useState('');
   const [verifyStep, setVerifyStep] = useState(false);
 
   // Per-field error messages
-  const [fullNameErr, setFullNameErr] = useState('');
-  const [orgNameErr, setOrgNameErr] = useState('');
-  const [emailErr, setEmailErr]     = useState('');
-  const [passErr, setPassErr]       = useState('');
+  const [fullNameErr, setFullNameErr] = useToastFeedback('', 'error');
+  const [orgNameErr, setOrgNameErr] = useToastFeedback('', 'error');
+  const [emailErr, setEmailErr] = useToastFeedback('', 'error');
+  const [passErr, setPassErr] = useToastFeedback('', 'error');
 
   const navigate = useNavigate();
   const setAppToken = useAuthStore((s) => s.setAppToken);

@@ -5,6 +5,8 @@ import {
 } from './authShared';
 import { useAuthStore } from '../../stores/auth.store';
 import { apiClient, ApiError } from '../../api/client';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 /** Decode a JWT without verifying the signature — used to extract claims. */
 function decodeJwt(token: string): Record<string, unknown> {
@@ -19,9 +21,9 @@ export function SignInOrg() {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [reveal, setReveal] = useState(false);
-  const [emailErr, setEmailErr] = useState('');
-  const [passErr, setPassErr] = useState('');
-  const [error, setError] = useState('');
+  const [emailErr, setEmailErr] = useToastFeedback('', 'error');
+  const [passErr, setPassErr] = useToastFeedback('', 'error');
+  const [error, setError] = useToastFeedback('', 'error');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const setAppToken = useAuthStore((s) => s.setAppToken);

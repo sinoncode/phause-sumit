@@ -10,6 +10,8 @@ import {
 } from "../../api/templates/templates.api";
 
 import { useApiErrorHandler } from "../../hooks/useApiErrorHandler";
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 export type TemplateLureType = "urgency" | "authority" | "curiosity" | "reward";
 export type TemplateCategory =
@@ -573,7 +575,7 @@ export function Templates() {
   const location = useLocation();
   const templateView = location.pathname.endsWith("/custom") ? "custom" : "all";
   const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const [modal, setModal] = useState<ModalState>(null);
   const handleApiError = useApiErrorHandler();
 

@@ -21,6 +21,8 @@ import {
   type RoleFormValues,
 } from '../../api/roles/roles.api';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ── icons ─────────────────────────────────────────────────────────────────────
 const IC_PLUS  = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>;
@@ -57,7 +59,7 @@ function CreateRoleModal({ onClose, onSave }: { onClose: () => void; onSave: (r:
   const [selected, setSelected]   = useState<Set<string>>(new Set());
   const [saving, setSaving]       = useState(false);
   const [search, setSearch]       = useState('');
-  const [error, setError]         = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
 
   function toggle(perm: string) {
     setSelected((prev) => {
@@ -231,7 +233,7 @@ function EditRoleModal({ role, onClose, onSave }: { role: Role; onClose: () => v
   const [selected, setSelected]   = useState<Set<string>>(new Set(role.permissions));
   const [saving, setSaving]       = useState(false);
   const [search, setSearch]       = useState('');
-  const [error, setError]         = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
 
   function toggle(perm: string) {
     setSelected((prev) => {
@@ -396,8 +398,8 @@ function AssignRoleModal({ roles, onClose }: { roles: Role[]; onClose: () => voi
   const [userId, setUserId]   = useState('');
   const [roleId, setRoleId]   = useState(roles[0]?.id ?? '');
   const [saving, setSaving]   = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [err, setErr]         = useState('');
+  const [success, setSuccess] = useToastFeedback(false, 'success', 'Role assigned successfully!');
+  const [err, setErr] = useToastFeedback('', 'error');
   const [orgUsers, setOrgUsers] = useState<Array<{ id: string; email: string; role: string }>>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
 
@@ -571,7 +573,7 @@ export function RBAC() {
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string; region: string }>>([]);
   const [roles, setRoles]     = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const [modal, setModal]     = useState<Modal>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const handleApiError = useApiErrorHandler();

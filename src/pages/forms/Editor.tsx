@@ -9,6 +9,7 @@
  */
 import { useEffect, useState } from 'react';
 import { PageHead } from '../../components/shell/PageHead';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
 
 type InlineKey = 'bold' | 'italic' | 'underline' | 'strike';
 const INLINE_BTNS: { k: InlineKey; label: string; icon: React.ReactNode }[] = [
@@ -33,7 +34,7 @@ const vDivider: React.CSSProperties = { height: 22, marginInline: 'var(--ax-spac
 
 export function FormsEditor() {
   const [publishing, setPublishing] = useState(false);
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useToastFeedback(false, 'success', 'Article published');
   const [lang, setLang] = useState<'html' | 'md'>('html');
   const [active, setActive] = useState<Record<InlineKey, boolean>>({ bold: false, italic: false, underline: false, strike: false });
 

@@ -12,6 +12,8 @@ import { PageHead } from '../../components/shell/PageHead';
 import { listAdminOrganizations, listAllOrgUsers, createOrgUser, updateOrgUser, deleteOrgUser } from '../../api/organisations/orgUsers.api';
 import { useAuthStore } from '../../stores/auth.store';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 /* ------------------------------------------------------------------ icons */
 const ICON_PLUS = (
@@ -84,7 +86,7 @@ function UserModal(props: UserModalProps) {
   const [active, setActive] = useState(props.mode === 'edit' ? props.initial.active : true);
 
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
 
   const titleId = 'user-modal-title';
 
@@ -239,7 +241,7 @@ export function OrgUser() {
   const [allUsers, setAllUsers] = useState<OrgUserRecord[]>([]);
   // filterOrgId = '' means "All organizations"
   const [filterOrgId, setFilterOrgId] = useState<string>('');
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState<{ mode: 'create' } | { mode: 'edit'; userId: string } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<OrgUserRecord | null>(null);

@@ -18,6 +18,8 @@ import { useCampaignStore } from '../../stores/campaign.store';
 import type { TrackingEvent, TrackingEventType } from './trackingEventsData';
 import { listCampaignTrackingEvents } from '../../api/campaigns/tracking.api';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ---------------------------------------------------------------------------
 // Constants (duplicated from TrackingEvents.tsx to keep pages self-contained)
@@ -169,7 +171,7 @@ export function TrackingEventsIndex() {
   const [selectedId, setSelectedId] = useState<string>('');
   const [events, setEvents] = useState<TrackingEvent[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
-  const [eventsError, setEventsError] = useState('');
+  const [eventsError, setEventsError] = useToastFeedback('', 'error');
   const [filter, setFilter] = useState<FilterOption>('all');
   const [page, setPage] = useState(1);
   const handleApiError = useApiErrorHandler();

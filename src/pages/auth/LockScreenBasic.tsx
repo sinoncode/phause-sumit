@@ -7,6 +7,8 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthStandalone, OffappToolsCompact, EYE, EYE_OFF } from './authShared';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const LOCAL_STYLE = `
 @keyframes ax-spin-local { to { transform: rotate(360deg); } }
@@ -23,7 +25,7 @@ export function LockScreenBasic() {
   const [pw, setPw] = useState('');
   const [reveal, setReveal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const [invalid, setInvalid] = useState(false);
   const attempts = useRef(0);
   const pwRef = useRef<HTMLInputElement>(null);

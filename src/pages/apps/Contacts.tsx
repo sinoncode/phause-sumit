@@ -5,6 +5,8 @@
  */
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 interface Contact {
   id: number; name: string; role: string; company: string; initials: string; color: string; presence: string;
@@ -29,7 +31,7 @@ export function Contacts() {
   const [detail, setDetail] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState({ name: '', role: '', company: '', email: '', phone: '', tag: 'Team' });
-  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const [errors, setErrors] = useToastFeedback<{ name?: string; email?: string }>({}, 'error');
   const [contacts, setContacts] = useState<Contact[]>(DATA);
 
   let filtered = [...contacts];

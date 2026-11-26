@@ -7,6 +7,8 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthStandalone, OffappTools, BrandInline } from './authShared';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const COVER_STYLE = `
 @media (min-width: 992px) {
@@ -17,7 +19,7 @@ const COVER_STYLE = `
 
 export function ResetPasswordAdmin() {
   const [email, setEmail] = useState('');
-  const [emailErr, setEmailErr] = useState('');
+  const [emailErr, setEmailErr] = useToastFeedback('', 'error');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [masked, setMasked] = useState('');

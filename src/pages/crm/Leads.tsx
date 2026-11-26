@@ -11,6 +11,8 @@ import { useMemo, useRef, useState, useEffect, useCallback, type ReactElement } 
 import { PageHead } from '../../components/shell/PageHead';
 import { useClickOutside } from '../../hooks/useClickOutside';
 import { CrmSubNav } from './CrmSubNav';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const C = {
   cyan: 'var(--ax-viz-cyan)',
@@ -74,7 +76,7 @@ export function Leads() {
   const [menu, setMenu] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [addOpen, setAddOpen] = useState(false);
-  const [toast, setToast] = useState('');
+  const [toast, setToast] = useToastFeedback('', 'success');
   const toastT = useRef<ReturnType<typeof setTimeout> | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 

@@ -24,6 +24,8 @@ import { PageHead } from '../../components/shell/PageHead';
 import type { TrackingEvent, TrackingEventType } from './trackingEventsData';
 import { listCampaignTrackingEvents } from '../../api/campaigns/tracking.api';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -358,7 +360,7 @@ export function TrackingEvents() {
   const { campaignId = '' } = useParams<{ campaignId: string }>();
   const [events, setEvents] = useState<TrackingEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const handleApiError = useApiErrorHandler();
 
   useEffect(() => {

@@ -11,6 +11,8 @@
  */
 import { useEffect, useRef, useState } from 'react';
 import { useCustomizer } from '../../context/CustomizerContext';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const LABELS = ['Days', 'Hours', 'Minutes', 'Seconds'];
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -21,7 +23,7 @@ export function ComingSoon() {
   const [live, setLive] = useState(false);
   const [email, setEmail] = useState('');
   const [hp, setHp] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const [sending, setSending] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const { toggleTheme } = useCustomizer();

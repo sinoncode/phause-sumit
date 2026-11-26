@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { CampaignForm } from '../../features/campaigns/CampaignForm';
@@ -6,13 +6,15 @@ import { useCampaignStore } from '../../stores/campaign.store';
 import { ApiError } from '../../api/client';
 import type { CreateCampaignInput } from '../../features/campaigns/types';
 import { Templates } from '../templates/Templates';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 export function CampaignCreate() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const templateId = searchParams.get('templateId') ?? '';
   const { templates, load, createCampaign, isLoading } = useCampaignStore();
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
 
   useEffect(() => {
     void load();

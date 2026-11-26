@@ -14,6 +14,8 @@ import { PageHead } from '../../components/shell/PageHead';
 import { listOrganisations, createOrganisation as createOrganisationApi, recordAuthorization, deleteOrganisation } from '../../api/organisations/organisations.api';
 import { useAuthStore } from '../../stores/auth.store';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 /* ------------------------------------------------------------------ icons */
 const ICON_PLUS = (
@@ -90,7 +92,7 @@ function CreateOrganisationModal({
   const [disclaimerEnabled, setDisclaimerEnabled] = useState(true);
 
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
 
   const titleId = 'org-modal-title';
   const domainRe = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i;
@@ -280,9 +282,9 @@ function RoEModal({
   const [docFile, setDocFile]     = useState<string | null>(() => org.authRef.url.startsWith('data:') ? org.authRef.url : null);
   const [docFileName, setDocFileName] = useState(() => org.authRef.url ? 'Previously uploaded authorization document' : '');
   const [dragOver, setDragOver]   = useState(false);
-  const [fileError, setFileError] = useState('');
+  const [fileError, setFileError] = useToastFeedback('', 'error');
   const [busy, setBusy]           = useState(false);
-  const [error, setError]         = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const [succeeded, setSucceeded] = useState(false);
 
   const titleId  = 'roe-modal-title';
@@ -526,7 +528,7 @@ export function Org({ onViewOrganisation }: Props) {
   const userRole = useAuthStore((s) => s.userRole);
   const isAdmin  = userRole === 'admin' || userRole === null;
   const [orgs, setOrgs] = useState<OrganisationRecord[]>([]);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const [page, setPage] = useState(1);
   const [createOpen, setCreateOpen] = useState(false);
   const [roeOrg, setRoeOrg] = useState<OrganisationRecord | null>(null);

@@ -11,6 +11,8 @@ import { useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
 import { ApexChart } from '../../components/charts/ApexChart';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const TRAITS = [
   { k: 'Background', v: 'Bone', rarity: '12%' },
@@ -57,7 +59,7 @@ export function NftDetails() {
   const [current, setCurrent] = useState(2.40);
   const [bids, setBids] = useState(12);
   const [amount, setAmount] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const [placed, setPlaced] = useState(false);
   const [remain, setRemain] = useState(6 * 3600 + 12 * 60 + 40);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);

@@ -5,6 +5,8 @@ import { CampaignForm } from '../../features/campaigns/CampaignForm';
 import { CampaignStatusBadge, ConfirmDialog } from '../../features/campaigns/components';
 import { TrainingVideo } from '../../features/campaigns/TrainingVideo';
 import { useCampaignStore } from '../../stores/campaign.store';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 export function CampaignDetails() {
   const { campaignId } = useParams();
@@ -12,8 +14,8 @@ export function CampaignDetails() {
   const { campaigns, templates, load, getCampaign, updateCampaign, dispatchCampaign, cancelCampaign } = useCampaignStore();
   const [editing, setEditing] = useState(false);
   const [confirm, setConfirm] = useState<'dispatch' | 'cancel' | null>(null);
-  const [actionError, setActionError] = useState('');
-  const [notice, setNotice] = useState<string | null>((location.state as { notice?: string } | null)?.notice ?? null);
+  const [actionError, setActionError] = useToastFeedback('', 'error');
+  const [notice, setNotice] = useToastFeedback((location.state as { notice?: string } | null)?.notice ?? '', 'success');
   const campaign = campaignId ? getCampaign(campaignId) : undefined;
 
   useEffect(() => { void load(); }, [load]);
@@ -38,7 +40,6 @@ export function CampaignDetails() {
 
   return <>
     <PageHead title={campaign.name} subtitle={`Campaign ${campaign.id}`} actions={<><Link className="ax-btn ax-btn--ghost" to={`/api/campaigns/${campaign.id}/tracking-events`}><span className="ax-btn__label">Tracking Events</span></Link><Link className="ax-btn ax-btn--secondary" to="/api/campaigns">Back to campaigns</Link></>} />
-    {notice && <div className="ax-toast-region ax-toast-region--top-end" role="status" aria-live="polite"><div className="ax-toast ax-toast--success"><svg className="ax-toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12l4 4L19 6" /></svg><div className="ax-toast__content"><strong style={{ color: 'var(--ax-text-strong)' }}>{notice}</strong></div><button type="button" className="ax-toast__dismiss" aria-label="Dismiss notification" onClick={() => setNotice(null)}>×</button></div></div>}
     {actionError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{actionError}</p></div>}
     {editing ? <CampaignForm initial={{ name: campaign.name, templateId: campaign.templateId, ...campaign.targeting, staggerWindowMinutes: campaign.staggerWindowMinutes, scheduledAt: campaign.scheduledAt }} submitLabel="Save campaign" onSubmit={async (input) => { await updateCampaign(campaign.id, input); setEditing(false); setNotice('Campaign updated successfully.'); }} /> : <div className="ax-dash-grid"><section className="ax-card ax-col--8" role="region" aria-label="Campaign information"><div className="ax-card__header"><div className="ax-card__titles"><span className="ax-card__eyebrow">Campaign status</span><h2 className="ax-card__title">{campaign.name}</h2><p className="ax-card__subtitle">{template?.name ?? campaign.templateId}</p></div><CampaignStatusBadge status={campaign.status} /></div><dl className="ax-card__body" style={{ display: 'grid', gap: 'var(--ax-space-4)', margin: 0 }}>{[['Template subject', template?.subject ?? '—'], ['Target mode', campaign.targeting.targetMode], ['Target segment', campaign.targeting.targetSegment], ['Sample percentage', campaign.targeting.targetSamplePercent === null ? 'Not set' : `${campaign.targeting.targetSamplePercent}%`], ['Stagger window', `${campaign.staggerWindowMinutes} minutes`], ['Scheduled for', campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleString() : 'Immediate'], ['Dispatched at', campaign.dispatchedAt ? new Date(campaign.dispatchedAt).toLocaleString() : 'Not dispatched']].map(([label, value]) => <div key={label} className="ax-cluster" style={{ justifyContent: 'space-between', gap: 'var(--ax-space-4)' }}><dt style={{ color: 'var(--ax-text-muted)' }}>{label}</dt><dd style={{ margin: 0, color: 'var(--ax-text-strong)' }}>{value}</dd></div>)}</dl></section>{campaign.trainingVideo?.contentRef ? (
       <section className="ax-card ax-col--12" role="region" aria-label="Training video">

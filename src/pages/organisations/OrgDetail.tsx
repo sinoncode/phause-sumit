@@ -3,6 +3,8 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { getOrganisation } from '../../api/organisations/organisations.api';
 import { PageHead } from '../../components/shell/PageHead';
 import type { OrganisationRecord } from './Org';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 interface OrganisationLocationState {
   organisation?: OrganisationRecord;
@@ -36,7 +38,7 @@ export function OrgDetail() {
   const initialOrganisation = (location.state as OrganisationLocationState | null)?.organisation;
   const [organisation, setOrganisation] = useState(initialOrganisation);
   const [loading, setLoading] = useState(!initialOrganisation);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
 
   useEffect(() => {
     if (!organisationId) {

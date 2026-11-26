@@ -11,6 +11,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const C = { cyan: 'var(--ax-viz-cyan)', violet: 'var(--ax-viz-violet)', pink: 'var(--ax-viz-pink)', amber: 'var(--ax-viz-amber)', emerald: 'var(--ax-viz-emerald)' };
 const SKILL_FACETS = [
@@ -64,7 +66,7 @@ export function SearchCandidate() {
   const [openOnly, setOpenOnly] = useState(false);
   const [fSkills, setFSkills] = useState<string[]>([]);
   const [fAvail, setFAvail] = useState<string[]>([]);
-  const [toast, setToast] = useState('');
+  const [toast, setToast] = useToastFeedback('', 'success');
 
   const reset = () => { setQ(''); setLoc(''); setMinExp(0); setMinMatch(0); setFMode(''); setOpenOnly(false); setFSkills([]); setFAvail([]); setSort('match'); setPage(1); };
 

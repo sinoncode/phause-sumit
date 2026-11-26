@@ -7,14 +7,11 @@
  * corner toasts. The Alpine axModal() instances + global $toast store are ported
  * to native React state. DOM classes + ARIA match the reference 1:1.
  */
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+import { toast as sonnerToast } from 'sonner';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { PageHead } from '../../components/shell/PageHead';
-
-/* ── Toast store (page-local mirror of the global $toast) ── */
-interface Toast { id: number; msg: string; ttl: number; }
-let TOAST_ID = 0;
 
 /* ── A centered modal that teleports to <body>, traps focus, Esc-closes ── */
 function Modal({ open, onClose, labelledBy, describedBy, role = 'dialog', busy, children, closeOnBackdrop = true }: {
@@ -51,16 +48,13 @@ const STATUS = {
 };
 
 export function SweetAlerts() {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-  const timers = useRef<Record<number, number>>({});
-  const toast = useCallback((msg: string, ttl: number) => {
-    const id = ++TOAST_ID;
-    setToasts((t) => [...t, { id, msg, ttl }]);
-    timers.current[id] = window.setTimeout(() => {
-      setToasts((t) => t.filter((x) => x.id !== id));
-      delete timers.current[id];
-    }, ttl);
-  }, []);
+  const toast = (msg: string, ttl: number) => {
+    if (/couldn.t reach|failed|unable|error/i.test(msg)) {
+      sonnerToast.error(msg, { duration: ttl });
+    } else {
+      sonnerToast.success(msg, { duration: ttl });
+    }
+  };
 
   /* modal open-state for each demo */
   const [ok, setOk] = useState(false);
@@ -338,18 +332,6 @@ export function SweetAlerts() {
         </form>
       </Modal>
 
-      {/* ───── Toast region ───── */}
-      {toasts.length > 0 && createPortal(
-        <div className="ax-toast-region" aria-live="polite" style={{ position: 'fixed', insetBlockEnd: 'var(--ax-space-6)', insetInlineEnd: 'var(--ax-space-6)', zIndex: 95, display: 'flex', flexDirection: 'column', gap: 'var(--ax-space-2)' }}>
-          {toasts.map((t) => (
-            <div key={t.id} className="ax-toast" role="status">
-              <div className="ax-toast__content"><p className="ax-toast__message">{t.msg}</p></div>
-              <button type="button" className="ax-toast__dismiss" onClick={() => setToasts((cur) => cur.filter((x) => x.id !== t.id))} aria-label="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
-            </div>
-          ))}
-        </div>,
-        document.body,
-      )}
     </>
   );
 }

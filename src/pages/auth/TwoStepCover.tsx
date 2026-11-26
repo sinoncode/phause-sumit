@@ -7,6 +7,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthStandalone, OffappToolsCompact } from './authShared';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const LOCAL_STYLE = `
 @keyframes ax-spin-local { to { transform: rotate(360deg); } }
@@ -27,7 +29,7 @@ export function TwoStepCover() {
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [trust, setTrust] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const [invalid, setInvalid] = useState(false);
   const [cooldown, setCooldown] = useState(30);
   const cells = useRef<(HTMLInputElement | null)[]>([]);

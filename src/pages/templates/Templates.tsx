@@ -14,6 +14,8 @@ import { Lock } from 'lucide-react';
 
 import { apiClient } from "../../api/client";
 import { getAppToken } from "../../stores/auth.store";
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 export type TemplateLureType = "urgency" | "authority" | "curiosity" | "reward";
 export type TemplateCategory =
@@ -1600,7 +1602,7 @@ export function Templates({
   const [hasPremiumTemplates, setHasPremiumTemplates] = useState<boolean | null>(
     null,
   );
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const [modal, setModal] = useState<ModalState>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const handleApiError = useApiErrorHandler();

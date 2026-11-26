@@ -10,6 +10,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHead } from '../../components/shell/PageHead';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 const C = { cyan: 'var(--ax-viz-cyan)', violet: 'var(--ax-viz-violet)', pink: 'var(--ax-viz-pink)', amber: 'var(--ax-viz-amber)', emerald: 'var(--ax-viz-emerald)' };
 const TYPES = [
@@ -60,7 +62,7 @@ export function SearchJobs() {
   const [fType, setFType] = useState<string[]>([]);
   const [fMode, setFMode] = useState<string[]>([]);
   const [saved, setSaved] = useState<Record<string, boolean>>(() => Object.fromEntries(ROWS.map((r) => [r.id, r.saved])));
-  const [toast, setToast] = useState('');
+  const [toast, setToast] = useToastFeedback('', 'success');
 
   const reset = () => { setQ(''); setLoc(''); setSalaryK(40); setFLevel(''); setFPosted(''); setFType([]); setFMode([]); setSort('relevance'); setPage(1); };
 

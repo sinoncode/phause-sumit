@@ -20,6 +20,8 @@ import {
   type TrainingModuleFormValues,
 } from '../../api/training/training.api';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ── icons ─────────────────────────────────────────────────────────────────────
 const IC_PLUS   = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>;
@@ -63,7 +65,7 @@ function CreateModuleModal({ onClose, onSave }: { onClose: () => void; onSave: (
   const EMPTY: TrainingModuleFormValues = { title:'', category:'', contentRef:'' };
   const [form, setForm] = useState<TrainingModuleFormValues>(EMPTY);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
   const set = <K extends keyof TrainingModuleFormValues>(k: K, v: TrainingModuleFormValues[K]) =>
     setForm((f) => ({ ...f, [k]: v }));
 
@@ -128,7 +130,7 @@ function RecordCompletionModal({
   const [moduleId, setModuleId] = useState(modules[0]?.id ?? '');
   const [score, setScore] = useState('');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useToastFeedback('', 'error');
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -270,7 +272,7 @@ export function Training() {
   const [completions, setCompletions]   = useState<TrainingCompletion[]>([]);
   const [compLoading, setCompLoading]   = useState(false);
   const [compSearched, setCompSearched] = useState(false);
-  const [loadError, setLoadError] = useState('');
+  const [loadError, setLoadError] = useToastFeedback('', 'error');
   const handleApiError = useApiErrorHandler();
 
   // load on mount

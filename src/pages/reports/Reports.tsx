@@ -39,6 +39,8 @@ import {
 } from '../../api/reports/reports.api';
 import { ApiError } from '../../api/client';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
+import { useToastFeedback } from '../../hooks/useToastFeedback';
+
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -294,7 +296,7 @@ export function Reports() {
   const [templateEff, setTemplateEff] = useState<TemplateEffectiveness[]>([]);
   const [trainingCorr, setTrainingCorr] = useState<TrainingCorrelationRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [errorToast, setErrorToast] = useState('');
+  const [, setErrorToast] = useToastFeedback('', 'error');
   const toastTimer = useRef<number | null>(null);
   const handleApiError = useApiErrorHandler();
 
@@ -398,7 +400,6 @@ export function Reports() {
           </button>
         }
       />
-      {errorToast && <div className="ax-toast-region ax-toast-region--top-end" aria-live="assertive"><div className="ax-toast ax-toast--danger" role="alert">{errorToast}</div></div>}
 
       {loading && (
         <p style={{ color: 'var(--ax-text-muted)', padding: 'var(--ax-space-4)' }}>Loading reports…</p>

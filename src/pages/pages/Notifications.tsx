@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { PageHead } from '../../components/shell/PageHead';
 
 type Filter = 'all' | 'unread' | 'mentions' | 'system';
@@ -174,12 +175,11 @@ async function getApiError(response: Response): Promise<string> {
   try {
     const result = (await response.json()) as ApiResponse;
 
-    return (
-      result.message ||
-      `Request failed with status ${response.status}.`
-    );
+    return typeof result.message === 'string' && result.message.trim()
+      ? result.message.trim()
+      : 'Unable to complete the request. Please try again.';
   } catch {
-    return `Request failed with status ${response.status}.`;
+    return 'Unable to complete the request. Please try again.';
   }
 }
 
@@ -400,9 +400,6 @@ export function Notifications() {
   const [markingRead, setMarkingRead] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
 
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
   const [search, setSearch] = useState('');
 
   const userRole = useMemo(() => getCurrentUserRole(), []);
@@ -418,7 +415,6 @@ export function Notifications() {
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
-    setError('');
 
     try {
       const response = await fetch(NOTIFICATIONS_ENDPOINT, {
@@ -436,10 +432,10 @@ export function Notifications() {
 
       setNotifications(notificationList);
     } catch (err) {
-      setError(
-        err instanceof Error
+      toast.error(
+        err instanceof Error && err.message
           ? err.message
-          : 'Unable to load notifications.',
+          : 'Unable to load notifications. Please try again.',
       );
     } finally {
       setLoading(false);
@@ -458,8 +454,6 @@ export function Notifications() {
     if (!canManage || isNotificationRead(notification)) return;
 
     setMarkingRead(true);
-    setError('');
-    setSuccess('');
 
     try {
       const response = await fetch(
@@ -492,12 +486,12 @@ export function Notifications() {
       );
 
       setSelectedNotification(updatedNotification);
-      setSuccess('Notification marked as read.');
+      toast.success('Notification marked as read.');
     } catch (err) {
-      setError(
+      toast.error(
         err instanceof Error
           ? err.message
-          : 'Unable to mark notification as read.',
+          : 'Unable to mark notification as read. Please try again.',
       );
     } finally {
       setMarkingRead(false);
@@ -518,8 +512,6 @@ export function Notifications() {
     if (unreadNotifications.length === 0) return;
 
     setMarkingAll(true);
-    setError('');
-    setSuccess('');
 
     try {
       const results = await Promise.allSettled(
@@ -535,9 +527,7 @@ export function Notifications() {
           );
 
           if (!response.ok) {
-            throw new Error(
-              `Failed to update notification ${notification.id}`,
-            );
+            throw new Error(await getApiError(response));
           }
 
           return notification.id;
@@ -586,15 +576,28 @@ export function Notifications() {
 
       const failedCount = results.length - successfulIds.size;
 
-      if (failedCount > 0) {
-        setError(
-          `${successfulIds.size} notifications marked as read. ${failedCount} could not be updated.`,
+      if (successfulIds.size > 0) {
+        toast.success(
+          `${successfulIds.size} notification${successfulIds.size === 1 ? '' : 's'} marked as read.`,
         );
-      } else {
-        setSuccess('All notifications marked as read.');
+      }
+
+      if (failedCount > 0) {
+        const firstFailure = results.find(
+          (result): result is PromiseRejectedResult =>
+            result.status === 'rejected',
+        );
+        const reason = firstFailure?.reason;
+        const message =
+          reason instanceof Error && reason.message
+            ? reason.message
+            : 'Unable to update notifications. Please try again.';
+        toast.error(
+          `${failedCount} notification${failedCount === 1 ? '' : 's'} could not be updated. ${message}`,
+        );
       }
     } catch {
-      setError('Unable to update notifications.');
+      toast.error('Unable to update notifications. Please try again.');
     } finally {
       setMarkingAll(false);
     }
@@ -713,8 +716,6 @@ export function Notifications() {
         }}
         onClick={() => {
           setSelectedNotification(notification);
-          setError('');
-          setSuccess('');
         }}
       >
         <span className="ax-list__leading">
@@ -920,58 +921,7 @@ export function Notifications() {
           <div
             className="ax-card__body"
             style={{ paddingTop: 0 }}
-            aria-live="polite"
           >
-            {/* Success message */}
-
-            {success && (
-              <div
-                className="ax-alert ax-alert--success"
-                style={{ marginBottom: 'var(--ax-space-4)' }}
-              >
-                <span className="ax-alert__icon">
-                  ✓
-                </span>
-
-                <div className="ax-alert__content">
-                  <p className="ax-alert__message">{success}</p>
-                </div>
-
-                <button
-                  type="button"
-                  className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
-                  onClick={() => setSuccess('')}
-                  aria-label="Dismiss success message"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            {/* Error message */}
-
-            {error && (
-              <div
-                className="ax-alert ax-alert--danger"
-                style={{ marginBottom: 'var(--ax-space-4)' }}
-              >
-                <span className="ax-alert__icon">!</span>
-
-                <div className="ax-alert__content">
-                  <p className="ax-alert__message">{error}</p>
-                </div>
-
-                <button
-                  type="button"
-                  className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm"
-                  onClick={() => setError('')}
-                  aria-label="Dismiss error message"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
             {/* Search */}
 
             <div
@@ -1388,29 +1338,6 @@ export function Notifications() {
                 </div>
               </div>
 
-              {error && (
-                <div
-                  className="ax-alert ax-alert--danger"
-                  style={{ marginTop: 18 }}
-                >
-                  <span className="ax-alert__icon">!</span>
-                  <div className="ax-alert__content">
-                    <p className="ax-alert__message">{error}</p>
-                  </div>
-                </div>
-              )}
-
-              {success && (
-                <div
-                  className="ax-alert ax-alert--success"
-                  style={{ marginTop: 18 }}
-                >
-                  <span className="ax-alert__icon">✓</span>
-                  <div className="ax-alert__content">
-                    <p className="ax-alert__message">{success}</p>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div
