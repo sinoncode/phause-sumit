@@ -2,7 +2,8 @@
  * Phause — Billing & Plans
  *
  * Existing subscription flow is preserved.
- * Plan editing uses PATCH /api/admin/plans/:id and the super-admin token.
+ * Current subscription is loaded from GET /api/subscriptions/current.
+ * Plan editing uses PATCH /api/admin/plans/:id with the super-admin token.
  */
 
 import { useEffect, useState } from 'react';
@@ -10,15 +11,12 @@ import { PageHead } from '../../components/shell/PageHead';
 import {
   listBillingPlans,
   createBillingPlan,
-  createCheckoutSession,
-  getCurrentSubscription,
   cancelSubscription,
   type BillingPlan,
-  type Subscription,
 } from '../../api/billing/billing.api';
 import { apiClient, ApiError } from '../../api/client';
 import { useApiErrorHandler } from '../../hooks/useApiErrorHandler';
-import { useAuthStore, getAdminToken } from '../../stores/auth.store';
+import { useAuthStore, getAppToken, getAdminToken } from '../../stores/auth.store';
 
 type FeatureValue = boolean | number | string;
 type PlanFeatures = Record<string, FeatureValue>;
@@ -56,6 +54,89 @@ type PlanForm = {
   isActive: boolean;
 };
 
+type SubscriptionUsage = {
+  maxCampaigns: number;
+  maxCampaignsPerDay: number;
+  maxUsers: number;
+  usedCampaigns: number;
+  usedCampaignsToday: number;
+  usedUsers: number;
+  monthlyApiQuota: number;
+  usedApiRequests: number;
+  remainingCampaigns: number;
+  remainingCampaignsToday: number;
+  remainingUsers: number;
+  remainingApiRequests: number;
+};
+
+type CurrentPlanDetails = {
+  id: string;
+  name: string;
+  description: string;
+  price: string | number;
+  currency: string;
+  billingCycle: string;
+  maxCampaigns: number | null;
+  maxCampaignsPerDay: number | null;
+  maxUsers: number | null;
+  features: PlanFeatures;
+  isActive: boolean;
+  trialDays: number;
+};
+
+type CurrentSubscriptionApiResponse = {
+  subscription: {
+    id: string;
+    tenantId: string;
+    planId: string;
+    plan: CurrentPlanDetails;
+    status: string;
+    startDate: string;
+    endDate: string;
+    autoRenew: boolean;
+    gatewayProvider: string | null;
+    gatewaySubscriptionId: string | null;
+    cancelAtPeriodEnd?: boolean;
+  } | null;
+  payments: unknown[];
+  usage: SubscriptionUsage | null;
+};
+
+type CurrentSubscriptionView = {
+  id: string;
+  planId: string;
+  plan: CurrentPlanDetails;
+  status: string;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  autoRenew: boolean;
+  cancelAtPeriodEnd: boolean;
+  gatewayProvider: string | null;
+  gatewaySubscriptionId: string | null;
+  usage: SubscriptionUsage | null;
+};
+
+function normalizeCurrentSubscription(
+  response: CurrentSubscriptionApiResponse,
+): CurrentSubscriptionView | null {
+  const subscription = response.subscription;
+  if (!subscription) return null;
+
+  return {
+    id: subscription.id,
+    planId: subscription.planId,
+    plan: subscription.plan,
+    status: String(subscription.status ?? 'none').toLowerCase(),
+    currentPeriodStart: subscription.startDate,
+    currentPeriodEnd: subscription.endDate,
+    autoRenew: Boolean(subscription.autoRenew),
+    cancelAtPeriodEnd: Boolean(subscription.cancelAtPeriodEnd),
+    gatewayProvider: subscription.gatewayProvider,
+    gatewaySubscriptionId: subscription.gatewaySubscriptionId,
+    usage: response.usage ?? null,
+  };
+}
+
 const PRICING_URL = 'https://phause.webandappdevelopmenttech.com/subscription#pricing';
 
 const IC_PLUS = <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>;
@@ -74,19 +155,7 @@ const SUB_STATUS: Record<string, { bg: string; fg: string; label: string }> = {
   none: { bg: 'var(--ax-surface-subtle)', fg: 'var(--ax-text-muted)', label: 'No subscription' },
 };
 
-const EMPTY_FORM: PlanForm = {
-  name: '',
-  description: '',
-  price: 0,
-  currency: 'USD',
-  billingCycle: 'monthly',
-  maxCampaigns: null,
-  maxCampaignsPerDay: null,
-  maxUsers: null,
-  features: {},
-  trialDays: 0,
-  isActive: true,
-};
+
 
 const FEATURE_LABELS: Record<string, string> = {
   apiQuota: 'API quota',
@@ -218,12 +287,8 @@ function PlanEditorModal({ plan, onClose, onSaved }: {
       trialDays: Number(form.trialDays),
     };
     try {
-      const updated = await apiClient.patch<Partial<AdminPlan> | undefined>(
-        `/api/admin/plans/${encodeURIComponent(plan.id)}`,
-        getAdminToken,
-        payload,
-      );
-      onSaved(normalizePlan({ ...plan, ...payload, ...updated }));
+      const updated = await apiClient.patch<Partial<AdminPlan> | undefined>(`/api/admin/plans/${encodeURIComponent(plan.id)}`, getAdminToken, payload);
+      onSaved(normalizePlan({ ...plan, ...payload, ...(updated ?? {}) }));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Unable to update this plan.');
     } finally {
@@ -369,19 +434,114 @@ function PlanCard({ plan, isCurrent, onEdit, canEdit }: {
   );
 }
 
-function SubscriptionCard({ sub, onCancel, cancelling }: { sub: Subscription; onCancel: () => void; cancelling: boolean }) {
-  const fmt = (iso: string) => new Date(iso).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+function SubscriptionCard({ sub, onCancel, cancelling }: {
+  sub: CurrentSubscriptionView;
+  onCancel: () => void;
+  cancelling: boolean;
+}) {
+  const fmt = (iso: string) => {
+    const date = new Date(iso);
+    return Number.isNaN(date.getTime())
+      ? '—'
+      : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  };
+  const plan = sub.plan;
+  const usage = sub.usage;
+  const symbols: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', INR: '₹', CHF: 'CHF ' };
+  const currency = String(plan.currency || 'USD').toUpperCase();
+  const price = `${symbols[currency] ?? `${currency} `}${Number(plan.price ?? 0).toLocaleString()}`;
+  const usageItems = usage ? [
+    { label: 'Campaigns', used: usage.usedCampaigns, limit: usage.maxCampaigns },
+    { label: 'Campaigns today', used: usage.usedCampaignsToday, limit: usage.maxCampaignsPerDay },
+    { label: 'Users', used: usage.usedUsers, limit: usage.maxUsers },
+    { label: 'Monthly API requests', used: usage.usedApiRequests, limit: usage.monthlyApiQuota },
+  ] : [];
+
   return (
     <div className="ax-card ax-card--filled">
-      <div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Current Subscription</h2></div><SubStatusBadge status={sub.status} /></div>
-      <div className="ax-card__body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 'var(--ax-space-5)' }}>
-        <div><p style={{ margin: 0, fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)', textTransform: 'uppercase' }}>Plan</p><p style={{ margin: '4px 0 0', fontWeight: 600, color: 'var(--ax-text-strong)' }}>{sub.planName || sub.planId}</p></div>
-        <div><p style={{ margin: 0, fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)', textTransform: 'uppercase' }}>Period start</p><p style={{ margin: '4px 0 0', color: 'var(--ax-text)' }}>{fmt(sub.currentPeriodStart)}</p></div>
-        <div><p style={{ margin: 0, fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)', textTransform: 'uppercase' }}>Period end</p><p style={{ margin: '4px 0 0', color: 'var(--ax-text)' }}>{fmt(sub.currentPeriodEnd)}</p></div>
-        {sub.stripeSubscriptionId && <div><p style={{ margin: 0, fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)', textTransform: 'uppercase' }}>Stripe ID</p><p style={{ margin: '4px 0 0', fontFamily: 'var(--ax-font-mono)', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)' }}>{sub.stripeSubscriptionId}</p></div>}
+      <div className="ax-card__header">
+        <div className="ax-card__titles"><h2 className="ax-card__title">Current Subscription</h2></div>
+        <SubStatusBadge status={sub.status} />
       </div>
-      {sub.status === 'active' && !sub.cancelAtPeriodEnd && <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end' }}><button type="button" className={`ax-btn ax-btn--danger ax-btn--ghost${cancelling ? ' is-loading' : ''}`} aria-busy={cancelling} onClick={onCancel}><span className="ax-btn__spinner" aria-hidden="true" />{IC_CANCEL}<span className="ax-btn__label">Cancel subscription</span></button></div>}
-      {sub.cancelAtPeriodEnd && <div className="ax-card__footer"><p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-warning-500)' }}>Your subscription will cancel at the end of the current billing period ({fmt(sub.currentPeriodEnd)}).</p></div>}
+
+      <div className="ax-card__body" style={{ display: 'grid', gap: 'var(--ax-space-6)' }}>
+        <section style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+            <p style={{ margin: 0, fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-subtle)', textTransform: 'uppercase' }}>Your current plan</p>
+            <h3 style={{ margin: '5px 0', fontSize: 'var(--ax-text-2xl)', color: 'var(--ax-text-strong)' }}>{plan.name}</h3>
+            <p style={{ margin: 0, color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>{plan.description}</p>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <strong style={{ fontSize: 'var(--ax-text-2xl)', color: 'var(--ax-text-strong)', fontVariantNumeric: 'tabular-nums' }}>{price}</strong>
+            <p style={{ margin: '4px 0 0', color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)', textTransform: 'capitalize' }}>/ {String(plan.billingCycle || 'monthly').toLowerCase()}</p>
+          </div>
+        </section>
+
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))', gap: 'var(--ax-space-4)' }}>
+          <div><p className="ax-label">Period start</p><strong style={{ color: 'var(--ax-text-strong)' }}>{fmt(sub.currentPeriodStart)}</strong></div>
+          <div><p className="ax-label">Period end</p><strong style={{ color: 'var(--ax-text-strong)' }}>{fmt(sub.currentPeriodEnd)}</strong></div>
+          <div><p className="ax-label">Auto renewal</p><strong style={{ color: 'var(--ax-text-strong)' }}>{sub.autoRenew ? 'Enabled' : 'Disabled'}</strong></div>
+          <div><p className="ax-label">Payment provider</p><strong style={{ color: 'var(--ax-text-strong)', textTransform: 'capitalize' }}>{sub.gatewayProvider || 'N/A'}</strong></div>
+        </section>
+
+        <section>
+          <div style={{ marginBottom: 14 }}>
+            <h3 style={{ margin: 0, fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>Plan Usage</h3>
+            <p style={{ margin: '4px 0 0', fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>Monitor your current usage and available limits.</p>
+          </div>
+          {!usage ? (
+            <p style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>Usage information is currently unavailable.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(190px,1fr))', gap: 12 }}>
+              {usageItems.map((item) => {
+                const limit = Math.max(Number(item.limit ?? 0), 0);
+                const used = Math.max(Number(item.used ?? 0), 0);
+                const percentage = limit > 0 ? Math.min((used / limit) * 100, 100) : 0;
+                return (
+                  <div key={item.label} style={{ padding: 14, borderRadius: 'var(--ax-radius-lg)', background: 'var(--ax-surface-subtle)', border: '1px solid var(--ax-border)' }}>
+                    <p style={{ margin: 0, fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>{item.label}</p>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 5, marginTop: 8 }}>
+                      <strong style={{ fontSize: 'var(--ax-text-xl)', color: 'var(--ax-text-strong)' }}>{used.toLocaleString()}</strong>
+                      <span style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-muted)' }}>/ {limit.toLocaleString()}</span>
+                    </div>
+                    <div style={{ height: 6, borderRadius: 99, background: 'var(--ax-border)', overflow: 'hidden', marginTop: 12 }}>
+                      <div style={{ height: '100%', width: `${percentage}%`, borderRadius: 99, background: 'var(--ax-accent)', transition: 'width .3s ease' }} />
+                    </div>
+                    <p style={{ margin: '7px 0 0', fontSize: 'var(--ax-text-xs)', color: 'var(--ax-text-muted)' }}>{Math.max(limit - used, 0).toLocaleString()} remaining</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <h3 style={{ margin: '0 0 12px', fontSize: 'var(--ax-text-md)', color: 'var(--ax-text-strong)' }}>Included Features</h3>
+          {Object.keys(plan.features || {}).length === 0 ? (
+            <p style={{ color: 'var(--ax-text-muted)', fontSize: 'var(--ax-text-sm)' }}>No feature details are available for this plan.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 10 }}>
+              {Object.entries(plan.features || {}).map(([key, value]) => (
+                <div key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: '9px 12px', borderRadius: 8, background: 'var(--ax-surface-subtle)' }}>
+                  <span style={{ fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text)' }}>{featureLabel(key)}</span>
+                  <FeatureValueView value={value} />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* {sub.status === 'active' && !sub.cancelAtPeriodEnd && (
+        <div className="ax-card__footer ax-cluster" style={{ justifyContent: 'flex-end' }}>
+          <button type="button" className={`ax-btn ax-btn--danger ax-btn--ghost${cancelling ? ' is-loading' : ''}`} aria-busy={cancelling} onClick={onCancel} disabled={cancelling}>
+            <span className="ax-btn__spinner" aria-hidden="true" />{IC_CANCEL}<span className="ax-btn__label">Cancel subscription</span>
+          </button>
+        </div>
+      )} */}
+      {sub.cancelAtPeriodEnd && (
+        <div className="ax-card__footer"><p style={{ margin: 0, fontSize: 'var(--ax-text-sm)', color: 'var(--ax-warning-500)' }}>Your subscription will cancel at the end of the current billing period ({fmt(sub.currentPeriodEnd)}).</p></div>
+      )}
     </div>
   );
 }
@@ -392,7 +552,7 @@ export function Billing() {
   const canEditPlans = userRole === 'admin' && Boolean(adminToken);
 
   const [plans, setPlans] = useState<AdminPlan[]>([]);
-  const [sub, setSub] = useState<Subscription | null>(null);
+  const [sub, setSub] = useState<CurrentSubscriptionView | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [editingPlan, setEditingPlan] = useState<AdminPlan | null>(null);
@@ -403,11 +563,14 @@ export function Billing() {
 
   useEffect(() => {
     let alive = true;
-    Promise.allSettled([listBillingPlans(), getCurrentSubscription()])
+    Promise.allSettled([
+      listBillingPlans(),
+      apiClient.get<CurrentSubscriptionApiResponse>('/api/subscriptions/current', getAppToken),
+    ])
       .then(([plansResult, subscriptionResult]) => {
         if (!alive) return;
         if (plansResult.status === 'fulfilled') setPlans(plansResult.value.map(normalizePlan));
-        if (subscriptionResult.status === 'fulfilled') setSub(subscriptionResult.value);
+        if (subscriptionResult.status === 'fulfilled') setSub(normalizeCurrentSubscription(subscriptionResult.value));
         for (const result of [plansResult, subscriptionResult]) {
           if (result.status === 'rejected' && result.reason instanceof ApiError && result.reason.status === 401) {
             handleApiError(result.reason);
@@ -445,8 +608,10 @@ export function Billing() {
     if (!sub) return;
     setCancelling(true);
     try {
-      setSub(await cancelSubscription(sub.id));
-      showToast('Subscription cancellation scheduled at period end.');
+      await cancelSubscription(sub.id);
+      const refreshed = await apiClient.get<CurrentSubscriptionApiResponse>('/api/subscriptions/current', getAppToken);
+      setSub(normalizeCurrentSubscription(refreshed));
+      showToast('Subscription cancellation request processed successfully.');
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Failed to cancel subscription.');
     } finally { setCancelling(false); }
@@ -455,7 +620,7 @@ export function Billing() {
   const currentPlanId = sub?.status !== 'cancelled' && sub?.status !== 'none' ? sub?.planId : null;
 
   return <>
-    {showCreate && canEditPlans && <CreatePlanModal onClose={() => setShowCreate(false)} onSave={onPlanCreated} />}
+    {showCreate && <CreatePlanModal onClose={() => setShowCreate(false)} onSave={onPlanCreated} />}
     {editingPlan && canEditPlans && <PlanEditorModal plan={editingPlan} onClose={() => setEditingPlan(null)} onSaved={onPlanUpdated} />}
     {toast && <div role="status" aria-live="polite" style={{ position: 'fixed', bottom: 'var(--ax-space-6)', right: 'var(--ax-space-6)', zIndex: 2000, background: 'var(--ax-surface-raised)', border: '1px solid var(--ax-border)', borderRadius: 'var(--ax-radius-lg)', padding: 'var(--ax-space-3) var(--ax-space-5)', boxShadow: 'var(--ax-shadow-lg)', fontSize: 'var(--ax-text-sm)', color: 'var(--ax-text-strong)' }}>{toast}</div>}
     <PageHead title="Billing & Plans" subtitle="Manage your subscription and available billing plans." actions={canEditPlans ? <button type="button" className="ax-btn ax-btn--secondary" onClick={() => setShowCreate(true)}>{IC_PLUS}<span className="ax-btn__label">Create Plan</span></button> : undefined} />

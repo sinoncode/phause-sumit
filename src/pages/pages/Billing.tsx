@@ -479,7 +479,7 @@ export function Billing() {
     <>
       <PageHead title="Billing" subtitle="Your plan, usage, payment methods and invoice history."
         actions={<>
-          <Link className="ax-btn ax-btn--primary" to="/pages/pricing">
+          <Link className="ax-btn ax-btn--primary" to="/billing">
             <svg className="ax-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>
             <span className="ax-btn__label">Change plan</span>
           </Link>
