@@ -10,6 +10,11 @@ import {
 import { useApiErrorHandler } from "../../hooks/useApiErrorHandler";
 import { useCustomizer } from "../../context/CustomizerContext";
 
+import { Lock } from 'lucide-react';
+
+import { apiClient } from "../../api/client";
+import { getAppToken } from "../../stores/auth.store";
+
 export type TemplateLureType = "urgency" | "authority" | "curiosity" | "reward";
 export type TemplateCategory =
   | "credential-harvest"
@@ -32,6 +37,18 @@ export interface PhishingTemplate {
   isPremium: boolean;
   isLocked: boolean;
 }
+
+interface AuthMeResponse {
+  subscription?: {
+    plan?: {
+      features?: {
+        premiumTemplates?: boolean;
+      };
+    };
+  } | null;
+}
+
+const UPGRADE_URL = "/billing";
 
 type TemplateFormValues = Omit<PhishingTemplate, "id">;
 type ModalState =
@@ -1547,21 +1564,76 @@ function TemplateDetails({
             </div>
           ))}
         </dl>
+        <div className="ax-card__body" style={{ display: "grid", gap: "var(--ax-space-3)", paddingTop: 0 }}>
+          <section>
+            <h3 style={{ margin: "0 0 var(--ax-space-2)", fontSize: "var(--ax-text-sm)" }}>Plain-text email body</h3>
+            <pre style={{ margin: 0, padding: "var(--ax-space-3)", borderRadius: "var(--ax-radius-md)", background: "var(--ax-surface-subtle)", whiteSpace: "pre-wrap", overflowWrap: "anywhere", font: "inherit", fontSize: "var(--ax-text-sm)", color: "var(--ax-text)" }}>
+              {template.textBody || "No plain-text body provided."}
+            </pre>
+          </section>
+          <details>
+            <summary style={{ cursor: "pointer", fontSize: "var(--ax-text-sm)", fontWeight: 600 }}>HTML email source</summary>
+            <pre style={{ margin: "var(--ax-space-2) 0 0", padding: "var(--ax-space-3)", borderRadius: "var(--ax-radius-md)", background: "var(--ax-surface-subtle)", whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontSize: "var(--ax-text-xs)", color: "var(--ax-text)" }}>
+              {template.htmlBody || "No HTML body provided."}
+            </pre>
+          </details>
+        </div>
       </div>
     </div>
   );
 }
 
-export function Templates() {
+export function Templates({
+  embedded = false,
+  onSelectTemplate,
+  selectedTemplateId,
+}: {
+  embedded?: boolean;
+  onSelectTemplate?: (template: PhishingTemplate) => void;
+  selectedTemplateId?: string;
+}) {
   const navigate = useNavigate();
   const location = useLocation();
   const { themeResolved } = useCustomizer();
   const templateView = location.pathname.endsWith("/custom") ? "custom" : "all";
   const [templates, setTemplates] = useState<PhishingTemplate[]>([]);
+  const [hasPremiumTemplates, setHasPremiumTemplates] = useState<boolean | null>(
+    null,
+  );
   const [loadError, setLoadError] = useState('');
   const [modal, setModal] = useState<ModalState>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const handleApiError = useApiErrorHandler();
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchSubscription = async () => {
+      try {
+        const me = await apiClient.get<AuthMeResponse>(
+          "/api/auth/me",
+          getAppToken,
+        );
+
+        if (isMounted) {
+          setHasPremiumTemplates(
+            me?.subscription?.plan?.features?.premiumTemplates === true,
+          );
+        }
+      } catch (error) {
+        console.error("Unable to fetch subscription details:", error);
+
+        if (isMounted) {
+          setHasPremiumTemplates(false);
+        }
+      }
+    };
+
+    void fetchSubscription();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     listTemplates().then(setTemplates).catch((err: unknown) => {
@@ -1580,11 +1652,29 @@ export function Templates() {
     }
   };
   const useTemplateInCampaign = async (template: PhishingTemplate) => {
-    setLoadError('');
+    setLoadError("");
+
+    // Premium templates require an active premium entitlement.
+    if (template.isPremium && hasPremiumTemplates !== true) {
+      window.location.assign(UPGRADE_URL);
+      return;
+    }
+
+    if (onSelectTemplate) {
+      onSelectTemplate(template);
+      return;
+    }
+
     try {
-      navigate(`/api/campaigns/new?templateId=${encodeURIComponent(template.id)}`);
+      navigate(
+        `/api/campaigns/new?templateId=${encodeURIComponent(template.id)}`,
+      );
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : 'Unable to use this template for a campaign.');
+      setLoadError(
+        error instanceof Error
+          ? error.message
+          : "Unable to use this template for a campaign.",
+      );
     }
   };
   const updateTemplate = async (values: TemplateFormValues) => {
@@ -2071,10 +2161,12 @@ export function Templates() {
           .tpl-choice__option:not(:disabled):hover { transform: none; }
         }
       `}</style>
-      <PageHead
-        title={templateView === "custom" ? "Custom templates" : "Templates"}
-        subtitle="Create, inspect, and preview authorised phishing simulation templates."
-      />
+      {!embedded && (
+        <PageHead
+          title={templateView === "custom" ? "Custom templates" : "Templates"}
+          subtitle="Create, inspect, and preview authorised phishing simulation templates."
+        />
+      )}
       {loadError && <div role="alert" className="ax-alert ax-alert--danger"><p className="ax-alert__message">{loadError}</p></div>}
 
       <div className="tpl-toolbar">
@@ -2129,7 +2221,12 @@ export function Templates() {
           ) : viewMode === "grid" ? (
             <div className="tpl-grid">
               {visibleTemplateRows.map(({ template, saved }) => (
-                <article className="tpl-card" key={template.id}>
+                <article
+                  className="tpl-card"
+                  key={template.id}
+                  aria-current={selectedTemplateId === template.id ? "true" : undefined}
+                  style={selectedTemplateId === template.id ? { borderColor: "var(--ax-accent)", boxShadow: "var(--ax-shadow-md)" } : undefined}
+                >
                   <div className="tpl-card__preview">
                     {template.htmlBody.trim() ? (
                       <iframe
@@ -2154,6 +2251,7 @@ export function Templates() {
                       <span className="tpl-chip">{labelFor(LURE_TYPES, template.lureType)}</span>
                       {template.isPremium && <span className="tpl-chip tpl-chip--premium">Premium</span>}
                       {template.isLocked && <span className="tpl-chip tpl-chip--locked">Locked</span>}
+                      {selectedTemplateId === template.id && <span className="tpl-chip">Selected for campaign</span>}
                     </div>
                     <div className="tpl-card__actions">
                       <button type="button" className="ax-btn ax-btn--secondary ax-btn--sm" onClick={() => setModal({ preview: template })}>
@@ -2166,9 +2264,38 @@ export function Templates() {
                       ) : (
                         <button type="button" className="ax-btn ax-btn--secondary ax-btn--sm" onClick={() => setModal({ detail: template })}>Details</button>
                       )}
-                      <button type="button" className="ax-btn ax-btn--primary ax-btn--sm" onClick={() => void useTemplateInCampaign(template)}>
-                        Use in campaign
-                      </button>
+                      {template.isPremium && hasPremiumTemplates === false ? (
+                        <a
+                          href={UPGRADE_URL}
+                          className="ax-btn ax-btn--primary ax-btn--sm"
+                          style={{
+                            textDecoration: "none",
+                            justifyContent: "center",
+                          }}
+                        >
+                         <Lock className="w-4 h-4" />  Upgrade to use
+                        </a>
+                      ) : template.isPremium && hasPremiumTemplates === null ? (
+                        <button
+                          type="button"
+                          className="ax-btn ax-btn--primary ax-btn--sm"
+                          disabled
+                        >
+                          Checking access...
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="ax-btn ax-btn--primary ax-btn--sm"
+                          onClick={() => void useTemplateInCampaign(template)}
+                        >
+                          {selectedTemplateId === template.id
+                            ? "Selected for campaign"
+                            : onSelectTemplate
+                              ? "Select for campaign"
+                              : "Use in campaign"}
+                        </button>
+                      )}
                       {saved && (
                         <button type="button" className="ax-btn ax-btn--ghost ax-btn--sm" onClick={() => deleteTemplate(template)}>
                           {ICON_DELETE}<span>Delete</span>
@@ -2206,7 +2333,35 @@ export function Templates() {
                           {saved && <button type="button" className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" aria-label={`Edit ${template.name}`} onClick={() => setModal({ edit: template })}>{ICON_EDIT}</button>}
                           {saved && <button type="button" className="ax-btn ax-btn--ghost ax-btn--icon ax-btn--sm" aria-label={`Delete ${template.name}`} onClick={() => deleteTemplate(template)}>{ICON_DELETE}</button>}
                           <button type="button" className="ax-btn ax-btn--ghost ax-btn--sm" onClick={() => setModal({ detail: template })}>Details</button>
-                          <button type="button" className="ax-btn ax-btn--primary ax-btn--sm" onClick={() => void useTemplateInCampaign(template)}>Use</button>
+                          {template.isPremium && hasPremiumTemplates === false ? (
+                            <a
+                              href={UPGRADE_URL}
+                              className="ax-btn ax-btn--primary ax-btn--sm"
+                              style={{ textDecoration: "none" }}
+                            >
+                            <Lock className="w-4 h-4" />  Upgrade to use
+                            </a>
+                          ) : template.isPremium && hasPremiumTemplates === null ? (
+                            <button
+                              type="button"
+                              className="ax-btn ax-btn--primary ax-btn--sm"
+                              disabled
+                            >
+                              Checking...
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="ax-btn ax-btn--primary ax-btn--sm"
+                              onClick={() => void useTemplateInCampaign(template)}
+                            >
+                              {selectedTemplateId === template.id
+                                ? "Selected"
+                                : onSelectTemplate
+                                  ? "Select"
+                                  : "Use"}
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

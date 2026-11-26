@@ -8,9 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../../stores/auth.store';
 import { BrandInline } from '../auth/authShared';
 
-const MARKETING_HOME = (
-  import.meta.env.VITE_MARKETING_URL?.trim() || 'https://phause.webandappdevelopmenttech.com/'
-).replace(/\/+$/, '') + '/';
+const MARKETING_HOME = 'https://phause.webandappdevelopmenttech.com/';
 const COUNTDOWN  = 5;
 
 export function Logout() {

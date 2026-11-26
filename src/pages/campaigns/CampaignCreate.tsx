@@ -5,25 +5,40 @@ import { CampaignForm } from '../../features/campaigns/CampaignForm';
 import { useCampaignStore } from '../../stores/campaign.store';
 import { ApiError } from '../../api/client';
 import type { CreateCampaignInput } from '../../features/campaigns/types';
+import { Templates } from '../templates/Templates';
 
 export function CampaignCreate() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const templateId = searchParams.get('templateId') ?? '';
-  const { templates, load, createCampaign, isLoading, error: loadError } = useCampaignStore();
+  const { templates, load, createCampaign, isLoading } = useCampaignStore();
   const [error, setError] = useState('');
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   const selectedTemplate = templates.find((template) => template.id === templateId);
+
+  const selectTemplate = (template: { id: string }) => {
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('templateId', template.id);
+      return next;
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const submit = async (input: CreateCampaignInput) => {
     setError('');
     try {
       const campaign = await createCampaign(input);
-      navigate(`/api/campaigns/${campaign.id}`, { replace: true, state: { notice: 'Campaign created successfully.' } });
+      navigate(`/api/campaigns/${campaign.id}`, {
+        replace: true,
+        state: { notice: 'Campaign created successfully.' },
+      });
     } catch (err) {
       if (err instanceof ApiError && err.status === 403) {
-        // RoE not recorded — show a helpful banner with a link to fix it
         setError(
           'Rules of Engagement (RoE) authorization has not been recorded for your organization. ' +
           'Please record authorization before creating a campaign.',
@@ -50,7 +65,7 @@ export function CampaignCreate() {
           style={{ marginBottom: 'var(--ax-space-5)', display: 'flex', alignItems: 'flex-start', gap: 'var(--ax-space-3)' }}
         >
           <svg className="ax-alert__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
-            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+            <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
             <path d="M12 8v4" />
             <path d="M12 16h.01" />
           </svg>
@@ -66,29 +81,34 @@ export function CampaignCreate() {
           </div>
         </div>
       )}
-
-      {isLoading ? (
-        <p role="status" style={{ color: 'var(--ax-text-muted)' }}>Loading templates…</p>
-      ) : !templateId || !selectedTemplate ? (
-        <section className="ax-card" role="region" aria-label="Choose a campaign template">
+ {selectedTemplate ? (
+        <>
+          <div role="status" style={{ marginBlock: 'var(--ax-space-5)', color: 'var(--ax-text-muted)' }}>
+            Campaign setup · Selected template: <strong style={{ color: 'var(--ax-accent)' }}>{selectedTemplate.name}</strong>
+          </div>
+          <CampaignForm
+            key={selectedTemplate.id}
+            initial={{ templateId: selectedTemplate.id }}
+            onSubmit={submit}
+          />
+        </>
+      ) : (
+        <section className="ax-card" role="region" aria-label="Choose a campaign template" style={{ marginBlock: 'var(--ax-space-5)' }}>
           <div className="ax-card__body">
-            <h2 className="ax-card__title">Choose a template first</h2>
+            <h2 className="ax-card__title">Choose a template to continue</h2>
             <p className="ax-card__subtitle" style={{ marginBlockStart: 'var(--ax-space-2)' }}>
-              {loadError || (templateId
-                ? 'The selected template is no longer available.'
-                : 'Select a saved template on the Templates page before configuring a campaign.')}
+              {isLoading
+                ? 'Loading campaign templates…'
+                : 'Browse the templates above, inspect their details or preview, then select one to configure your campaign.'}
             </p>
-            <Link className="ax-btn ax-btn--primary" to="/templates" style={{ marginBlockStart: 'var(--ax-space-4)' }}>
-              Go to templates
-            </Link>
           </div>
         </section>
-      ) : (
-        <CampaignForm
-          initial={{ templateId }}
-          onSubmit={submit}
-        />
       )}
+      <Templates
+        embedded
+        onSelectTemplate={selectTemplate}
+        selectedTemplateId={templateId}
+      />
     </>
   );
 }

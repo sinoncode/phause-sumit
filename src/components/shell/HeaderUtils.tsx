@@ -28,9 +28,7 @@ import { useCustomizer } from '../../context/CustomizerContext';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import { useAuthStore } from '../../stores/auth.store';
 import KnowledgeBaseDropdown from './KnowledgeBaseDropdown';
-const MARKETING_HOME = (
-  import.meta.env.VITE_MARKETING_URL?.trim() || 'https://phause.vercel.app/'
-).replace(/\/+$/, '') + '/';
+const MARKETING_HOME = 'https://phause.webandappdevelopmenttech.com/';
 
 const ICON = {
   apps: (
