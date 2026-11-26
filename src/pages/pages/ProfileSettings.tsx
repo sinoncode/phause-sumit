@@ -176,6 +176,10 @@ const [confirmPassword, setConfirmPassword] = useState('');
 const [changingPassword, setChangingPassword] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [notificationTitle, setNotificationTitle] = useState('');
+const [notificationMessage, setNotificationMessage] = useState('');
+const [creatingNotification, setCreatingNotification] = useState(false);
+
   const [notifications, setNotifications] = useState<Record<string, { email: boolean; push: boolean; app: boolean }>>(
     Object.fromEntries(NOTIFICATION_ROWS.map((row) => [row.title, {
       email: true,
@@ -184,7 +188,62 @@ const [changingPassword, setChangingPassword] = useState(false);
     }]))
   );
 
+const isNotificationAdmin = ['org_admin', 'super_admin', 'admin'].includes(
+  (profile?.role || '').toLowerCase()
+);
+const createNotification = async () => {
+  setError('');
+  setSuccess('');
 
+  if (!notificationTitle.trim() || !notificationMessage.trim()) {
+    setError('Please enter both notification title and message.');
+    return;
+  }
+
+  const token = getAccessToken();
+
+  if (!token) {
+    setError('Authentication token is missing. Please log in again.');
+    return;
+  }
+
+  setCreatingNotification(true);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/notifications`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: token.startsWith('Bearer ')
+          ? token
+          : `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        title: notificationTitle.trim(),
+        message: notificationMessage.trim(),
+      }),
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        getErrorMessage(payload, `Unable to create notification (${response.status}).`)
+      );
+    }
+
+    setNotificationTitle('');
+    setNotificationMessage('');
+    setSuccess('Notification successfully sent to your organization.');
+  } catch (err) {
+    setError(
+      err instanceof Error ? err.message : 'Unable to create notification.'
+    );
+  } finally {
+    setCreatingNotification(false);
+  }
+};
   const changePassword = async () => {
   setError('');
   setSuccess('');
@@ -378,7 +437,9 @@ const [changingPassword, setChangingPassword] = useState(false);
         <nav className="ax-card ax-col--3" aria-label="Settings sections" style={{ alignSelf: 'start' }}>
           <div className="ax-card__body" style={{ padding: 'var(--ax-space-3)' }}>
             <div role="tablist" aria-orientation="vertical" aria-label="Settings" style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {TABS.map((item) => (
+             {TABS.filter(
+  (item) => item.key !== 'notifications' || isNotificationAdmin
+).map((item) => (
                 <button key={item.key} type="button" role="tab" className={`ax-btn ax-btn--ghost ax-btn--block${tab === item.key ? ' is-selected' : ''}`} style={{ justifyContent: 'flex-start' }} aria-selected={tab === item.key} onClick={() => setTab(item.key)}>
                   {item.icon}<span className="ax-btn__label">{item.label}</span>
                 </button>
@@ -549,23 +610,122 @@ const [changingPassword, setChangingPassword] = useState(false);
                 </div>
               )}
 
-              {tab === 'notifications' && (
-                <div role="tabpanel" aria-label="Notification settings" className="ax-stack" style={{ ['--ax-gap' as string]: 'var(--ax-space-6)' }}>
-                  <section className="ax-card" aria-label="Notification channels">
-                    <div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Notification channels</h2><p className="ax-card__subtitle">These controls are retained in the interface. A notification preferences API is required to persist them.</p></div></div>
-                    <div className="ax-table-wrap"><table className="ax-table"><thead className="ax-table__head"><tr><th className="ax-table__th">Event</th><th className="ax-table__th" style={{ textAlign: 'center' }}>Email</th><th className="ax-table__th" style={{ textAlign: 'center' }}>Push</th><th className="ax-table__th" style={{ textAlign: 'center' }}>In-app</th></tr></thead>
-                      <tbody>{NOTIFICATION_ROWS.map((row) => <tr key={row.title} className="ax-table__row"><td className="ax-table__td"><div style={{ fontWeight: 'var(--ax-weight-medium)', color: 'var(--ax-text-strong)' }}>{row.title}</div><div className="ax-help">{row.sub}</div></td>{(['email', 'push', 'app'] as const).map((channel) => <td key={channel} className="ax-table__td" style={{ textAlign: 'center' }}><input type="checkbox" className="ax-switch" aria-label={`${channel} — ${row.title}`} checked={notifications[row.title][channel]} onChange={() => toggleNotification(row.title, channel)} /></td>)}</tr>)}</tbody>
-                    </table></div>
-                  </section>
-                  <section className="ax-card" aria-label="Delivery preferences">
-                    <div className="ax-card__header"><div className="ax-card__titles"><h2 className="ax-card__title">Delivery preferences</h2><p className="ax-card__subtitle">These preferences are local UI state until a preferences endpoint is available.</p></div></div>
-                    <div className="ax-card__body" style={{ paddingTop: 0, display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 'var(--ax-space-5)' }}>
-                      <div className="ax-field"><label className="ax-label" htmlFor="ps-digest">Digest frequency</label><select id="ps-digest" className="ax-select" defaultValue="Weekly"><option>Daily</option><option>Weekly</option><option>Monthly</option><option>Off</option></select></div>
-                      <div className="ax-field"><label className="ax-label" htmlFor="ps-quiet">Quiet hours</label><select id="ps-quiet" className="ax-select" defaultValue="22:00 – 07:00"><option>Off</option><option>22:00 – 07:00</option><option>20:00 – 08:00</option></select></div>
-                    </div>
-                  </section>
-                </div>
-              )}
+             {tab === 'notifications' && isNotificationAdmin && (
+  <div
+    role="tabpanel"
+    aria-label="Organization notifications"
+    className="ax-stack"
+    style={{ ['--ax-gap' as string]: 'var(--ax-space-6)' }}
+  >
+    <section className="ax-card" aria-label="Create organization notification">
+      <div className="ax-card__header">
+        <div className="ax-card__titles">
+          <h2 className="ax-card__title">Organization Notifications</h2>
+          <p className="ax-card__subtitle">
+            Create and publish notifications visible to everyone in your
+            organization.
+          </p>
+        </div>
+      </div>
+
+      <div
+        className="ax-card__body"
+        style={{
+          paddingTop: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--ax-space-5)',
+          maxWidth: 650,
+        }}
+      >
+        <div className="ax-field">
+          <label className="ax-label" htmlFor="notification-title">
+            Notification Title
+          </label>
+
+          <input
+            id="notification-title"
+            type="text"
+            className="ax-input"
+            placeholder="e.g. Campaign update"
+            value={notificationTitle}
+            onChange={(e) => setNotificationTitle(e.target.value)}
+            maxLength={120}
+          />
+        </div>
+
+        <div className="ax-field">
+          <label className="ax-label" htmlFor="notification-message">
+            Notification Message
+          </label>
+
+          <textarea
+            id="notification-message"
+            className="ax-textarea"
+            rows={5}
+            placeholder="Enter the notification message..."
+            value={notificationMessage}
+            onChange={(e) => setNotificationMessage(e.target.value)}
+            maxLength={1000}
+          />
+        </div>
+
+        <div
+          className="ax-card"
+          style={{
+            padding: 'var(--ax-space-4)',
+            background: 'var(--ax-surface-secondary)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: 'var(--ax-text-xs)',
+              color: 'var(--ax-text-subtle)',
+              marginBottom: 8,
+            }}
+          >
+            NOTIFICATION PREVIEW
+          </div>
+
+          <div
+            style={{
+              fontWeight: 'var(--ax-weight-semibold)',
+              color: 'var(--ax-text-strong)',
+              marginBottom: 6,
+            }}
+          >
+            {notificationTitle || 'Notification title'}
+          </div>
+
+          <p
+            style={{
+              fontSize: 'var(--ax-text-sm)',
+              color: 'var(--ax-text-muted)',
+              overflowWrap: 'anywhere',
+            }}
+          >
+            {notificationMessage || 'Your notification message will appear here.'}
+          </p>
+        </div>
+
+        <div>
+          <button
+            type="button"
+            className="ax-btn ax-btn--primary"
+            onClick={() => void createNotification()}
+            disabled={
+              creatingNotification ||
+              !notificationTitle.trim() ||
+              !notificationMessage.trim()
+            }
+          >
+            {creatingNotification ? 'Publishing...' : 'Publish Notification'}
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+)}
 
               {tab === 'billing' && (
                 <div role="tabpanel" aria-label="Billing settings" className="ax-stack" style={{ ['--ax-gap' as string]: 'var(--ax-space-6)' }}>
